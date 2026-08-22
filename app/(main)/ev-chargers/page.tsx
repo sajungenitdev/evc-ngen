@@ -1,8 +1,7 @@
 // app/(main)/ev-chargers/page.tsx
 'use client';
-export const dynamic = 'force-dynamic';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -19,7 +18,20 @@ import {
     ArrowRight
 } from 'lucide-react';
 
-export default function EVChargersPage() {
+// ✅ লোডিং কম্পোনেন্ট
+function LoadingFallback() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1b7936] mx-auto"></div>
+                <p className="text-gray-500 mt-4 text-sm">Loading chargers...</p>
+            </div>
+        </div>
+    );
+}
+
+// ✅ কন্টেন্ট কম্পোনেন্ট (Suspense এর ভিতরে)
+function EVChargersContent() {
     const searchParams = useSearchParams();
     const categoryParam = searchParams.get('category');
 
@@ -122,19 +134,19 @@ export default function EVChargersPage() {
                             className="w-full bg-[#f8f9fa] border border-gray-200 rounded-2xl px-5 py-3.5 pl-12 text-sm focus:outline-none focus:border-[#1b7936] transition-colors"
                         />
                         <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        {searchQuery && (
+                        {searchQuery ? (
                             <button
                                 onClick={clearSearch}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                             >
                                 <X className="w-5 h-5" />
                             </button>
-                        )}
+                        ) : null}
                     </div>
                 </div>
 
                 {/* ========================================== */}
-                {/* TABS NAVIGATION - NEW DESIGN                */}
+                {/* TABS NAVIGATION                            */}
                 {/* ========================================== */}
                 <div className="mb-10">
                     <div className="flex flex-wrap gap-1.5">
@@ -176,11 +188,11 @@ export default function EVChargersPage() {
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <p className="text-sm text-gray-600">
                         Showing <span className="font-extrabold text-[#071322]">{sortedProducts.length}</span> products
-                        {activeTab !== 'all' && (
+                        {activeTab !== 'all' ? (
                             <span className="text-gray-400 ml-1">
                                 in {tabs.find(t => t.id === activeTab)?.label}
                             </span>
-                        )}
+                        ) : null}
                     </p>
 
                     <div className="flex items-center gap-3">
@@ -211,7 +223,7 @@ export default function EVChargersPage() {
                                 ? `No results found for "${searchQuery}". Try adjusting your search.`
                                 : `No products available in ${tabs.find(t => t.id === activeTab)?.label}.`}
                         </p>
-                        {(searchQuery || activeTab !== 'all') && (
+                        {(searchQuery || activeTab !== 'all') ? (
                             <button
                                 onClick={() => {
                                     setSearchQuery('');
@@ -221,7 +233,7 @@ export default function EVChargersPage() {
                             >
                                 View All Products
                             </button>
-                        )}
+                        ) : null}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -330,5 +342,14 @@ export default function EVChargersPage() {
                 </div>
             </section>
         </div>
+    );
+}
+
+// ✅ মূল পেজ কম্পোনেন্ট (Suspense wrapper)
+export default function EVChargersPage() {
+    return (
+        <Suspense fallback={<LoadingFallback />}>
+            <EVChargersContent />
+        </Suspense>
     );
 }

@@ -1,9 +1,9 @@
-// app/(main)/ev-chargers/[id]/ProductDetailClient.tsx
+// app/(main)/ev-chargers/[id]/page.tsx
 'use client';
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, use } from 'react'; // ← use ইম্পোর্ট করুন
 import { productsList, brandsList, getRelatedProducts } from '@/lib/productsDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import {
@@ -28,30 +28,16 @@ import {
 import Image from 'next/image';
 import ProductImageGallery from '@/components/Products/ProductImageGallery';
 
-interface ProductDetailClientProps {
-    id: string;
+interface PageProps {
+    params: Promise<{ id: string }>; // ← Promise টাইপ যোগ করুন
 }
 
-export default function ProductDetailClient({ id }: ProductDetailClientProps) {
-    const [isMounted, setIsMounted] = useState(false);
+export default function ProductDetailPage({ params }: PageProps) {
     const [activeTab, setActiveTab] = useState('description');
-    
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
 
+    // ← React.use() দিয়ে params আনর‍্যাপ করুন
+    const { id } = use(params);
     const product = productsList.find((p) => p.id === id);
-
-    if (!isMounted) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1b7936] mx-auto"></div>
-                    <p className="text-gray-500 mt-4 text-sm">Loading product details...</p>
-                </div>
-            </div>
-        );
-    }
 
     if (!product) {
         notFound();
@@ -60,7 +46,8 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
     const brand = brandsList.find(b => b.id === product.brand);
     const relatedProducts = getRelatedProducts(product.id, 3);
 
-    // Generate multiple images for slider
+    // Generate multiple images for slider (using same image with different angles)
+    // In production, you would have different images from your data
     const productImages = product.galleryImages || [product.imageUrl];
 
     // Technical details mapping with icons
@@ -173,9 +160,9 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                                 </span>
                             </div>
 
-                            {/* Short Description */}
+                            {/* Description */}
                             <p className="text-gray-600 text-sm leading-relaxed">
-                                {product.shortDescription || product.description}
+                                {product.shortDescription}
                             </p>
 
                             {/* Key Specifications - Quick Overview */}
@@ -245,7 +232,7 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                     </div>
 
                     {/* ========================================== */}
-                    {/* TABS NAVIGATION                            */}
+                    {/* TABS NAVIGATION - সেকশন 2,3,4 এর পরিবর্তে   */}
                     {/* ========================================== */}
                     <div className="mt-16">
                         <div className="border-b border-gray-200 relative">
@@ -254,13 +241,13 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`pb-4 text-sm font-bold transition-colors relative whitespace-nowrap ${
-                                            activeTab === tab.id
-                                                ? 'text-[#1b7936]'
-                                                : 'text-gray-500 hover:text-[#071322]'
-                                        }`}
+                                        className={`pb-4 text-sm font-bold transition-colors relative whitespace-nowrap ${activeTab === tab.id
+                                            ? 'text-[#1b7936] '
+                                            : 'text-gray-500 hover:text-[#071322]'
+                                            }`}
                                     >
                                         {tab.label}
+                                        {/* Active bottom line indicator mapped absolutely */}
                                         {activeTab === tab.id && (
                                             <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1b7936] rounded-full"></span>
                                         )}
@@ -270,10 +257,13 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                         </div>
 
                         {/* Tab Content */}
+                        {/* ========================================== */}
+                        {/* TABS NAVIGATION                           */}
+                        {/* ========================================== */}
                         <div className="mt-8">
                             {/* Description Tab */}
                             {activeTab === 'description' && (
-                                <div>
+                                <div className="">
                                     <h3 className="text-2xl font-extrabold text-[#071322] tracking-tight mb-4">
                                         Product Description
                                     </h3>
@@ -336,7 +326,7 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                     </div>
 
                     {/* ========================================== */}
-                    {/* RELATED PRODUCTS                           */}
+                    {/* RELATED PRODUCTS - FIFTH SECTION            */}
                     {/* ========================================== */}
                     {relatedProducts.length > 0 ? (
                         <div className="mt-16 space-y-6 mb-20">
@@ -389,6 +379,7 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                             </div>
                         </div>
                     ) : (
+                        // যখন কোনো রিলেটেড প্রোডাক্ট নেই
                         <div className="mt-16 bg-[#f8f9fa] rounded-2xl p-8 text-center border border-gray-200">
                             <div className="text-4xl mb-3">🔌</div>
                             <h3 className="text-xl font-extrabold text-[#071322] mb-2">
