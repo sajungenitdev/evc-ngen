@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import { productsList, productCategories, brandsList, getProductPrice, getProductRating } from '@/lib/productsDb';
+import { productsList, getProductPrice, getProductRating } from '@/lib/productsDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import {
     Star,
