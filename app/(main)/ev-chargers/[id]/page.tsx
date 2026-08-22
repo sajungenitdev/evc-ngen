@@ -35,7 +35,7 @@ interface ProductDetailClientProps {
 export default function ProductDetailClient({ id }: ProductDetailClientProps) {
     const [isMounted, setIsMounted] = useState(false);
     const [activeTab, setActiveTab] = useState('description');
-
+    
     useEffect(() => {
         setIsMounted(true);
     }, []);
@@ -254,10 +254,11 @@ export default function ProductDetailClient({ id }: ProductDetailClientProps) {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`pb-4 text-sm font-bold transition-colors relative whitespace-nowrap ${activeTab === tab.id
+                                        className={`pb-4 text-sm font-bold transition-colors relative whitespace-nowrap ${
+                                            activeTab === tab.id
                                                 ? 'text-[#1b7936]'
                                                 : 'text-gray-500 hover:text-[#071322]'
-                                            }`}
+                                        }`}
                                     >
                                         {tab.label}
                                         {activeTab === tab.id && (

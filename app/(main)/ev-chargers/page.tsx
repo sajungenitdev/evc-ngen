@@ -1,4 +1,5 @@
 // app/(main)/ev-chargers/page.tsx
+export const dynamic = 'force-dynamic';
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
