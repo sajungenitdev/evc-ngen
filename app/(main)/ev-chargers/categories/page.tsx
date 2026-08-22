@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { productCategories, productsList } from '@/lib/productsDb';
+import { brandsList, productCategories, productsList } from '@/lib/productsDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import { Zap, Battery, Plug, Wrench, ArrowRight } from 'lucide-react';
 

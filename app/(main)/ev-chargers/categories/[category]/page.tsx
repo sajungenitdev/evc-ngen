@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { productsList, productCategories } from '@/lib/productsDb';
+import { productsList, productCategories, brandsList } from '@/lib/productsDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
 
 interface PageProps {
