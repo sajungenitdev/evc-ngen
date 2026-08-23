@@ -11,7 +11,7 @@ export const solutionsList = [
         title: 'Industrial Power Quality & Grid Security',
         subtitle: 'Advanced harmonic filtering, reactive power compensation, and active voltage regulation for industrial ecosystems.',
         overview: 'Maintaining optimal power quality is critical for modern industrial plants, commercial buildings, and high-capacity EV charging hubs to eliminate costly distortions and prevent equipment degradation.',
-        
+
         section1: {
             tabs: [
                 {
@@ -79,6 +79,7 @@ export const solutionsList = [
             title: "Advanced Grid Stabilization Packages",
             cards: [
                 {
+                    icon: "⚡",
                     title: "Automated Power Factor Correction",
                     description: "Dynamic capacitor and electronic hybrid switching to eliminate utility penalties and optimize distribution efficiency.",
                     actionText: "Request Grid Audit →",
@@ -86,6 +87,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "🛡️",
                     title: "Industrial Surge Protection Suite",
                     description: "Multi-stage transient voltage surge suppressors engineered to safeguard critical production systems against lightning and grid faults.",
                     actionText: "View Protection Units →",
@@ -191,6 +193,7 @@ export const solutionsList = [
             title: "Solar EV Charging & Smart Billing",
             cards: [
                 {
+                    icon: "☀️",
                     title: "Solar + Grid Hybrid EV Charging",
                     description: "Rooftop solar panel integration with grid backup, load management controller, and energy monitoring. Ideal for malls, hospitals, and green campuses.",
                     actionText: "Request Solar Feasibility →",
@@ -198,6 +201,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "💳",
                     title: "OCPP Smart Billing Platform",
                     description: "Cloud-based OCPP 1.6J / 2.0.1 management. QR code / RFID / mobile payment. Energy reports, tariff setting, user access control, and alerts.",
                     actionText: "Request Software Demo →",
@@ -300,6 +304,7 @@ export const solutionsList = [
             title: "Advanced BMS & Thermal Control",
             cards: [
                 {
+                    icon: "🔋",
                     title: "Cell-Level Safety & Monitoring",
                     description: "Advanced Battery Management Systems (BMS) tracking voltage, impedance, and internal cell temperatures continuously.",
                     actionText: "Read Safety Specs →",
@@ -307,6 +312,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "📦",
                     title: "Turnkey Container Integration",
                     description: "Pre-wired, fire-suppression equipped outdoor enclosures ready for rapid plug-and-play installation on site.",
                     actionText: "Request Quotation →",
@@ -409,6 +415,7 @@ export const solutionsList = [
             title: "Advanced Diagnostics & Safety Suites",
             cards: [
                 {
+                    icon: "♻️",
                     title: "Regenerative Energy Recovery",
                     description: "Recapture up to 92% of discharged battery energy back into the facility grid during high-volume testing cycles.",
                     actionText: "Learn about Recovery →",
@@ -416,6 +423,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "🔥",
                     title: "Automated Fire Suppression",
                     description: "Multi-layered safety protocols featuring rapid gas suppression and pressure relief venting for every test channel rack.",
                     actionText: "View Safety Standards →",
@@ -450,7 +458,7 @@ export const solutionsList = [
         title: 'Solar + Storage Hybrid Systems',
         subtitle: 'Seamless integration of rooftop solar panels, battery storage, and high-capacity EV chargers.',
         overview: 'Maximize green energy utilization by coupling on-site solar generation directly with stationary storage and EV fleet chargers.',
-        
+
         section1: {
             tabs: [
                 {
@@ -492,6 +500,7 @@ export const solutionsList = [
             title: "Sustainable Energy Solutions",
             cards: [
                 {
+                    icon: "🌱",
                     title: "Net-Zero Charging",
                     description: "Achieve net-zero emissions by combining solar generation with battery storage for 100% renewable EV charging.",
                     actionText: "Learn More →",
@@ -499,6 +508,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "💰",
                     title: "Energy Arbitrage",
                     description: "Store excess solar energy during peak generation and use it during high-tariff periods to maximize savings.",
                     actionText: "Calculate Savings →",
@@ -575,6 +585,7 @@ export const solutionsList = [
             title: "Critical Infrastructure Protection",
             cards: [
                 {
+                    icon: "⚡",
                     title: "24/7 Power Assurance",
                     description: "Guaranteed uptime for critical facilities with automatic failover and seamless grid-to-island transition.",
                     actionText: "Learn More →",
@@ -582,6 +593,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "🔄",
                     title: "Black Start Capability",
                     description: "Restart your entire facility from battery storage without grid connection, even after a complete blackout.",
                     actionText: "View Capabilities →",
@@ -658,6 +670,7 @@ export const solutionsList = [
             title: "Optimize Your Power Usage",
             cards: [
                 {
+                    icon: "⚖️",
                     title: "Avoid Grid Upgrades",
                     description: "Install more chargers than your electrical service would normally allow through intelligent load sharing.",
                     actionText: "Learn How →",
@@ -665,6 +678,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "🎯",
                     title: "Priority Charging",
                     description: "Set charging priorities for critical vehicles and ensure they always get power when needed.",
                     actionText: "View Features →",
@@ -741,6 +755,7 @@ export const solutionsList = [
             title: "Complete Network Control",
             cards: [
                 {
+                    icon: "📡",
                     title: "Remote Management",
                     description: "Monitor, control, and update all chargers from anywhere with full remote access and OTA firmware updates.",
                     actionText: "Learn More →",
@@ -748,6 +763,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "🔓",
                     title: "Open Standards",
                     description: "Built on OCPP 1.6J and 2.0.1 standards, ensuring compatibility with all major charger brands.",
                     actionText: "View Compatibility →",
@@ -824,6 +840,7 @@ export const solutionsList = [
             title: "Flexible Energy Solutions",
             cards: [
                 {
+                    icon: "🔄",
                     title: "Rapid Battery Exchange",
                     description: "Swap depleted batteries for fully charged units in under 3 minutes, minimizing vehicle downtime.",
                     actionText: "Learn More →",
@@ -831,6 +848,7 @@ export const solutionsList = [
                     theme: "dark"
                 },
                 {
+                    icon: "🔋",
                     title: "Battery Conditioning",
                     description: "Station automatically conditions swapped batteries for optimal performance and longevity.",
                     actionText: "View Technology →",

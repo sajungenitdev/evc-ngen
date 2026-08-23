@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useState, use } from 'react';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import { solutionsList } from '@/lib/solutionsDb';
-import { CheckCircle2, ArrowLeft, MessageSquare, Sun, FileText } from 'lucide-react';
+import { CheckCircle2, MessageSquare, } from 'lucide-react';
 
 interface PageProps {
     params: Promise<{ id: string }>;
@@ -95,7 +95,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                         </div>
                                     </div>
                                     {/* Left Side: Dynamic Image for Active Tab */}
-                                    <div className="lg:col-span-6 relative h-[360px] sm:h-[400px] rounded-xl overflow-hidden  bg-[#f8f9fa]">
+                                    <div className="lg:col-span-6 relative h-90 sm:h-100 rounded-xl overflow-hidden  bg-[#f8f9fa]">
                                         <Image
                                             src={solution.section1.tabs[activeTab].imageUrl}
                                             alt={solution.section1.tabs[activeTab].title}
@@ -130,7 +130,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                     className="bg-white border border-gray-200/80 rounded-xl p-4 sm:p-5 flex items-center gap-3 transition-all hover:shadow-md hover:-translate-y-0.5 group"
                                 >
                                     {/* Icon container */}
-                                    <span className="text-xl flex-shrink-0 flex items-center justify-center">
+                                    <span className="text-xl shrink-0 flex items-center justify-center">
                                         {useCase.icon}
                                     </span>
 
@@ -169,7 +169,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                         <div className="space-y-3">
                                             {/* Title with Inline Icon */}
                                             <div className="flex items-center gap-2.5">
-                                                <span className="text-xl flex-shrink-0">
+                                                <span className="text-xl shrink-0">
                                                     {card.icon || (card.theme === 'dark' ? '💥' : '📄')}
                                                 </span>
                                                 <h4 className="text-lg font-bold text-[#071322]">
@@ -207,7 +207,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {solution.features.map((feature, idx) => (
                                 <div key={idx} className="flex items-start gap-4 bg-white p-6 rounded-2xl border border-gray-200/60 shadow-xs">
-                                    <CheckCircle2 className="w-6 h-6 text-[#3ec06a] flex-shrink-0 mt-0.5" />
+                                    <CheckCircle2 className="w-6 h-6 text-[#3ec06a] shrink-0 mt-0.5" />
                                     <span className="text-gray-700 text-sm font-semibold leading-snug">
                                         {feature}
                                     </span>

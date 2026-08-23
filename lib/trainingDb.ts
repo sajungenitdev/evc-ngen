@@ -15,6 +15,7 @@ export interface TrainingProgram {
     price?: string;
     schedule?: string;
     prerequisites?: string[];
+    actionText?: string;
 }
 
 export interface TrainingEvent {
@@ -53,7 +54,8 @@ export const trainingPrograms: TrainingProgram[] = [
         prerequisites: [
             'Basic electrical knowledge',
             'Experience with power tools'
-        ]
+        ],
+        actionText: 'Apply Now →'
     },
     {
         id: 'technician-training',
@@ -79,7 +81,8 @@ export const trainingPrograms: TrainingProgram[] = [
         prerequisites: [
             'Installer Certification (recommended)',
             '1+ year electrical experience'
-        ]
+        ],
+        actionText: 'Register Now →'
     },
     {
         id: 'operator-training',
@@ -105,7 +108,8 @@ export const trainingPrograms: TrainingProgram[] = [
         prerequisites: [
             'Basic computer skills',
             'Familiarity with EV charging'
-        ]
+        ],
+        actionText: 'Enroll Today →'
     },
     {
         id: 'advanced-diagnostics',
@@ -131,7 +135,8 @@ export const trainingPrograms: TrainingProgram[] = [
         prerequisites: [
             'Technician Training Certification',
             '3+ years electrical experience'
-        ]
+        ],
+        actionText: 'Sign Up Now →'
     },
     {
         id: 'ocpp-platform-training',
@@ -157,7 +162,8 @@ export const trainingPrograms: TrainingProgram[] = [
         prerequisites: [
             'Basic networking knowledge',
             'Experience with IT systems'
-        ]
+        ],
+        actionText: 'Get Certified →'
     },
     {
         id: 'safety-certification',
@@ -183,7 +189,8 @@ export const trainingPrograms: TrainingProgram[] = [
         prerequisites: [
             'Basic safety awareness',
             'No prior certification required'
-        ]
+        ],
+        actionText: 'Book Now →'
     }
 ];
 

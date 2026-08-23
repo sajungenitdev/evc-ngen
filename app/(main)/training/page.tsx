@@ -3,23 +3,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { trainingPrograms, getUpcomingEvents } from '@/lib/trainingDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
-import {
-    ArrowRight,
-    Calendar,
-    Clock,
-    MapPin,
-    Users,
-    CheckCircle2,
-    GraduationCap,
-    Award,
-    Zap,
-    ShieldCheck,
-    Wrench,
-    MessageSquare
-} from 'lucide-react';
 
 export default function TrainingPage() {
     const [activeCategory, setActiveCategory] = useState('all');
@@ -123,7 +108,7 @@ export default function TrainingPage() {
                 {/* ========================================== */}
                 {/* CTA SECTION                               */}
                 {/* ========================================== */}
-                <div className="mt-20 bg-gradient-to-br from-[#0c1f38] to-[#1f7a3d] rounded-3xl p-12 text-center text-white">
+                <div className="mt-20 bg-linear-to-br from-ev-dark-blue to-ev-dark-green rounded-3xl p-12 text-center text-white">
                     <h2 className="text-3xl font-extrabold mb-4">
                         Need Custom Training?
                     </h2>
@@ -133,7 +118,7 @@ export default function TrainingPage() {
                     <div className="flex flex-wrap justify-center gap-4">
                         <Link
                             href="/contact"
-                            className="bg-white text-[#0c1f38] hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors"
+                            className="bg-white text-ev-dark-blue hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors"
                         >
                             Contact Training Team
                         </Link>

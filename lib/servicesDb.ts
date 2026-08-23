@@ -13,6 +13,7 @@ export interface Service {
     process?: string[];
     price?: string;
     duration?: string;
+    actionText?: string;
 }
 
 export const servicesList: Service[] = [
@@ -43,7 +44,8 @@ export const servicesList: Service[] = [
             'Final proposal and project plan'
         ],
         price: 'Free Consultation',
-        duration: '2-3 Days'
+        duration: '2-3 Days',
+        actionText: 'Book Consultation' 
     },
     {
         id: 'installation-commissioning',
@@ -71,7 +73,8 @@ export const servicesList: Service[] = [
             'Final commissioning and handover',
             'Operator training and documentation'
         ],
-        duration: '1-3 Days'
+        duration: '1-3 Days',
+        actionText: 'Schedule Installation'
     },
     {
         id: 'maintenance-om',
@@ -100,7 +103,8 @@ export const servicesList: Service[] = [
             'Detailed service reporting'
         ],
         price: 'Custom Pricing',
-        duration: 'Ongoing'
+        duration: 'Ongoing',
+        actionText: 'Request Maintenance'
     },
     {
         id: 'software-remote-support',
@@ -129,7 +133,8 @@ export const servicesList: Service[] = [
             'Continuous platform improvements'
         ],
         price: 'Subscription-based',
-        duration: 'Ongoing'
+        duration: 'Ongoing',
+        actionText: 'Learn More'
     },
     {
         id: 'training-certification',
@@ -158,7 +163,8 @@ export const servicesList: Service[] = [
             'Continuing education opportunities'
         ],
         price: 'Varies by Program',
-        duration: '1-3 Days'
+        duration: '1-3 Days',
+        actionText: 'View Programs'
     },
     {
         id: 'custom-solutions',
@@ -187,7 +193,8 @@ export const servicesList: Service[] = [
             'Ongoing support and optimization'
         ],
         price: 'Custom Pricing',
-        duration: 'Project-based'
+        duration: 'Project-based',
+         actionText: 'Get Quote'
     }
 ];
 
