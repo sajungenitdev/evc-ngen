@@ -47,7 +47,7 @@ export default function HeroSection() {
                 <div className="lg:col-span-5 bg-[#131d2e]/80 border border-gray-800/80 rounded-xl p-4 sm:p-5 space-y-3.5 shadow-xl">
                     {/* Card 1 */}
                     <Link
-                        href="/solutions?tab=ac"
+                        href="/ev-chargers?category=ac-chargers"
                         className="flex items-center gap-4 bg-[#1e293b]/70 hover:bg-[#1e293b] p-4 rounded-lg transition-colors border border-transparent hover:border-gray-700/50 group"
                     >
                         <div className="w-12 h-12 rounded-lg bg-[#22c55e] text-white flex items-center justify-center flex-shrink-0">
@@ -61,7 +61,7 @@ export default function HeroSection() {
 
                     {/* Card 2 */}
                     <Link
-                        href="/solutions?tab=dc"
+                        href="/ev-chargers?category=dc-chargers"
                         className="flex items-center gap-4 bg-[#1e293b]/70 hover:bg-[#1e293b] p-4 rounded-lg transition-colors border border-transparent hover:border-gray-700/50 group"
                     >
                         <div className="w-12 h-12 rounded-lg bg-[#22c55e] text-white flex items-center justify-center flex-shrink-0">
