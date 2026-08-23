@@ -87,6 +87,54 @@
 
 /* ChargingNeedsSection.module.css */
 
-.custom-tab-button{
+.custom-tab-button {
     padding: 0;
+}
+
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        opacity: 0.4;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.08);
+    }
+}
+
+@keyframes laserFlow {
+    0% {
+        stroke-dashoffset: 240;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.animate-laser {
+    stroke-dasharray: 60 180;
+    animation: laserFlow 2.5s linear infinite;
+}
+
+.animate-pulse-glow {
+    animation: pulseGlow 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+    animation: shimmer 2s infinite linear;
 }

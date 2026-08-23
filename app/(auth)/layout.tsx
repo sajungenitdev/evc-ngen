@@ -1,11 +1,14 @@
+// app/(auth)/layout.tsx
 import React from 'react';
 
-const layout = () => {
+export default function AuthLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
     return (
-        <div>
-           Layout
+        <div className="min-h-screen flex items-center justify-centerp-4" >
+            {children}
         </div>
     );
-};
-
-export default layout;
+}
