@@ -45,18 +45,18 @@ export default function ServicesPage() {
                 description="End-to-end EV charging services from site survey to ongoing maintenance and support."
             />
 
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 pb-24">
+            <section className="max-w-7xl mx-auto py-12 pb-24">
 
                 {/* Category Tabs */}
                 <div className="mb-10 overflow-x-auto">
-                    <div className="flex gap-2 border-b border-gray-200 pb-0.5 min-w-max">
+                    <div className="flex gap-2  pb-0.5 min-w-max">
                         {categories.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
-                                className={`px-5 py-2.5 text-sm font-bold rounded-full transition-all ${activeCategory === cat.id
-                                        ? 'bg-[#1b7936] text-white shadow-md'
-                                        : 'text-gray-500 hover:text-[#071322] hover:bg-gray-100'
+                                className={`px-5 py-2.5 cursor-pointer text-sm font-bold rounded-full transition-all ${activeCategory === cat.id
+                                    ? 'bg-[#1b7936] text-white shadow-md'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 {cat.label}
@@ -66,53 +66,40 @@ export default function ServicesPage() {
                 </div>
 
                 {/* Services Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredServices.map((service) => (
-                        <Link
+                        <div
                             key={service.id}
-                            href={service.link}
-                            className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                            className="bg-white border border-gray-200/80 rounded-xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-md transition-all"
                         >
-                            <div className={`${service.color} p-4 flex items-center justify-between`}>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-3xl">{service.icon}</span>
-                                    <div>
-                                        <div className="text-white/70 text-[10px] font-bold uppercase tracking-wider">
-                                            {service.badge}
-                                        </div>
-                                        <h3 className="text-white font-extrabold text-base">
-                                            {service.title}
-                                        </h3>
-                                    </div>
-                                </div>
-                                <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
-                            </div>
+                            <div className="space-y-3">
+                                {/* Category / Badge */}
+                                <span className="text-[#1b7936] text-xs font-bold uppercase tracking-wider block">
+                                    {service.badge}
+                                </span>
 
-                            <div className="p-5 space-y-3">
-                                <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                                {/* Title */}
+                                <h3 className="text-xl font-bold text-[#071322] leading-snug">
+                                    {service.title}
+                                </h3>
+
+                                {/* Details / Description */}
+                                <p className="text-gray-600 text-sm leading-relaxed">
                                     {service.details}
                                 </p>
-
-                                <div className="flex flex-wrap gap-3 text-xs">
-                                    {service.price && (
-                                        <div className="flex items-center gap-1 text-gray-500">
-                                            <Award className="w-3.5 h-3.5 text-[#1b7936]" />
-                                            {service.price}
-                                        </div>
-                                    )}
-                                    {service.duration && (
-                                        <div className="flex items-center gap-1 text-gray-500">
-                                            <Clock className="w-3.5 h-3.5 text-[#1b7936]" />
-                                            {service.duration}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="pt-2 text-[#1b7936] font-semibold text-sm group-hover:underline flex items-center gap-1">
-                                    Learn More <ArrowRight className="w-3.5 h-3.5" />
-                                </div>
                             </div>
-                        </Link>
+
+                            {/* Action Link */}
+                            <div>
+                                <Link
+                                    href={service.link}
+                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1b7936] hover:text-[#145a27] hover:underline transition-all"
+                                >
+                                    <span>{service.actionText || "Request a Service"}</span>
+                                    <span className="text-base">→</span>
+                                </Link>
+                            </div>
+                        </div>
                     ))}
                 </div>
 

@@ -57,7 +57,7 @@ export default function Header() {
             <div className="flex items-center justify-between gap-4 py-3 px-6 max-w-7xl mx-auto">
                 {/* Logo */}
                 <Link href="/" className="text-2xl font-extrabold tracking-tight whitespace-nowrap shrink-0">
-                    <span className="text-white">EV</span>
+                    <span className="text-white hover:text-ev-green">EV</span>
                     <span className="text-ev-green">NGEN</span>
                 </Link>
 

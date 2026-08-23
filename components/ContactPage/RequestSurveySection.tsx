@@ -5,6 +5,8 @@ import { Phone } from 'lucide-react';
 
 export default function RequestSurveySection() {
     const [activeTab, setActiveTab] = useState<'survey' | 'call'>('survey');
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -18,17 +20,18 @@ export default function RequestSurveySection() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log({ type: activeTab, ...formData });
+        console.log({ mode: activeTab, ...formData });
+        setIsSubmitted(true);
     };
 
     return (
         <section className="bg-white py-20 px-6 md:px-12 lg:px-20">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                    
+
                     {/* Left Column: Form (Span 7) */}
                     <div className="lg:col-span-7 bg-white rounded-3xl p-8 sm:p-10 form-box">
-                        <div className="mb-8">
+                        <div className="mb-6">
                             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#071322] tracking-tight mb-1">
                                 Tell Us About Your Site
                             </h2>
@@ -37,139 +40,166 @@ export default function RequestSurveySection() {
                             </p>
                         </div>
 
+                        {/* Success Message */}
+                        {isSubmitted && (
+                            <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200 text-[#1b7936] text-sm font-medium">
+                                Thanks — your request has been received. Our team will contact you to schedule.
+                            </div>
+                        )}
+
                         {/* Interactive Toggle Tabs */}
                         <div className="grid grid-cols-2 gap-4 mb-8">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('survey')}
-                                className={`py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs ${
-                                    activeTab === 'survey'
+                                className={`py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs ${activeTab === 'survey'
                                         ? 'border-2 border-[#1b7936] text-[#1b7936] bg-[#f0fdf4]'
                                         : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                                }`}
+                                    }`}
                             >
                                 Site Survey
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('call')}
-                                className={`py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs ${
-                                    activeTab === 'call'
+                                className={`py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs ${activeTab === 'call'
                                         ? 'border-2 border-[#1b7936] text-[#1b7936] bg-[#f0fdf4]'
                                         : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50'
-                                }`}
+                                    }`}
                             >
                                 Consultation Call
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Name & Phone Row */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-[#071322]">Name *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="Jane Doe"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-[#071322]">Phone *</label>
-                                    <input
-                                        type="tel"
-                                        required
-                                        placeholder="+1 555 000 0000"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Email & Company Row */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-[#071322]">Email *</label>
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="jane@company.com"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-[#071322]">Company</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Company name"
-                                        value={formData.company}
-                                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Site Address */}
+                            {/* Name Field */}
                             <div className="space-y-2">
-                                <label className="block text-xs font-bold text-[#071322]">Site Address</label>
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Name <span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     type="text"
-                                    placeholder="Street, city, state"
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                    name="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
                                 />
                             </div>
 
-                            {/* Number of Chargers & Preferred Date Row */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            {/* Phone Field */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Phone <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    required
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
+                                />
+                            </div>
+
+                            {/* Email Field */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Email <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
+                                />
+                            </div>
+
+                            {/* Company Field */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Company
+                                </label>
+                                <input
+                                    type="text"
+                                    name="company"
+                                    value={formData.company}
+                                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
+                                />
+                            </div>
+
+                            {/* Site Address Field (Conditional display for 'survey' mode) */}
+                            {activeTab === 'survey' && (
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-[#071322]">Number of Chargers Needed</label>
-                                    <select
-                                        value={formData.chargersCount}
-                                        onChange={(e) => setFormData({ ...formData, chargersCount: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] bg-white focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
-                                    >
-                                        <option value="1–2">1–2</option>
-                                        <option value="3–5">3–5</option>
-                                        <option value="6-10">6–10</option>
-                                        <option value="10+">10+</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-[#071322]">Preferred Date</label>
+                                    <label className="block text-xs font-bold text-[#071322]">
+                                        Site Address <span className="text-red-500">*</span>
+                                    </label>
                                     <input
-                                        type="date"
-                                        value={formData.preferredDate}
-                                        onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
+                                        type="text"
+                                        name="address"
+                                        required={activeTab === 'survey'}
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                         className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
                                     />
                                 </div>
+                            )}
+
+                            {/* Number of Chargers Needed Select */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Number of Chargers Needed
+                                </label>
+                                <select
+                                    name="qty"
+                                    value={formData.chargersCount}
+                                    onChange={(e) => setFormData({ ...formData, chargersCount: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] bg-white focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
+                                >
+                                    <option value="1–2">1–2</option>
+                                    <option value="3–10">3–10</option>
+                                    <option value="11–50">11–50</option>
+                                    <option value="50+">50+</option>
+                                </select>
                             </div>
 
-                            {/* Additional Details */}
+                            {/* Preferred Date Field */}
                             <div className="space-y-2">
-                                <label className="block text-xs font-bold text-[#071322]">Additional Details</label>
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Preferred Date
+                                </label>
+                                <input
+                                    type="date"
+                                    name="date"
+                                    value={formData.preferredDate}
+                                    onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
+                                />
+                            </div>
+
+                            {/* Additional Details Textarea */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-[#071322]">
+                                    Additional Details
+                                </label>
                                 <textarea
+                                    name="notes"
                                     rows={4}
-                                    placeholder="Tell us about the site, vehicle types, timeline..."
                                     value={formData.details}
                                     onChange={(e) => setFormData({ ...formData, details: e.target.value })}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-[#071322] focus:outline-none focus:ring-2 focus:ring-[#1b7936]"
                                 />
                             </div>
 
-                            {/* Submit Button */}
+                            {/* Dynamic Submit Button */}
                             <div>
                                 <button
                                     type="submit"
-                                    className="w-full bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm py-4 rounded-xl shadow-lg transition-colors"
+                                    id="survey-submit"
+                                    className="w-full bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm py-4 rounded-xl shadow-lg transition-colors cursor-pointer"
                                 >
                                     {activeTab === 'survey' ? 'Request Site Survey' : 'Request Consultation Call'}
                                 </button>
@@ -179,13 +209,13 @@ export default function RequestSurveySection() {
 
                     {/* Right Column: What to Expect & Prefer to Talk Now (Span 5) */}
                     <div className="lg:col-span-5 space-y-6">
-                        
+
                         {/* What to Expect Box */}
-                        <div className="bg-[#f8f9fa] border border-gray-100 rounded-3xl p-8  space-y-6">
+                        <div className="bg-[#f8f9fa] border border-gray-100 rounded-3xl p-8 space-y-6">
                             <h3 className="text-base sm:text-lg font-bold text-[#071322]">
                                 What to Expect
                             </h3>
-                            
+
                             <div className="space-y-5">
                                 {/* Step 1 */}
                                 <div className="flex items-start gap-4">
@@ -223,13 +253,15 @@ export default function RequestSurveySection() {
                         </div>
 
                         {/* Prefer to Talk Now Card */}
-                        <div className="bg-[#f8f9fa] border border-gray-100 rounded-3xl p-6 flex items-center gap-4 ">
+                        <div className="bg-[#f8f9fa] border border-gray-100 rounded-3xl p-6 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-[#1b7936] text-white flex items-center justify-center flex-shrink-0 shadow-md">
                                 <Phone className="w-5 h-5" />
                             </div>
                             <div>
                                 <div className="text-xs font-extrabold text-[#071322] tracking-wider uppercase mb-0.5">Prefer to talk now?</div>
-                                <div className="text-sm font-bold text-gray-700">Call +1 (800) 555-0199</div>
+                                <a href="tel:+18005550199" className="text-sm font-bold text-[#1b7936] hover:underline">
+                                    Call +1 (800) 555-0199
+                                </a>
                             </div>
                         </div>
 

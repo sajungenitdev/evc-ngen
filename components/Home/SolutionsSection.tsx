@@ -92,7 +92,7 @@ function SolutionCard({ item }: { item: SolutionItem }) {
 
             <div>
                 <Link
-                    href={item.link}
+                    href={`/solutions/${item.slug}`}
                     className="inline-flex items-center gap-2 border border-white/30 hover:border-[#3ec06a] hover:bg-white/10 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-full transition-all duration-200 group"
                 >
                     View More

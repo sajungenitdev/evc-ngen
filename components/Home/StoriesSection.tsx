@@ -37,7 +37,7 @@ export default function StoriesSection() {
                             {mainStory.quote}
                         </p>
                         <Link
-                            href={mainStory.link}
+                            href={"/about"}
                             className="inline-block text-[#3ec06a] hover:text-[#3ec06a]/80 font-bold text-sm sm:text-base transition-colors"
                         >
                             {mainStory.linkText}

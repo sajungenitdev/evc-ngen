@@ -5,14 +5,10 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { use } from 'react';
 import Image from 'next/image';
-import { trainingPrograms, getTrainingProgram, getEventsByProgram } from '@/lib/trainingDb';
+import { getTrainingProgram, getEventsByProgram } from '@/lib/trainingDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import {
-    ArrowLeft,
-    Calendar,
     Clock,
-    MapPin,
-    Users,
     CheckCircle2,
     GraduationCap,
     Award,
@@ -102,7 +98,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                         </div>
                     </div>
 
-                    <div className="relative h-[300px] lg:h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
+                    <div className="relative h-75 lg:h-100 rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
                         <Image
                             src={program.imageUrl}
                             alt={program.title}
@@ -123,7 +119,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {program.features.map((feature, idx) => (
                             <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
+                                <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center shrink-0">
                                     <CheckCircle2 className="w-4 h-4 text-[#1b7936]" />
                                 </div>
                                 <span className="text-gray-700 text-sm font-medium leading-snug">
@@ -145,7 +141,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                         <div className="space-y-2">
                             {program.prerequisites.map((prereq, idx) => (
                                 <div key={idx} className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-[#1b7936] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <div className="w-6 h-6 rounded-full bg-[#1b7936] flex items-center justify-center shrink-0 mt-0.5">
                                         <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                                     </div>
                                     <span className="text-gray-700 text-sm font-medium">
@@ -161,7 +157,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                 {/* ========================================== */}
                 {/* CONTACT SECTION                           */}
                 {/* ========================================== */}
-                <div className="bg-gradient-to-br from-[#0c1f38] to-[#1f7a3d] rounded-3xl p-12 text-center text-white">
+                <div className="bg-linear-to-br from-ev-dark-blue to-ev-dark-green rounded-3xl p-12 text-center text-white">
                     <h2 className="text-3xl font-extrabold mb-4">
                         Have Questions About This Program?
                     </h2>
@@ -171,21 +167,21 @@ export default function TrainingDetailPage({ params }: PageProps) {
                     <div className="flex flex-wrap justify-center gap-6">
                         <a
                             href="tel:+18005550199"
-                            className="flex items-center gap-2 text-white hover:text-[#3ec06a] transition-colors"
+                            className="flex items-center gap-2 text-white hover:text-ev-green transition-colors"
                         >
                             <Phone className="w-5 h-5" />
                             +1 (800) 555-0199
                         </a>
                         <a
                             href="mailto:training@evngen.com"
-                            className="flex items-center gap-2 text-white hover:text-[#3ec06a] transition-colors"
+                            className="flex items-center gap-2 text-white hover:text-ev-green transition-colors"
                         >
                             <Mail className="w-5 h-5" />
                             training@evngen.com
                         </a>
                         <Link
                             href="/contact"
-                            className="bg-white text-[#0c1f38] hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors"
+                            className="bg-white text-ev-dark-blue hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors"
                         >
                             Contact Training Team
                         </Link>

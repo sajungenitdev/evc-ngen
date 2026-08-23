@@ -11,7 +11,7 @@ export default function GoAnywhereSection() {
     const [searchQuery, setSearchQuery] = useState('');
 
     return (
-        <section className="bg-white py-24 px-6 md:px-12 lg:px-20 relative overflow-hidden">
+        <section className="bg-white py-24 pt-10 px-6 md:px-12 lg:px-20 relative overflow-hidden">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -51,7 +51,7 @@ export default function GoAnywhereSection() {
 
                     {/* Card 2: Download our App */}
                     <Link
-                        href={appCard.link}
+                        href={catalogCard.link}
                         className={`relative rounded-3xl p-8 sm:p-10 flex flex-col justify-between shadow-lg overflow-hidden min-h-[360px] ${appCard.bgClass} group transition-all duration-300 hover:-translate-y-1`}
                     >
                         <Image
@@ -65,8 +65,8 @@ export default function GoAnywhereSection() {
                                 {appCard.title}
                             </h3>
                         </div>
-                        <div className="relative z-10 text-white font-bold text-2xl group-hover:translate-x-2 transition-transform">
-                            {appCard.linkText}
+                        <div className="relative hover:text-green-600 z-10 text-white font-bold text-sm group-hover:translate-x-2 transition-transform">
+                            {catalogCard.link}
                         </div>
                     </Link>
 
@@ -86,8 +86,8 @@ export default function GoAnywhereSection() {
                                 {catalogCard.title}
                             </h3>
                         </div>
-                        <div className="relative z-10 text-white font-bold text-2xl group-hover:translate-x-2 transition-transform">
-                            {catalogCard.linkText}
+                        <div  className="relative hover:text-green-600 z-10 text-white font-bold text-sm group-hover:translate-x-2 transition-transform">
+                            {catalogCard.link}
                         </div>
                     </Link>
 

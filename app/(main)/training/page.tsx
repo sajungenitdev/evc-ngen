@@ -70,9 +70,9 @@ export default function TrainingPage() {
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
-                                className={`px-5 py-2.5 text-sm font-bold rounded-full transition-all ${activeCategory === cat.id
+                                className={` px-5 py-2.5 text-sm font-bold cursor-pointer rounded-full transition-all ${activeCategory === cat.id
                                     ? 'bg-[#1b7936] text-white shadow-md'
-                                    : 'text-gray-500 hover:text-[#071322] hover:bg-gray-100'
+                                    : 'text-gray-500 bg-[#e4e4e4] hover:text-[#071322] hover:bg-gray-100'
                                     }`}
                             >
                                 {cat.label}
@@ -84,75 +84,37 @@ export default function TrainingPage() {
                 {/* ========================================== */}
                 {/* TRAINING PROGRAMS GRID                    */}
                 {/* ========================================== */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredPrograms.map((program) => (
                         <div
                             key={program.id}
-                            className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group"
+                            className="bg-white border border-gray-200/80 rounded-xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-md transition-all"
                         >
-                            {/* Program Header with Icon */}
-                            <div className={`${program.color} p-6 flex items-center justify-between`}>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-4xl">{program.icon}</div>
-                                    <div>
-                                        <div className="text-white/80 text-xs font-bold uppercase tracking-wider">
-                                            {program.badge}
-                                        </div>
-                                        <h3 className="text-white font-extrabold text-xl leading-tight">
-                                            {program.title}
-                                        </h3>
-                                    </div>
-                                </div>
-                                <div className="text-white/50 group-hover:text-white transition-colors">
-                                    <ArrowRight className="w-6 h-6" />
-                                </div>
-                            </div>
+                            <div className="space-y-3">
+                                {/* Badge / Category */}
+                                <span className="text-[#1b7936] text-xs font-bold uppercase tracking-wider block">
+                                    {program.badge}
+                                </span>
 
-                            {/* Program Details */}
-                            <div className="p-6 space-y-4">
+                                {/* Title */}
+                                <h3 className="text-xl font-bold text-[#071322] leading-snug">
+                                    {program.title}
+                                </h3>
+
+                                {/* Description / Details */}
                                 <p className="text-gray-600 text-sm leading-relaxed">
                                     {program.details}
                                 </p>
+                            </div>
 
-                                {/* Program Info */}
-                                <div className="flex flex-wrap gap-4 text-xs">
-                                    <div className="flex items-center gap-1.5 text-gray-500">
-                                        <Clock className="w-4 h-4 text-[#1b7936]" />
-                                        {program.duration}
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-gray-500">
-                                        <GraduationCap className="w-4 h-4 text-[#1b7936]" />
-                                        {program.format}
-                                    </div>
-                                    {program.price && (
-                                        <div className="flex items-center gap-1.5 text-gray-500">
-                                            <Award className="w-4 h-4 text-[#1b7936]" />
-                                            {program.price}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Features Preview */}
-                                <div className="space-y-1.5">
-                                    {program.features.slice(0, 3).map((feature, idx) => (
-                                        <div key={idx} className="flex items-start gap-2 text-xs text-gray-600">
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-[#3ec06a] flex-shrink-0 mt-0.5" />
-                                            <span>{feature}</span>
-                                        </div>
-                                    ))}
-                                    {program.features.length > 3 && (
-                                        <div className="text-xs text-gray-400 ml-5">
-                                            +{program.features.length - 3} more
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Action Button */}
+                            {/* Action Link */}
+                            <div>
                                 <Link
                                     href={program.link}
-                                    className="block w-full text-center bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm py-3 rounded-xl transition-all"
+                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1b7936] hover:text-[#145a27] hover:underline transition-all"
                                 >
-                                    Apply for Certification →
+                                    <span>{program.actionText || "Apply for Certification"}</span>
+                                    <span className="text-base">→</span>
                                 </Link>
                             </div>
                         </div>

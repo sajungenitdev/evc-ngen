@@ -2,6 +2,7 @@ import IntroStatsSection from '@/components/About/IntroStatsSection';
 import NarrativeRowsSection from '@/components/About/NarrativeRowsSection';
 import PartnersSection from '@/components/About/PartnersSection';
 import TimelineSection from '@/components/About/TimelineSection';
+import StatsBar from '@/components/Home/StatsBar';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import { aboutPageData } from '@/lib/db';
 import React from 'react';
@@ -30,6 +31,7 @@ const Page = () => {
                 title="Engineering electric energy freedom"
                 description={header.description}
             />
+            <StatsBar/>
 
             {/* Top Intro & Stats Grid Section */}
             <IntroStatsSection

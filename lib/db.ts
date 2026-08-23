@@ -49,6 +49,7 @@ export const foundationData: {
 
 export interface SolutionItem {
     title: string;
+    slug: string;
     subtitle: string;
     description: string;
     link: string;
@@ -61,6 +62,7 @@ export const solutionsSectionData = {
     items: [
         {
             title: "Power Quality",
+            slug: "power-quality",
             subtitle: "Enhancing Energy Efficiency, Safeguarding Grid Security",
             description: "Comprehensive low-voltage power quality solutions that optimize electricity usage across industrial and commercial environments.",
             link: "/solutions",
@@ -68,6 +70,7 @@ export const solutionsSectionData = {
         },
         {
             title: "EV Charging",
+            slug: "ev-charging",
             subtitle: "Fast on Demand, Intelligently Efficient",
             description: "High-efficiency power modules and reliable charging systems spanning 7kW to 1,280kW for residential, commercial, and fleet use.",
             link: "/ev-chargers",
@@ -75,6 +78,7 @@ export const solutionsSectionData = {
         },
         {
             title: "Energy Storage",
+            slug: "energy-storage",
             subtitle: "Empowering Partners, Empowering Energy Freedom",
             description: "Modular storage solutions tailored for utility-scale, commercial & industrial, and microgrid applications.",
             link: "/about",
@@ -82,6 +86,7 @@ export const solutionsSectionData = {
         },
         {
             title: "Battery Testing",
+            slug: "battery-testing",
             subtitle: "Advanced Battery Test Solutions to Empower Green Energy",
             description: "Innovative, intelligent, safe, and reliable test & formation-grading solutions for world-class battery labs and production lines.",
             link: "/about",
@@ -261,6 +266,24 @@ export const chargingNeedsData = {
     ]
 };
 
+import {
+    Wrench,
+    ClipboardList,
+    Construction,
+    Wifi,
+    Headphones,
+    CreditCard,
+    ShieldCheck,
+    BarChart3,
+    LucideIcon
+} from 'lucide-react';
+
+export interface SetupStep {
+    title: string;
+    description: string;
+    icon: LucideIcon;
+}
+
 export const endToEndSetupData = {
     headingPart1: "End-to-End",
     headingPart2: "EV Charger Setup & Support",
@@ -268,27 +291,42 @@ export const endToEndSetupData = {
         {
             title: "Free Site Assessment",
             description: "End-to-end site planning to get your location deployment-ready.",
-            iconType: "wrench",
+            icon: Wrench,
         },
         {
             title: "Execution Plan & Pricing",
             description: "Hardware recommendations, pricing, and a full installation plan.",
-            iconType: "clipboard",
+            icon: ClipboardList,
         },
         {
             title: "Installation & Testing",
             description: "Certified technicians install and test for safety and compliance.",
-            iconType: "construction",
+            icon: Construction,
         },
         {
             title: "Onboarding & Activation",
             description: "KYC, platform onboarding, and activation with dashboard access.",
-            iconType: "wifi",
+            icon: Wifi,
         },
         {
             title: "24/7 Customer Support",
             description: "Our team is available around the clock for technical queries.",
-            iconType: "headset",
+            icon: Headphones,
+        },
+        {
+            title: "Software & Billing Integration",
+            description: "Configure custom pricing, payment gateways, and automated billing controls.",
+            icon: CreditCard,
+        },
+        {
+            title: "Preventative Maintenance",
+            description: "Routine hardware inspections and firmware updates to ensure maximum uptime.",
+            icon: ShieldCheck,
+        },
+        {
+            title: "Analytics & Fleet Reporting",
+            description: "Track energy consumption, revenue metrics, and overall charger utilization.",
+            icon: BarChart3,
         },
     ],
     ctaButton: {
@@ -443,13 +481,23 @@ export const aboutPageData = {
         title: "Who We Are",
         paragraph1: "Established as a pioneering provider of sustainable energy infrastructure solutions, EVNGEN specializes in advanced Electric Vehicle (EV) charging infrastructure, power quality, and energy storage systems.",
         paragraph2: "As a trusted leader in the green tech industry, we pride ourselves on delivering practical, future-proof engineering and software solutions that meet the evolving needs of commercial operators, fleets, and residential drivers.",
-        imageUrl: "/images/help/EV Charging_1.jpg",
+        imageUrl: "/images/help/who-we-are.webp",
+        highlights: [
+            "15+ years of power electronics and energy expertise",
+            "Full end-to-end OEM/ODM hardware customization",
+            "Certified chargers meeting international safety standards"
+        ],
     },
     mission: {
         title: "Our Mission",
         paragraph1: "As one of the most trusted EV charger providers and charge point operators (CPO), we are dedicated to delivering a seamless, end-to-end charging ecosystem.",
         paragraph2: "To accelerate green mobility, we operate a robust digital network and mobile platform, granting drivers instant access to reliable fast-charging stations across our growing infrastructure.",
-        imageUrl: "/images/help/EV Charging_1.jpg",
+        imageUrl: "/images/help/mission.webp",
+        highlights: [
+            "Seamless driver experience via OCCP-compliant cloud app",
+            "Robust, scalable infrastructure for commercial and municipal fleets",
+            "24/7 global support and real-time remote network monitoring"
+        ],
     },
     partners: [
         { name: "EcoDrive", logo: "/images/partners/ecodrive.webp" },
@@ -462,7 +510,6 @@ export const aboutPageData = {
         { name: "ChargePoint Inc.", logo: "/images/partners/chargepoint.png" },
         { name: "GreenMotion", logo: "/images/partners/greenmotion.png" },
     ],
-
     timeline: [
         {
             year: "2009",
@@ -495,5 +542,4 @@ export const aboutPageData = {
             description: "Introducing ultra-fast DC charging infrastructure and advanced dynamic load-balancing systems."
         }
     ]
-
 };
