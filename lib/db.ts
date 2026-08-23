@@ -142,7 +142,7 @@ export const helpSupportSectionData = {
         title: "Need help choosing a charger?",
         highlightText: "Talk to our team.",
         buttonText: "Call +1 (800) 555-0199",
-        phoneLink: "tel:18005550199",
+        phoneLink: "18005550199",
         imageUrl: "/images/help/need-help.jpg",
     },
     ticketCard: {
@@ -160,7 +160,7 @@ export const helpSupportSectionData = {
     reviewCard: {
         description: "Help us continue to improve our network",
         linkText: "Leave a Review →",
-        link: "/reviews",
+        link: "/contact",
         imageUrl: "/images/help/improve-our-network.jpg",
     },
     socialCard: {
@@ -181,21 +181,21 @@ export const evShopSectionData = {
         {
             title: "Chargers",
             buttonText: "Shop",
-            link: "/ev-chargers?filter=chargers",
+            link: "/ev-chargers?category=chargers",
             bgClass: "bg-gradient-to-br from-[#1b854a] to-[#125530]",
             imageUrl: "/images/help/charger.jpg",
         },
         {
             title: "Cables & Connectors",
             buttonText: "Shop",
-            link: "/ev-chargers?filter=cables",
+            link: "/ev-chargers?category=cables",
             bgClass: "bg-gradient-to-br from-[#176641] to-[#0a1c2e]",
             imageUrl: "/images/help/group-of-EV-charging-stations.jpg",
         },
         {
             title: "Accessories",
             buttonText: "Shop",
-            link: "/ev-chargers?filter=accessories",
+            link: "/ev-chargers?category=accessories",
             bgClass: "bg-gradient-to-br from-[#144a35] to-[#071322]",
             imageUrl: "/images/help/Accessories.jpg",
         },

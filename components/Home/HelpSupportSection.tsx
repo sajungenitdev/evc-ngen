@@ -39,12 +39,12 @@ export default function HelpSupportSection() {
                         </div>
 
                         <div className="relative z-10 pt-8">
-                            <a
-                                href={salesCard.phoneLink}
-                                className="inline-block bg-white text-[#071322] hover:bg-gray-100 font-bold text-sm px-6 py-3.5 rounded-xl transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                            <Link
+                                href={`/contact`}
+                                className="inline-block mt-4 bg-[#1b7936] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#155f2b] transition-colors"
                             >
                                 {salesCard.buttonText}
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -115,7 +115,7 @@ export default function HelpSupportSection() {
                         <div className="relative z-10">
                             <Link
                                 href={reviewCard.link}
-                                className="inline-flex items-center gap-1 text-white font-bold text-sm hover:translate-x-1 transition-transform drop-shadow-sm"
+                                className="inline-flex underline items-center gap-1 text-white font-bold text-sm hover:translate-x-1 transition-transform drop-shadow-sm"
                             >
                                 {reviewCard.linkText}
                             </Link>

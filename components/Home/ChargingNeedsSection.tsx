@@ -3,13 +3,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { chargingNeedsData } from '@/lib/db';
+import { productsList } from '@/lib/productsDb';
 
 export default function ChargingNeedsSection() {
     const [activeTab, setActiveTab] = useState<'ac' | 'dc'>('ac');
 
-    const filteredProducts = chargingNeedsData.products.filter(
-        (product) => product.category === activeTab
+    // Filter products from productsList by category
+    const filteredProducts = productsList.filter(
+        (product) => {
+            if (activeTab === 'ac') {
+                return product.category === 'ac-chargers';
+            } else {
+                return product.category === 'dc-chargers';
+            }
+        }
     );
 
     return (
@@ -17,18 +24,20 @@ export default function ChargingNeedsSection() {
             <div className="max-w-7xl mx-auto text-center">
                 {/* Heading */}
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#071322] tracking-tight mb-8">
-                    {chargingNeedsData.heading}
+                    For All Your Charging Needs
                 </h2>
 
                 {/* Tab Switcher with smooth transitions */}
                 <div className="flex justify-center mb-16">
-                    <div className="inline-flex bg-[#edf2f7] rounded-full border border-gray-300 relative">
-                        {chargingNeedsData.tabs.map((tab, index) => {
+                    <div className="inline-flex bg-[#edf2f7] rounded-full border border-gray-300 relative p-0.5">
+                        {[
+                            { id: 'ac', label: 'AC CHARGER' },
+                            { id: 'dc', label: 'DC CHARGER' }
+                        ].map((tab, index) => {
                             const isActive = activeTab === tab.id;
                             const isFirst = index === 0;
-                            const isLast = index === chargingNeedsData.tabs.length - 1;
+                            const isLast = index === 1;
 
-                            // Determine border radius based on active state and position
                             let borderRadius = 'rounded-full';
                             if (isActive) {
                                 if (isFirst) {
@@ -37,7 +46,6 @@ export default function ChargingNeedsSection() {
                                     borderRadius = 'rounded-r-full rounded-l-none';
                                 }
                             } else {
-                                // For inactive buttons, make them fully rounded but with smooth transition
                                 borderRadius = 'rounded-full';
                             }
 
@@ -57,38 +65,40 @@ export default function ChargingNeedsSection() {
                     </div>
                 </div>
 
-                {/* Products Grid */}
-                <div className="flex flex-wrap justify-center gap-8 items-stretch">
+                {/* Products Grid - Shows filtered products from productsList */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     {filteredProducts.map((product) => (
                         <div
                             key={product.id}
-                            className="bg-white rounded-2xl border border-gray-300 flex flex-col items-center justify-between text-center overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl w-full md:w-[calc(33.333%-1.33rem)] max-w-sm"
+                            className="bg-white rounded-2xl border border-gray-200 flex flex-col justify-between text-center overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
                         >
                             {/* Product Image Area */}
-                            <div className="relative w-full h-64 bg-[#eef2f6] flex items-center justify-center p-6">
+                            <div className="relative w-full h-56 bg-[#eef2f6] flex items-center justify-center p-6">
                                 <Image
-                                    src={product.image}
-                                    alt={product.title}
+                                    src={product.imageUrl}
+                                    alt={product.name}
                                     fill
-                                    className="object-cover "
+                                    className="object-cover"
                                 />
                             </div>
 
                             {/* Content Area */}
-                            <div className="p-8 sm:p-10 flex flex-col flex-grow justify-between space-y-6 w-full">
-                                <div className="space-y-3">
-                                    <h3 className="text-md sm:text-md font-bold text-[#071322] tracking-tight">
-                                        {product.title}
+                            <div className="p-6 sm:p-8 flex flex-col grow justify-between space-y-4">
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-bold text-[#071322] tracking-tight">
+                                        {product.name}
                                     </h3>
-                                    <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
-                                        {product.description}
+                                    <p className="text-gray-600 text-sm leading-relaxed">
+                                        {product.shortDescription.length > 50
+                                            ? `${product.shortDescription.slice(0, 80)}...`
+                                            : product.shortDescription}
                                     </p>
                                 </div>
 
                                 <div>
                                     <Link
-                                        href={product.link}
-                                        className="inline-block border border-[#071322] hover:bg-[#071322] hover:text-white text-[#071322] font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl transition-all duration-200 shadow-xs"
+                                        href={`/ev-chargers/${product.id}`}
+                                        className="inline-block border border-[#071322] hover:bg-[#071322] hover:text-white text-[#071322] font-bold text-sm px-6 py-2.5 rounded-xl transition-all duration-200"
                                     >
                                         View Details
                                     </Link>
@@ -97,6 +107,13 @@ export default function ChargingNeedsSection() {
                         </div>
                     ))}
                 </div>
+
+                {/* Show message if no products found */}
+                {filteredProducts.length === 0 && (
+                    <div className="text-center py-12">
+                        <p className="text-gray-500 text-lg">No {activeTab.toUpperCase()} chargers available.</p>
+                    </div>
+                )}
             </div>
         </section>
     );
