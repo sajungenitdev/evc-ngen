@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { menuItems, MenuItem } from './menu';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -16,7 +17,9 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onToggle, isMobile, onClose }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
+    const { logout, user } = useAuth();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const isActive = (href: string) => {
         return pathname === href || pathname?.startsWith(href + '/');
@@ -30,13 +33,21 @@ export default function Sidebar({ isOpen, onToggle, isMobile, onClose }: Sidebar
         );
     };
 
-    const handleLogout = () => {
-        // Clear any auth tokens or user data
-        // localStorage.removeItem('token');
-        // sessionStorage.removeItem('user');
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
 
-        // Redirect to login page
-        router.push('/login');
+        setIsLoggingOut(true);
+        try {
+            // Call logout from AuthContext - this clears localStorage and state
+            await logout();
+            // Router push is handled inside logout function
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Fallback - force redirect
+            router.push('/login');
+        } finally {
+            setIsLoggingOut(false);
+        }
     };
 
     const renderMenuItem = (item: MenuItem, level: number = 0) => {
@@ -155,6 +166,21 @@ export default function Sidebar({ isOpen, onToggle, isMobile, onClose }: Sidebar
                 </div>
             </div>
 
+            {/* User Info (when open) */}
+            {isOpen && user && (
+                <div className="px-4 py-3 border-b border-white/10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
+                            {user.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium truncate">{user.name}</p>
+                            <p className="text-white/40 text-xs truncate">{user.email}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Navigation */}
             <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto overflow-x-hidden">
                 {menuItems.map(item => renderMenuItem(item))}
@@ -164,18 +190,35 @@ export default function Sidebar({ isOpen, onToggle, isMobile, onClose }: Sidebar
             <div className="p-3 border-t border-white/10">
                 <button
                     onClick={handleLogout}
+                    disabled={isLoggingOut}
                     className={`
-                        w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors group relative
+                        w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 group relative
+                        ${isLoggingOut
+                            ? 'text-white/30 cursor-not-allowed'
+                            : 'text-white/40 hover:text-red-400 hover:bg-red-500/10 cursor-pointer'
+                        }
                         ${!isOpen && 'justify-center'}
                     `}
                     title={!isOpen ? 'Logout' : ''}
                 >
-                    <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    {isOpen && <span className="text-sm font-medium">Logout</span>}
+                    {isLoggingOut ? (
+                        <>
+                            <svg className="w-5 h-5 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            {isOpen && <span className="text-sm font-medium">Logging out...</span>}
+                        </>
+                    ) : (
+                        <>
+                            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            {isOpen && <span className="text-sm font-medium">Logout</span>}
+                        </>
+                    )}
 
-                    {!isOpen && !isMobile && (
+                    {!isOpen && !isMobile && !isLoggingOut && (
                         <span className="fixed left-20 ml-2 px-2.5 py-1.5 bg-slate-900 border border-white/10 text-white text-xs rounded-md shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap">
                             Logout
                         </span>

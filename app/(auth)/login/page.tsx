@@ -1,10 +1,12 @@
+// app/(auth)/login/page.tsx
 'use client';
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; // ← Fix: Import from next/navigation
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
-// --- Dedicated Charging Graphic Component (Isolates 50ms re-renders) ---
+// --- Charging Visual Component ---
 const ChargingVisual = memo(function ChargingVisual() {
     const [batteryLevel, setBatteryLevel] = useState(68);
     const [powerOutput, setPowerOutput] = useState(148.4);
@@ -20,11 +22,9 @@ const ChargingVisual = memo(function ChargingVisual() {
 
     return (
         <div className="hidden md:flex w-1/2 flex-col justify-between p-10 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-emerald-950/40 relative overflow-hidden border-l border-white/5">
-            {/* Background Ambient Aura */}
             <div className="absolute -right-20 -top-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Top Telemetry Header */}
             <div className="flex items-center justify-between text-xs font-mono tracking-wider text-emerald-400/80 z-10">
                 <div className="flex items-center gap-2 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20 backdrop-blur-md">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -33,7 +33,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                 <span className="text-slate-400">BAY #04-B</span>
             </div>
 
-            {/* Center EV Holographic Graphic */}
             <div className="my-auto relative flex flex-col items-center justify-center py-6">
                 <svg
                     className="w-full max-w-sm h-48 drop-shadow-[0_0_25px_rgba(16,185,129,0.25)]"
@@ -41,7 +40,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                 >
-                    {/* Futuristic Car Wireframe */}
                     <path
                         d="M 50 130 C 70 130, 85 105, 110 105 L 260 105 C 290 105, 310 130, 350 130"
                         stroke="rgba(255,255,255,0.15)"
@@ -60,14 +58,10 @@ const ChargingVisual = memo(function ChargingVisual() {
                         stroke="rgba(52, 211, 153, 0.3)"
                         strokeWidth="1"
                     />
-
-                    {/* Wheels */}
                     <circle cx="110" cy="130" r="20" stroke="#34d399" strokeWidth="2" fill="#0b1329" />
                     <circle cx="110" cy="130" r="8" fill="#34d399" className="animate-pulse" />
                     <circle cx="290" cy="130" r="20" stroke="#34d399" strokeWidth="2" fill="#0b1329" />
                     <circle cx="290" cy="130" r="8" fill="#34d399" className="animate-pulse" />
-
-                    {/* Dynamic Laser Energy Flow Cable */}
                     <path
                         d="M 380 160 L 320 160 C 300 160, 305 130, 290 130"
                         stroke="rgba(52, 211, 153, 0.2)"
@@ -81,8 +75,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                         fill="none"
                         className="animate-laser"
                     />
-
-                    {/* Gradients */}
                     <defs>
                         <linearGradient id="carGradient" x1="60" y1="65" x2="345" y2="130" gradientUnits="userSpaceOnUse">
                             <stop stopColor="#10b981" stopOpacity="0.2" />
@@ -91,7 +83,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                     </defs>
                 </svg>
 
-                {/* Live Power Output Badges */}
                 <div className="grid grid-cols-2 gap-3 w-full max-w-xs mt-2">
                     <div className="bg-slate-950/40 border border-white/5 p-2.5 rounded-xl backdrop-blur-sm text-center">
                         <div className="text-[11px] uppercase tracking-wider text-slate-400">Power Delivery</div>
@@ -104,7 +95,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                 </div>
             </div>
 
-            {/* Battery State Bar */}
             <div className="space-y-2 z-10 bg-slate-950/50 p-4 rounded-2xl border border-white/5 backdrop-blur-md">
                 <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-300 font-medium flex items-center gap-1.5">
@@ -113,7 +103,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                     </span>
                     <span className="text-emerald-400 font-mono font-bold text-sm">{batteryLevel}%</span>
                 </div>
-
                 <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden p-[1px] border border-white/10">
                     <div
                         className="h-full bg-gradient-to-r from-emerald-500 to-teal-300 rounded-full relative transition-all duration-150"
@@ -122,7 +111,6 @@ const ChargingVisual = memo(function ChargingVisual() {
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer" />
                     </div>
                 </div>
-
                 <div className="flex justify-between text-[10px] text-slate-500 font-mono">
                     <span>Target: 80% (Optimized)</span>
                     <span>~12 mins remaining</span>
@@ -132,22 +120,83 @@ const ChargingVisual = memo(function ChargingVisual() {
     );
 });
 
-// --- Main Login Page Component ---
+// --- Main Login Page ---
 export default function LoginPage() {
-    const router = useRouter(); // ← Fix: Use useRouter hook
+    const router = useRouter();
+    const { login, isLoading: authLoading, isAuthenticated, user } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
+    const hasRedirected = useRef(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Check if already authenticated on mount
+    useEffect(() => {
+        // Simple check - if token exists in localStorage, redirect
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+
+        if (token && userData && !hasRedirected.current) {
+            console.log('✅ Token found, redirecting to dashboard...');
+            hasRedirected.current = true;
+            setIsRedirecting(true);
+            router.replace('/dashboard');
+        }
+    }, [router]);
+
+    // Redirect if auth state says authenticated
+    useEffect(() => {
+        if (isAuthenticated && user && !hasRedirected.current) {
+            console.log('✅ Auth state says authenticated, redirecting...');
+            hasRedirected.current = true;
+            setIsRedirecting(true);
+            router.replace('/dashboard');
+        }
+    }, [isAuthenticated, user, router]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
         setIsLoading(true);
-        setTimeout(() => {
+
+        try {
+            console.log('🔐 Attempting login for:', email);
+
+            const result = await login({ email, password });
+            console.log('📦 Login result:', result);
+
+            if (result.success) {
+                console.log('✅ Login successful! Redirecting to dashboard...');
+                hasRedirected.current = true;
+                setIsRedirecting(true);
+                router.replace('/dashboard');
+            } else {
+                console.error('❌ Login failed:', result.error);
+                setError(result.error || 'Invalid email or password. Please try again.');
+                setIsLoading(false);
+            }
+        } catch (err) {
+            console.error('❌ Unexpected error:', err);
+            setError('An unexpected error occurred. Please try again.');
             setIsLoading(false);
-            router.push('/dashboard'); // ← Now works correctly
-        }, 2000);
+        }
     };
+
+    // Show loading/redirecting state
+    if (isRedirecting || (isAuthenticated && user)) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#060b13]">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-emerald-400 font-medium">Redirecting to dashboard...</p>
+                    <p className="text-slate-500 text-sm mt-2">Please wait</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#060b13] p-4 relative overflow-hidden selection:bg-emerald-500 selection:text-white">
@@ -190,6 +239,14 @@ export default function LoginPage() {
                             <h2 className="text-white text-2xl font-bold tracking-tight">Welcome back</h2>
                             <p className="text-slate-400 text-sm mt-1">Authenticate to manage fleet charging operations</p>
                         </div>
+
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
+                                <span>⚠️</span>
+                                {error}
+                            </div>
+                        )}
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -259,9 +316,11 @@ export default function LoginPage() {
                                 <label className="flex items-center gap-2 text-slate-400 hover:text-slate-300 cursor-pointer select-none">
                                     <input
                                         type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
                                         className="w-4 h-4 rounded bg-slate-950/40 border-white/10 text-emerald-500 focus:ring-0 focus:ring-offset-0 accent-emerald-500"
                                     />
-                                    <span>Trust this device</span>
+                                    <span>Remember me</span>
                                 </label>
                                 <Link
                                     href="/forgot-password"
@@ -274,7 +333,7 @@ export default function LoginPage() {
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                disabled={isLoading}
+                                disabled={isLoading || authLoading}
                                 className="w-full mt-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold py-3.5 rounded-xl transition-all duration-200 relative overflow-hidden shadow-lg shadow-emerald-500/20 active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-2">
@@ -295,6 +354,7 @@ export default function LoginPage() {
                                         </>
                                     )}
                                 </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                             </button>
                         </form>
 
