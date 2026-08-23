@@ -66,7 +66,7 @@ export default function GoAnywhereSection() {
                             </h3>
                         </div>
                         <div className="relative hover:text-green-600 z-10 text-white font-bold text-sm group-hover:translate-x-2 transition-transform">
-                            {catalogCard.link}
+                            Get It Now ➔
                         </div>
                     </Link>
 
@@ -87,7 +87,7 @@ export default function GoAnywhereSection() {
                             </h3>
                         </div>
                         <div  className="relative hover:text-green-600 z-10 text-white font-bold text-sm group-hover:translate-x-2 transition-transform">
-                            {catalogCard.link}
+                            Check It Now ➔
                         </div>
                     </Link>
 
