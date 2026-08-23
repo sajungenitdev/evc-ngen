@@ -25,11 +25,40 @@ export interface Product {
     };
 }
 
-export const brandsList = [
-    { id: 'all', name: 'All Brands' },
-    { id: 'evngen', name: 'EVNGEN Pro' },
-    { id: 'gridpower', name: 'GridPower Industrial' },
-    { id: 'ecocharge', name: 'EcoCharge Home' }
+// Add Brand interface
+export interface Brand {
+    id: string;
+    name: string;
+    description?: string;
+    icon?: string;
+}
+
+// Update brandsList with proper structure
+export const brandsList: Brand[] = [
+    {
+        id: 'all',
+        name: 'All Brands',
+        description: 'View all EV charging brands',
+        icon: '🏷️'
+    },
+    {
+        id: 'evngen',
+        name: 'EVNGEN Pro',
+        description: 'Premium EV charging solutions',
+        icon: '⚡'
+    },
+    {
+        id: 'gridpower',
+        name: 'GridPower Industrial',
+        description: 'Industrial-grade DC fast charging',
+        icon: '🏭'
+    },
+    {
+        id: 'ecocharge',
+        name: 'EcoCharge Home',
+        description: 'Affordable and eco-friendly',
+        icon: '🏠'
+    }
 ];
 
 export const productCategories = [

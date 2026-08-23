@@ -210,6 +210,7 @@ export interface ChargerProduct {
     link: string;
 }
 
+
 export const chargingNeedsData = {
     heading: "For All Your Charging Needs",
     tabs: [
@@ -223,6 +224,7 @@ export const chargingNeedsData = {
             description: "7.6–22kW AC wallbox with 3.0\" LCD for home & light commercial use.",
             category: 'ac' as const,
             link: "/ev-chargers/basic-ev-charger",
+            image: "/images/help/Accessories.jpg",
         },
         {
             id: '2',
@@ -230,6 +232,7 @@ export const chargingNeedsData = {
             description: "Smart-managed AC charging with dynamic load balancing.",
             category: 'ac' as const,
             link: "/ev-chargers/ocpp-charging-station",
+            image: "/images/help/Accessories.jpg",
         },
         {
             id: '3',
@@ -237,6 +240,7 @@ export const chargingNeedsData = {
             description: "Charge two vehicles from one unit with app-based scheduling.",
             category: 'ac' as const,
             link: "/ev-chargers/dual-port-wallbox",
+            image: "/images/help/Accessories.jpg",
         },
         {
             id: '4',
@@ -244,6 +248,7 @@ export const chargingNeedsData = {
             description: "60kW–180kW fast-charging power station for highway and fleet applications.",
             category: 'dc' as const,
             link: "/ev-chargers/commercial-dc-charger",
+            image: "/images/help/Accessories.jpg",
         },
         {
             id: '5',
@@ -251,10 +256,10 @@ export const chargingNeedsData = {
             description: "High-output DC charging solutions ranging up to 360kW+ for heavy-duty commercial deployment.",
             category: 'dc' as const,
             link: "/ev-chargers/ultra-fast-dc-hub",
+            image: "/images/help/Accessories.jpg",
         },
     ]
 };
-
 
 export const endToEndSetupData = {
     headingPart1: "End-to-End",

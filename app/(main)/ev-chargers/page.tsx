@@ -41,7 +41,7 @@ function EVChargersContent() {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('featured');
-
+    console.log(productsList, "categoryParam")
     // ==========================================
     // EFFECT - URL থেকে ক্যাটাগরি সেট করুন
     // ==========================================
@@ -243,7 +243,7 @@ function EVChargersContent() {
                             return (
                                 <div
                                     key={product.id}
-                                    className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
+                                    className="bg-white border border-gray-200/100 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
                                 >
                                     {/* Product Thumbnail */}
                                     <Link href={`/ev-chargers/${product.id}`} className="block relative h-52 overflow-hidden bg-[#f8f9fa]">
@@ -289,7 +289,7 @@ function EVChargersContent() {
                                         <div className="space-y-1.5 pt-1">
                                             {product.specs.slice(0, 2).map((spec, idx) => (
                                                 <div key={idx} className="flex items-start gap-2 text-xs text-gray-600 font-medium">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-[#3ec06a] mt-1.5 flex-shrink-0"></span>
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-ev-green mt-1.5 shrink-0"></span>
                                                     <span className="line-clamp-1">{spec}</span>
                                                 </div>
                                             ))}
@@ -298,10 +298,13 @@ function EVChargersContent() {
                                         {/* Action Button */}
                                         <Link
                                             href={`/ev-chargers/${product.id}`}
-                                            className="block w-full text-center bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm py-3 rounded-xl transition-all"
+                                            className="block w-full text-center bg-ev-green hover:bg-[#155f2b] text-white font-bold text-sm py-3 rounded-xl transition-all"
                                         >
-                                            View Details
+                                            Send Inquiry Now
                                         </Link>
+                                        <div className="text-center">
+                                            <Link href={`/brands/${product.brand}`} className="text-xs text-gray-400 hover:text-green-600 hover:underline">Brand <span className="capitalize">{product.brand}</span></Link>
+                                        </div>
                                     </div>
                                 </div>
                             );
@@ -345,7 +348,6 @@ function EVChargersContent() {
     );
 }
 
-// ✅ মূল পেজ কম্পোনেন্ট (Suspense wrapper)
 export default function EVChargersPage() {
     return (
         <Suspense fallback={<LoadingFallback />}>

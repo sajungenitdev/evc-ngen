@@ -16,6 +16,7 @@ export default function IndustriesPage() {
         industry.desc.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    console.log(filteredIndustries, "filteredIndustries")
     return (
         <div className="bg-white min-h-screen">
             <PageHeader
@@ -28,7 +29,7 @@ export default function IndustriesPage() {
                 description="From fuel retail to fleet logistics, we provide tailored EV charging solutions for every industry."
             />
 
-            <section className="max-w-7xl mx-auto px-6 md:px-12 py-12 pb-24">
+            <section className="max-w-7xl mx-auto py-12 pb-24">
 
                 {/* Search Bar */}
                 <div className="mb-10 max-w-2xl mx-auto">
@@ -62,7 +63,7 @@ export default function IndustriesPage() {
                                         fill
                                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c1f38]/60 to-transparent"></div>
+                                    <div className="absolute inset-0 bg-linear-to-t from-ev-dark-blue/60 to-transparent"></div>
                                     <div className="absolute bottom-4 left-4 text-white text-3xl">
                                         {icon}
                                     </div>
@@ -70,10 +71,13 @@ export default function IndustriesPage() {
 
                                 {/* Content */}
                                 <div className="p-5">
-                                    <h3 className="text-lg font-extrabold text-[#071322] group-hover:text-[#1b7936] transition-colors">
+                                    <h3 className="text-lg font-extrabold text-ev-dark-green group-hover:text-[#1b7936] transition-colors">
                                         {industry.label}
                                     </h3>
-                                    <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+                                    <p className="text-sm font-semibold text-[#071322] mt-1 leading-relaxed">
+                                        {industry.subtitle}
+                                    </p>
+                                    <p className="text-gray-500 text-xs mt-2 leading-relaxed">
                                         {industry.desc}
                                     </p>
                                     <div className="mt-3 flex items-center text-[#1b7936] font-semibold text-sm group-hover:gap-2 transition-all">
@@ -96,18 +100,9 @@ export default function IndustriesPage() {
                     </div>
                 )}
 
-                {/* Stats */}
-                <div className="mt-20 bg-[#f8f9fa] rounded-3xl p-8 text-center border border-gray-200">
-                    <h3 className="text-2xl font-extrabold text-[#071322]">
-                        {industriesList.length}+ Industries Served
-                    </h3>
-                    <p className="text-gray-500 text-sm mt-2 max-w-2xl mx-auto">
-                        We provide tailored EV charging solutions for diverse industries, helping organizations transition to sustainable transportation.
-                    </p>
-                </div>
 
                 {/* CTA */}
-                <div className="mt-12 bg-gradient-to-br from-[#0c1f38] to-[#1f7a3d] rounded-3xl p-12 text-center text-white">
+                <div className="mt-20 bg-linear-to-br from-ev-dark-blue to-ev-dark-green rounded-3xl p-12 text-center text-white">
                     <h2 className="text-3xl font-extrabold mb-4">
                         Don't See Your Industry?
                     </h2>
@@ -116,7 +111,7 @@ export default function IndustriesPage() {
                     </p>
                     <Link
                         href="/contact"
-                        className="bg-white text-[#0c1f38] hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors inline-block"
+                        className="bg-white text-ev-dark-blue hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors inline-block"
                     >
                         Contact Our Team
                     </Link>

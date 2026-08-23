@@ -29,7 +29,7 @@ export const industriesList: Industry[] = [
         slug: 'oil-gas-fuel-retail',
         desc: 'Add EV bays to existing forecourts',
         icon: '⛽',
-        imageUrl: '/images/industries/oil-gas.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging Solutions for Oil & Gas Retailers',
         subtitle: 'Transform your fuel retail locations into modern energy hubs with EV charging infrastructure.',
         overview: 'As the transportation sector transitions to electric vehicles, fuel retailers have a unique opportunity to diversify their revenue streams and future-proof their businesses. Our EV charging solutions are designed to seamlessly integrate with existing forecourts, allowing you to add EV bays without disrupting your current operations.',
@@ -54,7 +54,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Global Fuel Retailer Adds EV Charging to 200+ Sites',
             description: 'A leading fuel retailer deployed EVNGEN DC fast chargers across 200+ locations, increasing foot traffic by 25% and generating new revenue streams.',
-            imageUrl: '/images/case-studies/fuel-retail.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/fuel-retail'
         },
         features: [
@@ -70,7 +70,7 @@ export const industriesList: Industry[] = [
         slug: 'condominiums-residential',
         desc: 'Retrofit garages, share existing power',
         icon: '🏢',
-        imageUrl: '/images/industries/residential.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Condominiums & Residential Buildings',
         subtitle: 'Enable EV charging for residents without expensive electrical upgrades.',
         overview: 'Residential buildings face unique challenges when it comes to EV charging. Limited electrical capacity, shared parking facilities, and the need for fair cost allocation make it essential to have intelligent charging solutions. Our systems are designed to share existing power capacity efficiently.',
@@ -95,7 +95,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Luxury Condo Installs 40 EV Charging Bays',
             description: 'A luxury condominium in California installed 40 EV charging bays with dynamic load balancing, enabling all residents to charge without a full electrical upgrade.',
-            imageUrl: '/images/case-studies/condo.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/condo-charging'
         },
         features: [
@@ -111,7 +111,7 @@ export const industriesList: Industry[] = [
         slug: 'government-offices',
         desc: 'Public-sector & municipal fleets',
         icon: '🏛️',
-        imageUrl: '/images/industries/government.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Government & Municipal Facilities',
         subtitle: 'Lead by example with sustainable EV charging infrastructure for public fleets and employees.',
         overview: 'Government agencies and municipalities are at the forefront of the EV transition. Our solutions support public fleets, employee charging, and public-facing EV infrastructure that demonstrates commitment to sustainability.',
@@ -136,7 +136,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'City Government Electrifies Municipal Fleet',
             description: 'A major city government deployed 100+ EV charging stations for its municipal fleet, reducing emissions and operating costs while setting an example for the community.',
-            imageUrl: '/images/case-studies/government.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/municipal-fleet'
         },
         features: [
@@ -152,7 +152,7 @@ export const industriesList: Industry[] = [
         slug: 'shopping-malls-retail',
         desc: 'Attract shoppers, bill tenants separately',
         icon: '🛒',
-        imageUrl: '/images/industries/retail.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Shopping Malls & Retail Centers',
         subtitle: 'Attract EV-driving shoppers and create new revenue opportunities with retail charging.',
         overview: 'Shopping malls and retail centers are ideal locations for EV charging. Our solutions help you attract EV-driving customers, increase dwell time, and create new revenue streams through charging fees and tenant billing.',
@@ -177,7 +177,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Regional Mall Deploys 20 EV Charging Stations',
             description: 'A regional shopping mall installed 20 EV charging stations, increasing foot traffic by 15% and generating significant new revenue.',
-            imageUrl: '/images/case-studies/mall.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/mall-charging'
         },
         features: [
@@ -193,7 +193,7 @@ export const industriesList: Industry[] = [
         slug: 'fleet-logistics',
         desc: 'Depots, warehouses, transit',
         icon: '🚚',
-        imageUrl: '/images/industries/fleet.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Fleet & Logistics Operations',
         subtitle: 'Electrify your fleet with reliable, high-power charging solutions for depots and warehouses.',
         overview: 'Fleet electrification is accelerating across all vehicle classes. Our solutions are designed for the unique demands of fleet operations, including overnight depot charging, opportunity charging, and integration with fleet management systems.',
@@ -218,7 +218,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Logistics Company Electrifies 50-Truck Fleet',
             description: 'A major logistics company deployed 50 EV charging stations at its depot, enabling overnight charging for a 50-truck electric fleet.',
-            imageUrl: '/images/case-studies/fleet.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/logistics-fleet'
         },
         features: [
@@ -234,7 +234,7 @@ export const industriesList: Industry[] = [
         slug: 'hospitality-hotels',
         desc: 'Guest charging as an amenity',
         icon: '🏨',
-        imageUrl: '/images/industries/hospitality.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Hotels & Hospitality',
         subtitle: 'Enhance guest experience with convenient EV charging as a premium amenity.',
         overview: 'EV charging has become an expected amenity for hotels and hospitality venues. Our solutions help you attract EV-driving guests, enhance their experience, and generate additional revenue through charging fees.',
@@ -259,7 +259,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Luxury Hotel Adds EV Charging as Premium Amenity',
             description: 'A luxury hotel chain installed EV charging stations at all properties, attracting environmentally conscious guests and generating new revenue.',
-            imageUrl: '/images/case-studies/hotel.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/hotel-charging'
         },
         features: [
@@ -275,7 +275,7 @@ export const industriesList: Industry[] = [
         slug: 'workplace-corporate',
         desc: 'Employee & visitor charging',
         icon: '💼',
-        imageUrl: '/images/industries/workplace.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Workplace & Corporate Campuses',
         subtitle: 'Support employee EV adoption and demonstrate sustainability commitment.',
         overview: 'Workplace charging is one of the most important drivers of EV adoption. Our solutions help companies support their employees transition to EVs, reduce their carbon footprint, and demonstrate sustainability leadership.',
@@ -300,7 +300,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Tech Company Installs 200 EV Charging Stations',
             description: 'A leading tech company installed 200 EV charging stations at its headquarters, supporting employee EV adoption and demonstrating sustainability leadership.',
-            imageUrl: '/images/case-studies/workplace.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/workplace-charging'
         },
         features: [
@@ -316,7 +316,7 @@ export const industriesList: Industry[] = [
         slug: 'education-universities',
         desc: 'Campus-wide charging infrastructure',
         icon: '🎓',
-        imageUrl: '/images/industries/education.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Universities & Educational Institutions',
         subtitle: 'Build a sustainable campus with comprehensive EV charging infrastructure.',
         overview: 'Universities and educational institutions are ideal locations for EV charging, serving students, faculty, staff, and visitors. Our solutions help campuses build comprehensive charging infrastructure that supports sustainability goals.',
@@ -341,7 +341,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'University Deploys 100 EV Charging Stations',
             description: 'A major university installed 100 EV charging stations across campus, supporting student and faculty EV adoption and achieving sustainability goals.',
-            imageUrl: '/images/case-studies/university.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/university-charging'
         },
         features: [
@@ -357,7 +357,7 @@ export const industriesList: Industry[] = [
         slug: 'highway-transit-hubs',
         desc: 'High-power corridor charging',
         icon: '🛣️',
-        imageUrl: '/images/industries/highway.jpg',
+        imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
         title: 'EV Charging for Highways & Transit Hubs',
         subtitle: 'Enable long-distance EV travel with high-power corridor charging infrastructure.',
         overview: 'Highway corridors and transit hubs are critical for enabling long-distance EV travel. Our solutions are designed for high-power, high-reliability charging that keeps vehicles moving and supports growing EV adoption.',
@@ -382,7 +382,7 @@ export const industriesList: Industry[] = [
         caseStudy: {
             title: 'Highway Corridor Installs 50 Fast Chargers',
             description: 'A major highway corridor installed 50 DC fast chargers, enabling long-distance EV travel and supporting growing EV adoption.',
-            imageUrl: '/images/case-studies/highway.jpg',
+            imageUrl: '/images/industries/green_EV_charger_and_car_smart_city_Adobe_rt.jpg',
             link: '/case-studies/highway-charging'
         },
         features: [

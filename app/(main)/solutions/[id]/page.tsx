@@ -35,7 +35,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                 description={solution.subtitle}
             />
 
-            <section className="py-20 px-6 md:px-12 lg:px-20 bg-[#f5f6f8]">
+            <section className="py-20 px-6 md:px-12 lg:px-20 bg-white">
                 <div className="max-w-7xl mx-auto space-y-24">
                     {/* Overview & Technology */}
                     <div className="mb-8">
@@ -71,17 +71,6 @@ export default function SolutionDetailPage({ params }: PageProps) {
                             {/* Active Tab Content Area */}
                             <div className="max-w-7xl mx-auto">
                                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-
-                                    {/* Left Side: Dynamic Image for Active Tab */}
-                                    <div className="lg:col-span-6 relative h-[360px] sm:h-[400px] rounded-xl overflow-hidden  bg-[#f8f9fa]">
-                                        <Image
-                                            src={solution.section1.tabs[activeTab].imageUrl}
-                                            alt={solution.section1.tabs[activeTab].title}
-                                            fill
-                                            className="object-cover transition-opacity duration-500"
-                                        />
-                                    </div>
-
                                     {/* Right Side: Content */}
                                     <div className="lg:col-span-6 space-y-6">
                                         <span className="text-[#1b7936] text-xs font-extrabold uppercase tracking-widest">
@@ -105,6 +94,15 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                             ))}
                                         </div>
                                     </div>
+                                    {/* Left Side: Dynamic Image for Active Tab */}
+                                    <div className="lg:col-span-6 relative h-[360px] sm:h-[400px] rounded-xl overflow-hidden  bg-[#f8f9fa]">
+                                        <Image
+                                            src={solution.section1.tabs[activeTab].imageUrl}
+                                            alt={solution.section1.tabs[activeTab].title}
+                                            fill
+                                            className="object-cover transition-opacity duration-500"
+                                        />
+                                    </div>
 
                                 </div>
                             </div>
@@ -114,50 +112,35 @@ export default function SolutionDetailPage({ params }: PageProps) {
             </section>
             {/* SECTION 2: Charging Solutions for Electric Vehicles */}
             {solution.section2 && (
-                <div className="bg-[#0c1f38] overflow-hidden  mt-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+                <div className="bg-[#f3f6f9] py-16 px-4 sm:px-8">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Optional Title (Remove if not needed) */}
+                        {solution.section2.title && (
+                            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 text-center mb-8 capitalize">
+                                {solution.section2.title}
+                            </h3>
+                        )}
 
-                        {/* Left Side: Full-Height Image Container */}
-                        <div className="lg:col-span-5 relative min-h-[360px] lg:min-h-full bg-[#0c1f38]">
-                            <Image
-                                src={solution.section2.imageUrl}
-                                alt={solution.section2.title}
-                                fill
-                                className="object-cover opacity-90"
-                            />
+                        {/* Grid Layout matching the image */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            {solution.section2.useCases.map((useCase, idx) => (
+                                <Link
+                                    key={idx}
+                                    href={useCase.link}
+                                    className="bg-white border border-gray-200/80 rounded-xl p-4 sm:p-5 flex items-center gap-3 transition-all hover:shadow-md hover:-translate-y-0.5 group"
+                                >
+                                    {/* Icon container */}
+                                    <span className="text-xl flex-shrink-0 flex items-center justify-center">
+                                        {useCase.icon}
+                                    </span>
+
+                                    {/* Label */}
+                                    <span className="text-sm sm:text-base font-bold text-slate-800 capitalize leading-tight">
+                                        {useCase.label}
+                                    </span>
+                                </Link>
+                            ))}
                         </div>
-
-                        {/* Right Side: Section Title & Grid */}
-                        <div className="lg:col-span-7 py-24 px-14 flex flex-col justify-center">
-                            <div>
-                                <h3 className="text-2xl text-center capitalize sm:text-3xl font-extrabold tracking-tight text-white">
-                                    {solution.section2.title}
-                                </h3>
-                            </div>
-
-                            <div className="grid grid-cols-2 mt-10 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                                {solution.section2.useCases.map((useCase, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={useCase.link}
-                                        className="bg-[#0c1f38] capitalize border border-white/10 hover:border-[#3ec06a]/50 rounded-sm p-5 flex flex-col items-center text-center gap-3 group transition-all hover:-translate-y-1 relative overflow-hidden"
-                                    >
-                                        {/* Icon / Image container */}
-                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 text-lg">
-                                            <span>{useCase.icon}</span>
-                                        </div>
-
-                                        <span className="text-xs font-bold text-gray-200 group-hover:text-[#3ec06a] transition-colors">
-                                            {useCase.label}
-                                        </span>
-
-                                        {/* Green Bottom Indicator Line */}
-                                        <div className="w-full h-1 bg-[#3ec06a] rounded-full mt-auto"></div>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-
                     </div>
                 </div>
             )}
@@ -165,37 +148,49 @@ export default function SolutionDetailPage({ params }: PageProps) {
                 <div className="max-w-7xl mx-auto space-y-24">
                     {/* SECTION 3: Solar & Smart Billing Cards */}
                     {solution.section3 && (
-                        <div className="space-y-10">
+                        <div className="space-y-6">
+                            {/* Section Header */}
                             <div className="space-y-2">
-                                <span className="text-[#1b7936] text-xs font-extrabold uppercase tracking-widest">
+                                <span className="text-[#1b7936] text-xs font-bold uppercase tracking-wider">
                                     {solution.section3.badge}
                                 </span>
                                 <h3 className="text-3xl font-extrabold text-[#071322] tracking-tight">
                                     {solution.section3.title}
                                 </h3>
                             </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                            {/* Cards Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {solution.section3.cards.map((card, idx) => (
                                     <div
                                         key={idx}
-                                        className={`rounded-3xl p-8 sm:p-12 flex flex-col justify-between space-y-8 ${card.theme === 'dark'
-                                            ? 'bg-[#123a2b] text-white'
-                                            : 'bg-[#4c8f74] text-white'
-                                            }`}
+                                        className="bg-white border border-gray-200/80 rounded-xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xs hover:shadow-md transition-shadow"
                                     >
-                                        <div className="space-y-4">
-                                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
-                                                {card.theme === 'dark' ? <Sun className="w-6 h-6 text-[#3ec06a]" /> : <FileText className="w-6 h-6 text-white" />}
+                                        <div className="space-y-3">
+                                            {/* Title with Inline Icon */}
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-xl flex-shrink-0">
+                                                    {card.icon || (card.theme === 'dark' ? '💥' : '📄')}
+                                                </span>
+                                                <h4 className="text-lg font-bold text-[#071322]">
+                                                    {card.title}
+                                                </h4>
                                             </div>
-                                            <h4 className="text-2xl font-extrabold tracking-tight">{card.title}</h4>
-                                            <p className="text-gray-200 text-sm leading-relaxed">{card.description}</p>
+
+                                            {/* Description */}
+                                            <p className="text-gray-600 text-sm leading-relaxed">
+                                                {card.description}
+                                            </p>
                                         </div>
+
+                                        {/* Action Link */}
                                         <div>
                                             <Link
                                                 href={card.actionLink}
-                                                className="inline-flex items-center gap-2 text-sm font-extrabold text-[#3ec06a] hover:text-white transition-colors"
+                                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1b7936] hover:text-[#145a27] hover:underline transition-all"
                                             >
-                                                {card.actionText}
+                                                <span>{card.actionText}</span>
+                                                <span className="text-base">→</span>
                                             </Link>
                                         </div>
                                     </div>
