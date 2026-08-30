@@ -138,3 +138,112 @@
 .animate-shimmer {
     animation: shimmer 2s infinite linear;
 }
+
+
+/* app/globals.css - Add at the bottom */
+
+.rich-text-content {
+    width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.rich-text-content p {
+    margin-bottom: 0.75rem;
+    line-height: 1.7;
+}
+
+.rich-text-content ul,
+.rich-text-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.rich-text-content li {
+    margin-bottom: 0.25rem;
+}
+
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3,
+.rich-text-content h4 {
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: #071322;
+}
+
+.rich-text-content h1 { font-size: 1.5rem; }
+.rich-text-content h2 { font-size: 1.25rem; }
+.rich-text-content h3 { font-size: 1.125rem; }
+.rich-text-content h4 { font-size: 1rem; }
+
+.rich-text-content a {
+    color: #1b7936;
+    text-decoration: underline;
+}
+
+.rich-text-content a:hover {
+    color: #145a27;
+}
+
+.rich-text-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.rich-text-content blockquote {
+    border-left: 4px solid #1b7936;
+    padding-left: 1rem;
+    margin: 0.75rem 0;
+    color: #4b5563;
+    font-style: italic;
+}
+
+.rich-text-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+}
+
+.rich-text-content table th,
+.rich-text-content table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.rich-text-content table th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+}
+
+.rich-text-content code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+}
+
+.rich-text-content pre {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+}
+
+.rich-text-content iframe {
+    max-width: 100%;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.rich-text-content hr {
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+    margin: 1.5rem 0;
+}
