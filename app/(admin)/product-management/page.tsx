@@ -75,7 +75,10 @@ interface ApiResponse<T> {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // ============================================================================
-// Product Thumbnail Component
+// Product Thumbnail Component - UPDATED
+// ============================================================================
+// ============================================================================
+// Product Thumbnail Component - UPDATED
 // ============================================================================
 
 interface ProductThumbnailProps {
@@ -94,6 +97,11 @@ const ProductThumbnail: React.FC<ProductThumbnailProps> = ({
     const fullUrl = useMemo(() => {
         if (!imageUrl || imageUrl.trim() === '') return null;
         const trimmed = imageUrl.trim();
+
+        // ✅ If it's a data URL (base64), return it as is (don't prepend server URL)
+        if (trimmed.startsWith('data:image')) {
+            return trimmed;
+        }
 
         if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
             return trimmed;
@@ -123,7 +131,10 @@ const ProductThumbnail: React.FC<ProductThumbnailProps> = ({
             src={fullUrl}
             alt={name}
             className={`w-full h-full object-cover ${className}`}
-            onError={() => setHasError(true)}
+            onError={() => {
+                console.error('❌ Image failed to load:', fullUrl);
+                setHasError(true);
+            }}
             loading="lazy"
         />
     );
@@ -299,53 +310,98 @@ export default function ProductsPage() {
     };
 
     const handleUpdateProduct = async (data: ProductFormData) => {
-    if (!token || !selectedProduct) return;
+        if (!token || !selectedProduct) return;
 
-    setIsSubmitting(true);
-    const toastId = toast.loading('Updating product...');
+        setIsSubmitting(true);
+        const toastId = toast.loading('Updating product...');
 
-    try {
-        // Convert ProductFormData to FormData for the API
-        const formData = new FormData();
-        
-        // Append all fields from data to formData
-        Object.entries(data).forEach(([key, value]) => {
-            if (value instanceof File) {
-                formData.append(key, value);
-            } else if (value !== null && value !== undefined) {
-                formData.append(key, String(value));
+        try {
+            const productId = selectedProduct.id || selectedProduct._id;
+            const formData = new FormData();
+
+            // ✅ Basic fields
+            formData.append('name', data.name);
+            formData.append('model', data.model);
+            formData.append('brand', data.brand);
+            formData.append('category', data.category);
+            formData.append('categoryLabel', data.categoryLabel || '');
+            formData.append('price', String(data.price));
+            formData.append('rating', String(data.rating || 0));
+            formData.append('stock', String(data.stock || 0));
+            formData.append('isActive', String(data.isActive));
+            formData.append('shortDescription', data.shortDescription || '');
+            formData.append('description', data.description || '');
+
+            // ✅ Arrays as JSON strings
+            formData.append('specs', JSON.stringify(data.specs || []));
+            formData.append('features', JSON.stringify(data.features || []));
+            formData.append('galleryImages', JSON.stringify(data.galleryImages || []));
+
+            // ✅ technicalDetails as JSON string
+            formData.append('technicalDetails', JSON.stringify({
+                powerOutput: data.technicalDetails.powerOutput.trim(),
+                inputVoltage: data.technicalDetails.inputVoltage.trim(),
+                connectorType: data.technicalDetails.connectorType.trim(),
+                enclosureRating: data.technicalDetails.enclosureRating.trim(),
+                warranty: data.technicalDetails.warranty.trim(),
+                dimensions: data.technicalDetails.dimensions.trim(),
+                weight: data.technicalDetails.weight.trim(),
+            }));
+
+            // ✅ FIX: Handle image upload properly
+            if (data.imageUrl) {
+                // Check if it's a base64 data URL (newly uploaded image)
+                if (data.imageUrl.startsWith('data:image')) {
+                    // Convert base64 to File
+                    const file = dataURLtoFile(data.imageUrl, 'product-image.jpg');
+                    formData.append('image', file);  // Send as 'image' field
+                } else {
+                    // It's already a path/URL, send as is
+                    formData.append('imageUrl', data.imageUrl);
+                }
             }
-        });
 
-        const productId = selectedProduct.id || selectedProduct._id;
-        const response = await apiCall<Product>(`/products/${productId}`, {
-            method: 'PUT',
-            body: formData,
-        });
+            const response = await apiCall<Product>(`/products/${productId}`, {
+                method: 'PUT',
+                body: formData,
+            });
 
-        if (response.success && response.data) {
-            const updated = response.data;
-            setProducts((prev) =>
-                prev.map((p) =>
-                    (p._id && p._id === selectedProduct._id) || (p.id && p.id === selectedProduct.id)
-                        ? updated
-                        : p
-                )
-            );
-            setIsEditModalOpen(false);
-            setSelectedProduct(null);
-            toast.success('Product updated successfully!', { id: toastId });
-            await fetchInitialData();
-        } else {
-            toast.error(response?.message || 'Failed to update product', { id: toastId });
+            if (response.success && response.data) {
+                const updated = response.data;
+                setProducts((prev) =>
+                    prev.map((p) =>
+                        (p._id && p._id === selectedProduct._id) || (p.id && p.id === selectedProduct.id)
+                            ? updated
+                            : p
+                    )
+                );
+                setIsEditModalOpen(false);
+                setSelectedProduct(null);
+                toast.success('Product updated successfully!', { id: toastId });
+                await fetchInitialData();
+            } else {
+                toast.error(response?.message || 'Failed to update product', { id: toastId });
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
+            toast.error(errorMessage, { id: toastId });
+        } finally {
+            setIsSubmitting(false);
         }
-    } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
-        toast.error(errorMessage, { id: toastId });
-    } finally {
-        setIsSubmitting(false);
+    };
+
+    // ✅ Helper function to convert base64 to File
+    function dataURLtoFile(dataURL: string, filename: string): File {
+        const arr = dataURL.split(',');
+        const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
     }
-};
 
     const handleDeleteProduct = async () => {
         if (!token || !selectedProduct) return;
@@ -662,6 +718,8 @@ export default function ProductsPage() {
                                                     <ProductThumbnail
                                                         imageUrl={product.imageUrl}
                                                         name={product.name}
+                                                        // ✅ Add a key that changes when image updates
+                                                        key={`${product._id || product.id}-${product.imageUrl}`}
                                                     />
                                                 </div>
                                                 <div className="min-w-0">
@@ -692,10 +750,10 @@ export default function ProductsPage() {
                                         <td className="px-6 py-3.5 font-mono whitespace-nowrap">
                                             <span
                                                 className={`font-semibold ${product.stock > 10
-                                                        ? 'text-emerald-600'
-                                                        : product.stock > 0
-                                                            ? 'text-amber-600'
-                                                            : 'text-rose-600'
+                                                    ? 'text-emerald-600'
+                                                    : product.stock > 0
+                                                        ? 'text-amber-600'
+                                                        : 'text-rose-600'
                                                     }`}
                                             >
                                                 {product.stock || 0}
@@ -706,8 +764,8 @@ export default function ProductsPage() {
                                         <td className="px-6 py-3.5 whitespace-nowrap">
                                             <span
                                                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${product.isActive
-                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                    : 'bg-slate-100 text-slate-500 border-slate-200'
                                                     }`}
                                             >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${product.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -748,8 +806,8 @@ export default function ProductsPage() {
                                                 <button
                                                     onClick={() => handleToggleStatus(product)}
                                                     className={`p-1.5 rounded-lg transition ${product.isActive
-                                                            ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
-                                                            : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
+                                                        ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                                                        : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
                                                         }`}
                                                     title={product.isActive ? 'Deactivate Product' : 'Activate Product'}
                                                 >
