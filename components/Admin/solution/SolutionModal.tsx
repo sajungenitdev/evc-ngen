@@ -295,28 +295,28 @@ export default function SolutionModal({
         []
     );
 
-    const updateSection1 = useCallback((field: keyof Section1, value: unknown) => {
+    const updateSection1 = useCallback(<K extends keyof Section1,>(field: K, value: Section1[K]) => {
         setFormData((prev) => ({
             ...prev,
-            section1: { tabs: prev.section1?.tabs || [], [field]: value },
+            section1: { ...(prev.section1 || { tabs: [] }), [field]: value },
         }));
     }, []);
 
-    const updateSection2 = useCallback((field: keyof Section2, value: unknown) => {
+    const updateSection2 = useCallback(<K extends keyof Section2,>(field: K, value: Section2[K]) => {
         setFormData((prev) => ({
             ...prev,
-            section2: { useCases: prev.section2?.useCases || [], [field]: value },
+            section2: { ...(prev.section2 || { useCases: [] }), [field]: value },
         }));
     }, []);
 
-    const updateSection3 = useCallback((field: keyof Section3, value: unknown) => {
+    const updateSection3 = useCallback(<K extends keyof Section3,>(field: K, value: Section3[K]) => {
         setFormData((prev) => ({
             ...prev,
-            section3: { cards: prev.section3?.cards || [], [field]: value },
+            section3: { ...(prev.section3 || { cards: [] }), [field]: value },
         }));
     }, []);
 
-    const updateSection4 = useCallback((field: keyof Section4, value: unknown) => {
+    const updateSection4 = useCallback(<K extends keyof Section4,>(field: K, value: Section4[K]) => {
         setFormData((prev) => ({
             ...prev,
             section4: { ...prev.section4, [field]: value },
