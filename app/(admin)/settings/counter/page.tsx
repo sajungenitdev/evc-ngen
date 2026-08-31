@@ -1,12 +1,12 @@
 // app/(admin)/stats/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { statsAPI, StatsData, StatItem } from '@/lib/api/stats';
 import { Loader2, Save, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export default function StatsAdminPage(): JSX.Element {
+export default function StatsAdminPage() {  // ✅ Remove : JSX.Element
     const [statsData, setStatsData] = useState<StatsData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -19,11 +19,11 @@ export default function StatsAdminPage(): JSX.Element {
         { end: 24, suffix: '/7', label: 'Training', duration: 1000, prefix: '', isActive: true }
     ];
 
-    useEffect((): void => {
+    useEffect(() => {
         fetchStats();
     }, []);
 
-    const fetchStats = async (): Promise<void> => {
+    const fetchStats = async () => {
         setIsLoading(true);
         try {
             const response = await statsAPI.getActive();
@@ -50,7 +50,7 @@ export default function StatsAdminPage(): JSX.Element {
         }
     };
 
-    const handleSave = async (): Promise<void> => {
+    const handleSave = async () => {
         if (!statsData) return;
         setIsSaving(true);
         try {
@@ -61,7 +61,7 @@ export default function StatsAdminPage(): JSX.Element {
             } else {
                 response = await statsAPI.update(statsData._id, statsData);
             }
-            
+
             if (response.success) {
                 toast.success(isNew ? 'Stats created successfully!' : 'Stats updated successfully!');
                 setIsNew(false);
@@ -77,14 +77,14 @@ export default function StatsAdminPage(): JSX.Element {
         }
     };
 
-    const updateItem = (index: number, field: keyof StatItem, value: any): void => {
+    const updateItem = (index: number, field: keyof StatItem, value: any) => {
         if (!statsData) return;
         const newItems = [...statsData.items];
         newItems[index] = { ...newItems[index], [field]: value };
         setStatsData({ ...statsData, items: newItems });
     };
 
-    const addItem = (): void => {
+    const addItem = () => {
         if (!statsData) return;
         const newItem: StatItem = {
             end: 1000,
@@ -100,7 +100,7 @@ export default function StatsAdminPage(): JSX.Element {
         });
     };
 
-    const removeItem = (index: number): void => {
+    const removeItem = (index: number) => {
         if (!statsData) return;
         if (statsData.items.length === 1) {
             toast.error('You need at least one stat item');
@@ -192,7 +192,7 @@ export default function StatsAdminPage(): JSX.Element {
                         </div>
                     </div>
                 ))}
-                
+
                 <button
                     onClick={addItem}
                     className="mt-4 flex items-center gap-2 text-[#1b7936] font-bold hover:underline"

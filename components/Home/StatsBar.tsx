@@ -49,7 +49,7 @@ const DEFAULT_STATS: StatsData = {
     borderColor: 'rgba(255,255,255,0.1)'
 };
 
-export default function StatsBar(): JSX.Element {
+export default function StatsBar() {
     const [statsData, setStatsData] = useState<StatsData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -61,9 +61,9 @@ export default function StatsBar(): JSX.Element {
             try {
                 setIsLoading(true);
                 setError(null);
-                
+
                 const response = await statsAPI.getActive();
-                
+
                 if (isMounted) {
                     if (response.success && response.data) {
                         setStatsData(response.data);
@@ -137,7 +137,7 @@ export default function StatsBar(): JSX.Element {
     }
 
     return (
-        <section 
+        <section
             className="py-5 border-b"
             style={{
                 backgroundColor: statsData.backgroundColor || '#0c1b2e',
