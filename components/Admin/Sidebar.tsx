@@ -8,7 +8,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { MenuItem, menuItems } from '@/components/Admin/menu';
 
+export type BadgeKey = 'chargers' | 'users' | 'sessions';
+
 export interface BadgeCounts {
+    [key: string]: number | undefined;
     chargers?: number;
     users?: number;
     sessions?: number;

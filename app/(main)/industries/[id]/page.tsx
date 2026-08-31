@@ -132,9 +132,10 @@ export default function IndustryDetailPage({ params }: PageProps) {
     };
 
     // Helper to get image URL
-    const getIndustryImageUrl = (imageUrl: string) => {
+    const getIndustryImageUrl = (imageUrl: string | null | undefined): string => {
         if (!imageUrl) return '/images/industries/default.jpg';
-        return getImageUrl(imageUrl);
+        const url = getImageUrl(imageUrl);
+        return url || '/images/industries/default.jpg';
     };
 
     const icon = getIndustryIcon(industry);

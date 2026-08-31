@@ -83,6 +83,82 @@ const INITIAL_FORM: ServiceFormData = {
     isActive: true,
     category: '',
 };
+// ============================================
+// TextArrayInput Component
+// ============================================
+const TextArrayInput = ({
+    value,
+    onChange,
+    label,
+    placeholder
+}: {
+    value: string[];
+    onChange: (value: string[]) => void;
+    label: string;
+    placeholder: string;
+}) => {
+    const [inputValue, setInputValue] = useState('');
+
+    const addItem = () => {
+        if (inputValue.trim()) {
+            onChange([...value, inputValue.trim()]);
+            setInputValue('');
+        }
+    };
+
+    const removeItem = (index: number) => {
+        onChange(value.filter((_, i) => i !== index));
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addItem();
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                {label}
+            </label>
+            <div className="flex gap-2">
+                <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={placeholder}
+                    className="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                />
+                <button
+                    type="button"
+                    onClick={addItem}
+                    className="px-4 py-2 bg-[#0B192C] text-white rounded-xl text-sm font-bold hover:bg-[#1E3E62] transition-colors whitespace-nowrap"
+                >
+                    Add
+                </button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+                {value.map((item, index) => (
+                    <span
+                        key={index}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-full"
+                    >
+                        {item}
+                        <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="text-emerald-400 hover:text-emerald-600 transition-colors"
+                        >
+                            ×
+                        </button>
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+};
 
 export default function ServiceForm({
     initialData,
@@ -148,82 +224,7 @@ export default function ServiceForm({
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    // ============================================
-    // TextArrayInput Component
-    // ============================================
-    const TextArrayInput = ({
-        value,
-        onChange,
-        label,
-        placeholder
-    }: {
-        value: string[];
-        onChange: (value: string[]) => void;
-        label: string;
-        placeholder: string;
-    }) => {
-        const [inputValue, setInputValue] = useState('');
 
-        const addItem = () => {
-            if (inputValue.trim()) {
-                onChange([...value, inputValue.trim()]);
-                setInputValue('');
-            }
-        };
-
-        const removeItem = (index: number) => {
-            onChange(value.filter((_, i) => i !== index));
-        };
-
-        const handleKeyDown = (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addItem();
-            }
-        };
-
-        return (
-            <div className="space-y-2">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                    {label}
-                </label>
-                <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder={placeholder}
-                        className="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
-                    />
-                    <button
-                        type="button"
-                        onClick={addItem}
-                        className="px-4 py-2 bg-[#0B192C] text-white rounded-xl text-sm font-bold hover:bg-[#1E3E62] transition-colors whitespace-nowrap"
-                    >
-                        Add
-                    </button>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                    {value.map((item, index) => (
-                        <span
-                            key={index}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-full"
-                        >
-                            {item}
-                            <button
-                                type="button"
-                                onClick={() => removeItem(index)}
-                                className="text-emerald-400 hover:text-emerald-600 transition-colors"
-                            >
-                                ×
-                            </button>
-                        </span>
-                    ))}
-                </div>
-            </div>
-        );
-    };
 
     // ============================================
     // Handle Form Submit
@@ -454,7 +455,7 @@ export default function ServiceForm({
                     value={formData.richDescription}
                     onChange={(value) => setFormData({ ...formData, richDescription: value })}
                     placeholder="Write a detailed description of the service..."
-                    height={200}
+                    minHeight={200}
                 />
             </div>
 

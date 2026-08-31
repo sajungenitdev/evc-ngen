@@ -89,8 +89,8 @@ const ModalImage: React.FC<ModalImageProps> = ({
     const [hasError, setHasError] = useState<boolean>(false);
 
     // ✅ EXACT SAME logic as ProductThumbnail - this is what works!
-    const getFullUrl = (path: string): string | null => {
-        if (!path || path.trim() === '') return null;
+    const getFullUrl = (path: string): string => {  // ✅ Changed to return string, not string | null
+        if (!path || path.trim() === '') return '';  // ✅ Return empty string instead of null
 
         const trimmed = path.trim();
 
