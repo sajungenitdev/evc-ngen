@@ -18,6 +18,7 @@ interface Training {
     link: string;
     color: string;
     icon: string;
+    categoryId?: string;
     features: string[];
     price: string;
     schedule: string;

@@ -35,7 +35,7 @@ export const ImageHelper: React.FC<ImageHelperProps> = ({
 
     useEffect(() => {
         if (src) {
-            const url = getImageUrl(src);
+            const url = getImageUrl(src) ?? '';
             setImageUrl(url);
             setIsLoading(true);
             setHasError(false);

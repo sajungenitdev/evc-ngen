@@ -1037,7 +1037,7 @@ const AccessoriesMenu: React.FC<{
                                     const slug = getCleanSlug(acc);
                                     // ✅ Get image URL with fallback
                                     const imageUrl = acc.imageUrl ? getImageUrl(acc.imageUrl) : null;
-                                    const hasValidImage = imageUrl && !isDefaultImage(acc.imageUrl);
+                                   const hasValidImage = imageUrl && !isDefaultImage(imageUrl || '');
 
                                     return (
                                         <Link

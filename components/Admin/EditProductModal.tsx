@@ -549,7 +549,7 @@ export default function EditProductModal({
                             value={formData.shortDescription}
                             onChange={(value) => setFormData({ ...formData, shortDescription: value })}
                             placeholder="Write a brief product teaser..."
-                            height={140}
+                            minHeight={140}
                         />
 
                         <TextEditor
@@ -557,7 +557,7 @@ export default function EditProductModal({
                             value={formData.description}
                             onChange={(value) => setFormData({ ...formData, description: value })}
                             placeholder="Write in-depth equipment details..."
-                            height={220}
+                            minHeight={220}
                         />
                     </div>
 
