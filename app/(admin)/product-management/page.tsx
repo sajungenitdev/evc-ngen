@@ -6,7 +6,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import CreateProductModal from '@/components/Admin/CreateProductModal';
-import EditProductModal from '@/components/Admin/EditProductModal';
+import EditProductModal, { type ProductFormData } from '@/components/Admin/EditProductModal';
 import ViewProductModal from '@/components/Admin/ViewProductModal';
 import { isDefaultImage } from '@/utils/imageHelper';
 
@@ -298,42 +298,54 @@ export default function ProductsPage() {
         }
     };
 
-    const handleUpdateProduct = async (formData: FormData) => {
-        if (!token || !selectedProduct) return;
+    const handleUpdateProduct = async (data: ProductFormData) => {
+    if (!token || !selectedProduct) return;
 
-        setIsSubmitting(true);
-        const toastId = toast.loading('Updating product...');
+    setIsSubmitting(true);
+    const toastId = toast.loading('Updating product...');
 
-        try {
-            const productId = selectedProduct.id || selectedProduct._id;
-            const response = await apiCall<Product>(`/products/${productId}`, {
-                method: 'PUT',
-                body: formData,
-            });
-
-            if (response.success && response.data) {
-                const updated = response.data;
-                setProducts((prev) =>
-                    prev.map((p) =>
-                        (p._id && p._id === selectedProduct._id) || (p.id && p.id === selectedProduct.id)
-                            ? updated
-                            : p
-                    )
-                );
-                setIsEditModalOpen(false);
-                setSelectedProduct(null);
-                toast.success('Product updated successfully!', { id: toastId });
-                await fetchInitialData();
-            } else {
-                toast.error(response?.message || 'Failed to update product', { id: toastId });
+    try {
+        // Convert ProductFormData to FormData for the API
+        const formData = new FormData();
+        
+        // Append all fields from data to formData
+        Object.entries(data).forEach(([key, value]) => {
+            if (value instanceof File) {
+                formData.append(key, value);
+            } else if (value !== null && value !== undefined) {
+                formData.append(key, String(value));
             }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
-            toast.error(errorMessage, { id: toastId });
-        } finally {
-            setIsSubmitting(false);
+        });
+
+        const productId = selectedProduct.id || selectedProduct._id;
+        const response = await apiCall<Product>(`/products/${productId}`, {
+            method: 'PUT',
+            body: formData,
+        });
+
+        if (response.success && response.data) {
+            const updated = response.data;
+            setProducts((prev) =>
+                prev.map((p) =>
+                    (p._id && p._id === selectedProduct._id) || (p.id && p.id === selectedProduct.id)
+                        ? updated
+                        : p
+                )
+            );
+            setIsEditModalOpen(false);
+            setSelectedProduct(null);
+            toast.success('Product updated successfully!', { id: toastId });
+            await fetchInitialData();
+        } else {
+            toast.error(response?.message || 'Failed to update product', { id: toastId });
         }
-    };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
+        toast.error(errorMessage, { id: toastId });
+    } finally {
+        setIsSubmitting(false);
+    }
+};
 
     const handleDeleteProduct = async () => {
         if (!token || !selectedProduct) return;
