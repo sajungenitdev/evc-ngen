@@ -1,24 +1,38 @@
+// components/About/PartnersSection.tsx
 'use client';
 
 import React, { useRef } from 'react';
-import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { motion, useInView } from 'framer-motion';
+import { ImageHelperNarrative } from '@/components/ImageHelperNarrative';
+
+interface Partner {
+    name: string;
+    logo: string;
+    isActive?: boolean;
+}
 
 interface PartnersProps {
-    partners: Array<{ name: string; logo: string }>;
+    partners: Partner[];
 }
 
 export default function PartnersSection({ partners }: PartnersProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: '-100px' });
 
-    // Initialize Embla with loop and autoplay plugin correctly configured
+    // Filter active partners
+    const activePartners = partners.filter(p => p.isActive !== false);
+
+    // Initialize Embla with loop and autoplay plugin
     const [emblaRef] = useEmblaCarousel(
         { loop: true, align: 'start', skipSnaps: false },
         [Autoplay({ delay: 3000, stopOnInteraction: false, stopOnMouseEnter: true })]
     );
+
+    if (activePartners.length === 0) {
+        return null;
+    }
 
     return (
         <section ref={ref} className="py-24 px-6 md:px-12 lg:px-20 bg-white overflow-hidden">
@@ -46,18 +60,28 @@ export default function PartnersSection({ partners }: PartnersProps) {
                     ref={emblaRef}
                 >
                     <div className="flex items-center -ml-6">
-                        {partners.map((partner, idx) => (
+                        {activePartners.map((partner, idx) => (
                             <div
                                 key={idx}
                                 className="flex-[0_0_50%] sm:flex-[0_0_33.333%] lg:flex-[0_0_16.666%] pl-6 min-w-0"
                             >
                                 <div className="h-24 flex items-center justify-center relative group">
-                                    <Image
-                                        src={partner.logo}
-                                        alt={partner.name}
-                                        fill
-                                        className="object-contain p-2 transition-transform duration-300 group-hover:scale-105"
-                                    />
+                                    {partner.logo ? (
+                                        <ImageHelperNarrative
+                                            src={partner.logo}
+                                            alt={partner.name}
+                                            className="object-contain p-2 transition-transform duration-300 group-hover:scale-105 max-h-full w-auto"
+                                            fallback={
+                                                <span className="text-2xl font-bold text-gray-400">
+                                                    {partner.name.charAt(0).toUpperCase()}
+                                                </span>
+                                            }
+                                        />
+                                    ) : (
+                                        <span className="text-2xl font-bold text-gray-400">
+                                            {partner.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         ))}

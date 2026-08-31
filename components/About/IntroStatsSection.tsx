@@ -1,15 +1,27 @@
+// components/About/IntroStatsSection.tsx
 'use client';
 
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
+
+interface Breadcrumb {
+    label: string;
+    link?: string;
+    active?: boolean;
+}
+
+interface Stat {
+    value: string;
+    label: string;
+}
 
 interface IntroStatsProps {
     headerLabel: string;
     title: string;
     introParagraph1: string;
     introParagraph2: string;
-    sidebarNav: Array<{ label: string; link: string; active: boolean }>;
-    stats: Array<{ value: string; label: string }>;
+    sidebarNav?: Breadcrumb[];
+    stats: Stat[];
 }
 
 export default function IntroStatsSection({
@@ -25,8 +37,7 @@ export default function IntroStatsSection({
     return (
         <section ref={ref} className="py-20 bg-gray-100 px-6 md:px-12 lg:px-20 border-b border-gray-100 overflow-hidden">
             <div className="max-w-7xl mx-auto">
-                <div className=" items-center">
-
+                <div className="items-center">
                     {/* Left Column: Main Intro Content (Span 7 with Slide-in Animation) */}
                     <motion.div
                         initial={{ opacity: 0, x: -30 }}
@@ -47,7 +58,6 @@ export default function IntroStatsSection({
                             <p>{introParagraph2}</p>
                         </div>
                     </motion.div>
-
                 </div>
             </div>
         </section>

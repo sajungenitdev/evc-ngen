@@ -119,33 +119,33 @@ export const menuItems: MenuItem[] = [
     // ============================================
     // SESSIONS / OPERATIONS (EV / IOT)
     // ============================================
-    {
-        id: 'sessions',
-        name: 'Charging Sessions',
-        href: '/sessions',
-        icon: '🔌',
-        badgeKey: 'sessions',
-        subItems: [
-            { id: 'active-sessions', name: 'Active Sessions', href: '/sessions/active', icon: '🟢' },
-            { id: 'session-history', name: 'History Logs', href: '/sessions/history', icon: '📜' },
-        ],
-    },
+    // {
+    //     id: 'sessions',
+    //     name: 'Charging Sessions',
+    //     href: '/sessions',
+    //     icon: '🔌',
+    //     badgeKey: 'sessions',
+    //     subItems: [
+    //         { id: 'active-sessions', name: 'Active Sessions', href: '/sessions/active', icon: '🟢' },
+    //         { id: 'session-history', name: 'History Logs', href: '/sessions/history', icon: '📜' },
+    //     ],
+    // },
 
     // ============================================
     // REPORTS & ANALYTICS
     // ============================================
-    {
-        id: 'reports',
-        name: 'Reports & Analytics',
-        href: '/reports',
-        icon: '📈',
-        subItems: [
-            { id: 'analytics', name: 'Performance Analytics', href: '/reports/analytics', icon: '📊' },
-            { id: 'charging-reports', name: 'Charging Reports', href: '/reports/charging', icon: '🔋' },
-            { id: 'user-reports', name: 'User Growth Reports', href: '/reports/users', icon: '👥' },
-            { id: 'service-reports', name: 'Service Logs', href: '/reports/services', icon: '📋' },
-        ],
-    },
+    // {
+    //     id: 'reports',
+    //     name: 'Reports & Analytics',
+    //     href: '/reports',
+    //     icon: '📈',
+    //     subItems: [
+    //         { id: 'analytics', name: 'Performance Analytics', href: '/reports/analytics', icon: '📊' },
+    //         { id: 'charging-reports', name: 'Charging Reports', href: '/reports/charging', icon: '🔋' },
+    //         { id: 'user-reports', name: 'User Growth Reports', href: '/reports/users', icon: '👥' },
+    //         { id: 'service-reports', name: 'Service Logs', href: '/reports/services', icon: '📋' },
+    //     ],
+    // },
 
     // ============================================
     // SETTINGS & CMS
@@ -156,7 +156,9 @@ export const menuItems: MenuItem[] = [
         href: '/settings',
         icon: '⚙️',
         subItems: [
-            { id: 'homepage-settings', name: 'Home Page CMS', href: '/settings/homepage', icon: '🏠' },
+            { id: 'hero-sections', name: 'Hero Sections', href: '/settings/homepage/heroSection', icon: '🏠' },
+            { id: 'hero-counter', name: 'Hero Counter', href: '/settings/counter', icon: '🏠' },
+            { id: 'hero-foundation', name: 'Home Foundation', href: '/settings/foundation', icon: '🏠' },
             { id: 'about-settings', name: 'About Page', href: '/settings/about', icon: 'ℹ️' },
             { id: 'faq-settings', name: 'FAQ Manager', href: '/settings/faq', icon: '❓' },
             { id: 'terms-settings', name: 'Terms & Policies', href: '/settings/terms', icon: '📄' },

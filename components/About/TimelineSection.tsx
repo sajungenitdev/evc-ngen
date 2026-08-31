@@ -1,16 +1,31 @@
+// components/About/TimelineSection.tsx
 'use client';
 
 import React, { useRef } from 'react';
 import { Zap, Calendar } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 
+interface TimelineItem {
+    year: string;
+    title: string;
+    description: string;
+    isActive?: boolean;
+}
+
 interface TimelineProps {
-    timeline: Array<{ year: string; title: string; description: string }>;
+    timeline: TimelineItem[];
 }
 
 export default function TimelineSection({ timeline }: TimelineProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+    // Filter active timeline items
+    const activeTimeline = timeline.filter(t => t.isActive !== false);
+
+    if (activeTimeline.length === 0) {
+        return null;
+    }
 
     return (
         <section ref={ref} className="py-24 px-6 md:px-12 lg:px-20 bg-[#f8f9fa] text-[#071322] relative overflow-hidden border-y border-gray-200/60">
@@ -45,7 +60,7 @@ export default function TimelineSection({ timeline }: TimelineProps) {
                     <div className="hidden lg:block absolute left-1/2 transform -translate-x-1/2 top-8 bottom-8 w-1 bg-gradient-to-b from-[#1b7936] via-[#3ec06a] to-gray-200"></div>
 
                     <div className="space-y-16 lg:space-y-24">
-                        {timeline.map((item, idx) => {
+                        {activeTimeline.map((item, idx) => {
                             const isEven = idx % 2 === 0;
                             return (
                                 <motion.div

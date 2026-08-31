@@ -1,16 +1,22 @@
+// components/About/NarrativeRowsSection.tsx
 'use client';
 
-import Image from 'next/image';
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
+import { ImageHelperNarrative } from '@/components/ImageHelperNarrative';  // Use the narrative helper
+
+interface Highlight {
+    text: string;
+    isActive?: boolean;
+}
 
 interface NarrativeItem {
     title: string;
     paragraph1: string;
     paragraph2: string;
     imageUrl: string;
-    highlights?: string[];
+    highlights?: Highlight[];
 }
 
 interface NarrativeProps {
@@ -21,6 +27,10 @@ interface NarrativeProps {
 export default function NarrativeRowsSection({ whoWeAre, mission }: NarrativeProps) {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: '-100px' });
+
+    // Filter active highlights
+    const whoWeAreHighlights = whoWeAre.highlights?.filter(h => h.isActive !== false) || [];
+    const missionHighlights = mission.highlights?.filter(h => h.isActive !== false) || [];
 
     return (
         <section ref={ref} className="py-24 px-6 md:px-12 lg:px-20 space-y-24 overflow-hidden">
@@ -34,11 +44,11 @@ export default function NarrativeRowsSection({ whoWeAre, mission }: NarrativePro
                     className="grid grid-cols-1 lg:grid-cols-2 items-center gap-10 lg:gap-12"
                 >
                     <div className="relative rounded-xl overflow-hidden shadow-2xl h-90 sm:h-105 bg-ev-dark-blue group">
-                        <Image
-                            alt="Who We Are"
-                            className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
-                            fill
+                        <ImageHelperNarrative
                             src={whoWeAre.imageUrl}
+                            alt={whoWeAre.title || 'Who We Are'}
+                            className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 w-full h-full"
+                            fallback="🏢"
                         />
                     </div>
                     <div className="space-y-6 ps-0 lg:ps-10">
@@ -52,14 +62,13 @@ export default function NarrativeRowsSection({ whoWeAre, mission }: NarrativePro
                             {whoWeAre.paragraph2}
                         </p>
 
-                        {/* Who We Are Checklist */}
-                        {whoWeAre.highlights && whoWeAre.highlights.length > 0 && (
+                        {whoWeAreHighlights.length > 0 && (
                             <ul className="space-y-3 pt-2">
-                                {whoWeAre.highlights.map((item, index) => (
+                                {whoWeAreHighlights.map((item, index) => (
                                     <li key={index} className="flex items-start gap-3">
                                         <CheckCircle2 className="w-5 h-5 text-[#1b7936] shrink-0 mt-0.5" />
                                         <span className="text-sm sm:text-base text-gray-700 font-medium leading-normal">
-                                            {item}
+                                            {item.text}
                                         </span>
                                     </li>
                                 ))}
@@ -88,14 +97,13 @@ export default function NarrativeRowsSection({ whoWeAre, mission }: NarrativePro
                             {mission.paragraph2}
                         </p>
 
-                        {/* Mission Checklist */}
-                        {mission.highlights && mission.highlights.length > 0 && (
+                        {missionHighlights.length > 0 && (
                             <ul className="space-y-3 pt-2">
-                                {mission.highlights.map((item, index) => (
+                                {missionHighlights.map((item, index) => (
                                     <li key={index} className="flex items-start gap-3">
                                         <CheckCircle2 className="w-5 h-5 text-[#1b7936] shrink-0 mt-0.5" />
                                         <span className="text-sm sm:text-base text-gray-700 font-medium leading-normal">
-                                            {item}
+                                            {item.text}
                                         </span>
                                     </li>
                                 ))}
@@ -104,11 +112,11 @@ export default function NarrativeRowsSection({ whoWeAre, mission }: NarrativePro
                     </div>
 
                     <div className="relative rounded-xl overflow-hidden shadow-2xl h-90 sm:h-105 bg-ev-dark-blue order-1 lg:order-2 group">
-                        <Image
-                            alt="Our Mission"
-                            className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
-                            fill
+                        <ImageHelperNarrative
                             src={mission.imageUrl}
+                            alt={mission.title || 'Our Mission'}
+                            className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700 w-full h-full"
+                            fallback="🎯"
                         />
                     </div>
                 </motion.div>

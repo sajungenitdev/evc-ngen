@@ -1,61 +1,102 @@
+// app/(main)/about/page.tsx
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+import { aboutAPI, getAboutImageUrl, filterActive, AboutData } from '@/lib/api/about';
+import PageHeader from '@/components/pagesComps/PageHeader';
+import StatsBar from '@/components/Home/StatsBar';
 import IntroStatsSection from '@/components/About/IntroStatsSection';
 import NarrativeRowsSection from '@/components/About/NarrativeRowsSection';
 import PartnersSection from '@/components/About/PartnersSection';
 import TimelineSection from '@/components/About/TimelineSection';
-import StatsBar from '@/components/Home/StatsBar';
-import PageHeader from '@/components/pagesComps/PageHeader';
-import { aboutPageData } from '@/lib/db';
-import React from 'react';
 
-const Page = () => {
-    const {
-        header,
-        headerLabel,
-        title,
-        introParagraph1,
-        introParagraph2,
-        sidebarNav,
-        stats,
-        whoWeAre,
-        mission,
-        partners,
-        timeline
-    } = aboutPageData;
+export default function AboutPage() {
+    const [aboutData, setAboutData] = useState<AboutData | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchAboutData = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+
+                const response = await aboutAPI.getActive();
+
+                if (response.success && response.data) {
+                    setAboutData(response.data);
+                } else {
+                    setError('Failed to load about page data');
+                }
+            } catch (error) {
+                console.error('Error fetching about data:', error);
+                setError('An error occurred while loading the page');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchAboutData();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#1b7936] animate-spin mx-auto" />
+                    <p className="text-gray-500 text-sm mt-4">Loading about page...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !aboutData) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-6xl mb-4">⚠️</div>
+                    <h2 className="text-2xl font-bold text-[#071322] mb-2">Something went wrong</h2>
+                    <p className="text-gray-500 text-sm">{error || 'Unable to load about page data'}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-6 bg-[#1b7936] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#155f2b] transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <main className="min-h-screen bg-white">
-            {/* Branded Page Header */}
             <PageHeader
-                breadcrumbs={header.breadcrumbs}
-                imageUrl={header.imageUrl}
-                title="Engineering electric energy freedom"
-                description={header.description}
+                breadcrumbs={aboutData.header?.breadcrumbs || []}
+                imageUrl={getAboutImageUrl(aboutData.header?.imageUrl || '')}
+                title={aboutData.header?.title || 'About EVNGEN'}
+                description={aboutData.header?.description || ''}
             />
-            <StatsBar/>
 
-            {/* Top Intro & Stats Grid Section */}
+            <StatsBar />
+
             <IntroStatsSection
-                headerLabel={headerLabel}
-                title={title}
-                introParagraph1={introParagraph1}
-                introParagraph2={introParagraph2}
-                sidebarNav={sidebarNav}
-                stats={stats}
+                headerLabel={aboutData.headerLabel || 'ABOUT'}
+                title={aboutData.title || 'Engineering electric energy freedom'}
+                introParagraph1={aboutData.introParagraph1 || ''}
+                introParagraph2={aboutData.introParagraph2 || ''}
+                sidebarNav={aboutData.sidebarNav || []}
+                stats={filterActive(aboutData.stats || [])}
             />
 
-            {/* Who We Are & Our Mission Rows */}
             <NarrativeRowsSection
-                whoWeAre={whoWeAre}
-                mission={mission}
+                whoWeAre={aboutData.whoWeAre}
+                mission={aboutData.mission}
             />
 
-            {/* Company Timeline (2009 - 2026) */}
-            <TimelineSection timeline={timeline} />
+            <TimelineSection timeline={filterActive(aboutData.timeline || [])} />
 
-            {/* Global Partners Logo Grid */}
-            <PartnersSection partners={partners} />
+            <PartnersSection partners={filterActive(aboutData.partners || [])} />
         </main>
     );
-};
-
-export default Page;
+}
