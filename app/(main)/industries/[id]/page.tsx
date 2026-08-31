@@ -3,42 +3,127 @@
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { industriesList, getRelatedIndustries, getIndustryIcon } from '@/lib/industriesDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
 import {
     ArrowLeft,
     CheckCircle2,
     ArrowRight,
     Zap,
-    ShieldCheck,
-    Users,
-    Building2,
-    Truck,
-    ShoppingBag,
-    Hotel,
-    GraduationCap,
-    Fuel,
-    Home,
-    Globe,
-    MessageSquare
+    MessageSquare,
+    Loader2
 } from 'lucide-react';
+import { getImageUrl, isDefaultImage } from '@/utils/imageHelper';
+
+// Industry Interface
+interface Industry {
+    _id: string;
+    id: string;
+    label: string;
+    slug: string;
+    desc: string;
+    icon: string;
+    imageUrl: string;
+    title: string;
+    subtitle: string;
+    overview: string;
+    challenges: string[];
+    solutions: string[];
+    benefits: string[];
+    caseStudy: {
+        title: string;
+        description: string;
+        imageUrl: string;
+        link: string;
+    };
+    features: string[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
 
 interface PageProps {
     params: Promise<{ id: string }>;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 export default function IndustryDetailPage({ params }: PageProps) {
     const { id } = use(params);
-    const industry = industriesList.find(i => i.id === id);
+    const [industry, setIndustry] = useState<Industry | null>(null);
+    const [relatedIndustries, setRelatedIndustries] = useState<Industry[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    if (!industry) {
+    // Fetch industry data
+    useEffect(() => {
+        const fetchIndustryData = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                // Fetch industry by ID
+                const res = await fetch(`${API_BASE_URL}/industries/${id}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    setIndustry(data.data);
+                } else {
+                    setError(data.message || 'Industry not found');
+                    setIndustry(null);
+                }
+
+                // Fetch related industries (exclude current)
+                const relatedRes = await fetch(`${API_BASE_URL}/industries?limit=3&isActive=true`);
+                const relatedData = await relatedRes.json();
+
+                if (relatedData.success) {
+                    const filtered = relatedData.data.filter(
+                        (i: Industry) => i.id !== id && i.id !== data.data?.id
+                    );
+                    setRelatedIndustries(filtered.slice(0, 3));
+                }
+            } catch (error) {
+                console.error('Error fetching industry:', error);
+                setError('Failed to load industry data');
+                setIndustry(null);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchIndustryData();
+    }, [id]);
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="bg-white min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#1b7936] animate-spin mx-auto" />
+                    <p className="text-gray-500 text-sm mt-4">Loading industry details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show not found
+    if (!industry || error) {
         notFound();
     }
 
-    const relatedIndustries = getRelatedIndustries(industry.id, 3);
-    const icon = getIndustryIcon(industry.id);
+    // Helper to get icon
+    const getIndustryIcon = (industry: Industry) => {
+        return industry.icon || '🏢';
+    };
+
+    // Helper to get image URL
+    const getIndustryImageUrl = (imageUrl: string) => {
+        if (!imageUrl) return '/images/industries/default.jpg';
+        return getImageUrl(imageUrl);
+    };
+
+    const icon = getIndustryIcon(industry);
 
     return (
         <div className="bg-white min-h-screen">
@@ -48,12 +133,12 @@ export default function IndustryDetailPage({ params }: PageProps) {
                     { label: 'Industries', link: '/industries' },
                     { label: industry.label }
                 ]}
-                imageUrl={industry.imageUrl}
+                imageUrl={getIndustryImageUrl(industry.imageUrl)}
                 title={industry.label}
                 description={industry.desc}
             />
 
-            <section className="max-w-7xl mx-auto  py-12 pb-24">
+            <section className="max-w-7xl mx-auto py-12 pb-24 px-4 sm:px-6">
 
                 {/* ========================================== */}
                 {/* OVERVIEW SECTION                           */}
@@ -67,11 +152,12 @@ export default function IndustryDetailPage({ params }: PageProps) {
                             </h1>
                         </div>
                         <h2 className="text-xl font-bold text-[#1b7936]">
-                            {industry.subtitle}
+                            {industry.subtitle || industry.title}
                         </h2>
-                        <p className="text-gray-600 text-sm leading-relaxed">
-                            {industry.overview}
-                        </p>
+                        <div
+                            className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: industry.overview }}
+                        />
                         <div className="flex flex-wrap gap-3 pt-2">
                             <Link
                                 href="/contact"
@@ -90,83 +176,104 @@ export default function IndustryDetailPage({ params }: PageProps) {
 
                     {/* Image */}
                     <div className="relative h-[300px] lg:h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
-                        <Image
-                            src={industry.imageUrl}
-                            alt={industry.label}
-                            fill
-                            className="object-cover"
-                            priority
-                        />
+                        {industry.imageUrl && !isDefaultImage(industry.imageUrl) ? (
+                            <img
+                                src={getIndustryImageUrl(industry.imageUrl)}
+                                alt={industry.label}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                        const fallback = document.createElement('div');
+                                        fallback.className = 'w-full h-full flex items-center justify-center text-7xl bg-[#f8f9fa]';
+                                        fallback.textContent = icon;
+                                        parent.appendChild(fallback);
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-7xl bg-[#f8f9fa]">
+                                {icon}
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* ========================================== */}
                 {/* CHALLENGES SECTION                         */}
                 {/* ========================================== */}
-                <div className="mb-16">
-                    <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
-                        Key Challenges
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {industry.challenges.map((challenge, idx) => (
-                            <div key={idx} className="flex items-start gap-3 bg-[#f8f9fa] p-4 rounded-xl border border-gray-200/60">
-                                <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
-                                    <span className="text-lg">⚠️</span>
+                {industry.challenges && industry.challenges.length > 0 && (
+                    <div className="mb-16">
+                        <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
+                            Key Challenges
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {industry.challenges.map((challenge, idx) => (
+                                <div key={idx} className="flex items-start gap-3 bg-[#f8f9fa] p-4 rounded-xl border border-gray-200/60">
+                                    <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
+                                        <span className="text-lg">⚠️</span>
+                                    </div>
+                                    <span className="text-gray-700 text-sm font-medium leading-snug">
+                                        {challenge}
+                                    </span>
                                 </div>
-                                <span className="text-gray-700 text-sm font-medium leading-snug">
-                                    {challenge}
-                                </span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* ========================================== */}
                 {/* SOLUTIONS SECTION                          */}
                 {/* ========================================== */}
-                <div className="mb-16">
-                    <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
-                        Our Solutions
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {industry.solutions.map((solution, idx) => (
-                            <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
-                                    <CheckCircle2 className="w-4 h-4 text-[#1b7936]" />
+                {industry.solutions && industry.solutions.length > 0 && (
+                    <div className="mb-16">
+                        <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
+                            Our Solutions
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {industry.solutions.map((solution, idx) => (
+                                <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
+                                        <CheckCircle2 className="w-4 h-4 text-[#1b7936]" />
+                                    </div>
+                                    <span className="text-gray-700 text-sm font-medium leading-snug">
+                                        {solution}
+                                    </span>
                                 </div>
-                                <span className="text-gray-700 text-sm font-medium leading-snug">
-                                    {solution}
-                                </span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* ========================================== */}
                 {/* BENEFITS SECTION                           */}
                 {/* ========================================== */}
-                <div className="mb-16 bg-[#f8f9fa] rounded-3xl p-8 border border-gray-200/80">
-                    <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
-                        Key Benefits
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {industry.benefits.map((benefit, idx) => (
-                            <div key={idx} className="flex items-start gap-3">
-                                <div className="w-6 h-6 rounded-full bg-[#1b7936] flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                {industry.benefits && industry.benefits.length > 0 && (
+                    <div className="mb-16 bg-[#f8f9fa] rounded-3xl p-8 border border-gray-200/80">
+                        <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
+                            Key Benefits
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {industry.benefits.map((benefit, idx) => (
+                                <div key={idx} className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-[#1b7936] flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                    <span className="text-gray-700 text-sm font-medium leading-snug">
+                                        {benefit}
+                                    </span>
                                 </div>
-                                <span className="text-gray-700 text-sm font-medium leading-snug">
-                                    {benefit}
-                                </span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* ========================================== */}
                 {/* CASE STUDY SECTION                         */}
                 {/* ========================================== */}
-                {industry.caseStudy && (
+                {industry.caseStudy && industry.caseStudy.title && (
                     <div className="mb-16">
                         <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
                             Case Study
@@ -174,12 +281,17 @@ export default function IndustryDetailPage({ params }: PageProps) {
                         <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
                             <div className="grid grid-cols-1 lg:grid-cols-2">
                                 <div className="relative h-64 lg:h-auto bg-[#f8f9fa]">
-                                    <Image
-                                        src={industry.caseStudy.imageUrl}
-                                        alt={industry.caseStudy.title}
-                                        fill
-                                        className="object-cover"
-                                    />
+                                    {industry.caseStudy.imageUrl && !isDefaultImage(industry.caseStudy.imageUrl) ? (
+                                        <img
+                                            src={getIndustryImageUrl(industry.caseStudy.imageUrl)}
+                                            alt={industry.caseStudy.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-6xl bg-[#f8f9fa]">
+                                            📄
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="p-8 space-y-4 flex flex-col justify-center">
                                     <h4 className="text-xl font-extrabold text-[#071322]">
@@ -188,12 +300,14 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                     <p className="text-gray-600 text-sm leading-relaxed">
                                         {industry.caseStudy.description}
                                     </p>
-                                    <Link
-                                        href={industry.caseStudy.link}
-                                        className="inline-flex items-center gap-2 text-[#1b7936] font-semibold text-sm hover:gap-3 transition-all"
-                                    >
-                                        Read Full Case Study <ArrowRight className="w-4 h-4" />
-                                    </Link>
+                                    {industry.caseStudy.link && (
+                                        <Link
+                                            href={industry.caseStudy.link}
+                                            className="inline-flex items-center gap-2 text-[#1b7936] font-semibold text-sm hover:gap-3 transition-all"
+                                        >
+                                            Read Full Case Study <ArrowRight className="w-4 h-4" />
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -203,23 +317,25 @@ export default function IndustryDetailPage({ params }: PageProps) {
                 {/* ========================================== */}
                 {/* FEATURES SECTION                           */}
                 {/* ========================================== */}
-                <div className="mb-16">
-                    <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
-                        Features & Capabilities
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {industry.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
-                                    <Zap className="w-4 h-4 text-[#1b7936]" />
+                {industry.features && industry.features.length > 0 && (
+                    <div className="mb-16">
+                        <h3 className="text-2xl font-extrabold text-[#071322] mb-6">
+                            Features & Capabilities
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {industry.features.map((feature, idx) => (
+                                <div key={idx} className="flex items-start gap-3 bg-white p-4 rounded-xl border border-gray-200/60 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="w-8 h-8 rounded-full bg-[#e8f5e9] flex items-center justify-center flex-shrink-0">
+                                        <Zap className="w-4 h-4 text-[#1b7936]" />
+                                    </div>
+                                    <span className="text-gray-700 text-sm font-medium leading-snug">
+                                        {feature}
+                                    </span>
                                 </div>
-                                <span className="text-gray-700 text-sm font-medium leading-snug">
-                                    {feature}
-                                </span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* ========================================== */}
                 {/* RELATED INDUSTRIES                         */}
@@ -239,20 +355,36 @@ export default function IndustryDetailPage({ params }: PageProps) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {relatedIndustries.map((related) => {
-                                const relatedIcon = getIndustryIcon(related.id);
+                                const relatedIcon = related.icon || '🏢';
                                 return (
                                     <Link
-                                        key={related.id}
-                                        href={`/industries/${related.id}`}
+                                        key={related._id || related.id}
+                                        href={`/industries/${related.id || related.slug}`}
                                         className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
                                     >
                                         <div className="relative h-40 bg-[#f8f9fa]">
-                                            <Image
-                                                src={related.imageUrl}
-                                                alt={related.label}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                            />
+                                            {related.imageUrl && !isDefaultImage(related.imageUrl) ? (
+                                                <img
+                                                    src={getIndustryImageUrl(related.imageUrl)}
+                                                    alt={related.label}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const parent = target.parentElement;
+                                                        if (parent) {
+                                                            const fallback = document.createElement('div');
+                                                            fallback.className = 'w-full h-full flex items-center justify-center text-4xl bg-[#f8f9fa]';
+                                                            fallback.textContent = relatedIcon;
+                                                            parent.appendChild(fallback);
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-4xl bg-[#f8f9fa]">
+                                                    {relatedIcon}
+                                                </div>
+                                            )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#0c1f38]/60 to-transparent"></div>
                                             <div className="absolute bottom-3 left-3 text-white text-2xl">
                                                 {relatedIcon}
@@ -262,8 +394,8 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                             <h4 className="text-sm font-extrabold text-[#071322] group-hover:text-[#1b7936] transition-colors">
                                                 {related.label}
                                             </h4>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                {related.desc}
+                                            <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                                                {related.desc || related.subtitle}
                                             </p>
                                         </div>
                                     </Link>

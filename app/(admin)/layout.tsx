@@ -120,7 +120,7 @@ export default function AdminLayout({
                 />
 
                 {/* Content Viewport */}
-                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+                <main className="bg-slate-50/50 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
                     {children}
                 </main>
                 <AdminFooter className="mt-auto" />

@@ -9,58 +9,61 @@ import TextEditor from './TextEditor';
 // ============================================
 // TYPES
 // ============================================
-interface AccessoryFormData {
+
+export interface TechnicalDetails {
+    powerOutput?: string;
+    inputVoltage?: string;
+    connectorType?: string;
+    dimensions?: string;
+    weight?: string;
+    enclosureRating?: string;
+    warranty?: string;
+}
+
+export interface AccessoryFormData {
     name: string;
     model: string;
     brand: string;
     category: string;
-    categoryLabel: string;
-    imageUrl: string;
-    galleryImages: string[];
+    categoryLabel?: string;
+    imageUrl?: string;
+    galleryImages?: string[];
     price: number;
-    rating: number;
-    specs: string[];
-    shortDescription: string;
-    description: string;
-    features: string[];
-    technicalDetails: {
-        powerOutput: string;
-        inputVoltage: string;
-        connectorType: string;
-        dimensions: string;
-        weight: string;
-        enclosureRating: string;
-        warranty: string;
-    };
+    rating?: number;
+    specs?: string[];
+    shortDescription?: string;
+    description?: string;
+    features?: string[];
+    technicalDetails?: TechnicalDetails;
     stock: number;
     isActive: boolean;
-    isAccessory: boolean;
+    isAccessory?: boolean;
     parentProductId: string;
-    compatibleWith: string[];
+    compatibleWith?: string[];
     accessoryType: string;
 }
 
-interface Brand {
+export interface Brand {
     _id: string;
-    id: string;
+    id?: string;
     name: string;
-    icon: string;
+    icon?: string;
     isActive: boolean;
 }
 
-interface Product {
+export interface Product {
     _id: string;
-    id: string;
+    id?: string;
     name: string;
     model: string;
     isActive: boolean;
 }
 
-interface Category {
+export interface Category {
     _id: string;
-    id: string;
+    id?: string;
     name: string;
-    icon: string;
+    icon?: string;
     isActive: boolean;
     level?: number;
 }
@@ -81,6 +84,7 @@ interface AccessoryFormModalProps {
 // ============================================
 // CONSTANTS
 // ============================================
+
 const accessoryTypes = [
     { value: 'cable', label: '🔌 Cable' },
     { value: 'adapter', label: '🔗 Adapter' },
@@ -126,26 +130,20 @@ const INITIAL_FORM: AccessoryFormData = {
     accessoryType: 'other',
 };
 
-// ============================================
-// CONSTANTS FOR IMAGE URL
-// ============================================
-
-// ✅ FIX: Remove /api from the URL for images
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 const IMAGE_BASE_URL = API_BASE_URL.replace(/\/api$/, '').replace(/\/api\/?$/, '');
-
-console.log('🔍 IMAGE_BASE_URL:', IMAGE_BASE_URL);
 
 // ============================================
 // TEXT ARRAY INPUT COMPONENT
 // ============================================
+
 const TextArrayInput = ({
-    value,
+    value = [],
     onChange,
     label,
-    placeholder
+    placeholder,
 }: {
-    value: string[];
+    value?: string[];
     onChange: (value: string[]) => void;
     label: string;
     placeholder: string;
@@ -159,16 +157,22 @@ const TextArrayInput = ({
         }
     }, [inputValue, onChange, value]);
 
-    const removeItem = useCallback((index: number) => {
-        onChange(value.filter((_, i) => i !== index));
-    }, [onChange, value]);
+    const removeItem = useCallback(
+        (index: number) => {
+            onChange(value.filter((_, i) => i !== index));
+        },
+        [onChange, value]
+    );
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addItem();
-        }
-    }, [addItem]);
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addItem();
+            }
+        },
+        [addItem]
+    );
 
     return (
         <div className="space-y-2">
@@ -182,52 +186,51 @@ const TextArrayInput = ({
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
-                    className="flex-1 px-3.5 py-2 text-sm text-black bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                    className="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
                 />
                 <button
                     type="button"
                     onClick={addItem}
-                    className="px-4 py-2 bg-[#0B192C] text-white rounded-xl text-sm font-bold hover:bg-[#1E3E62] transition-colors whitespace-nowrap"
+                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition shrink-0"
                 >
                     Add
                 </button>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-                {value.map((item, index) => (
-                    <span
-                        key={index}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-full"
-                    >
-                        {item}
-                        <button
-                            type="button"
-                            onClick={() => removeItem(index)}
-                            className="text-emerald-400 hover:text-emerald-600 transition-colors"
+            {value.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                    {value.map((item, index) => (
+                        <span
+                            key={index}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium rounded-full"
                         >
-                            ×
-                        </button>
-                    </span>
-                ))}
-            </div>
+                            {item}
+                            <button
+                                type="button"
+                                onClick={() => removeItem(index)}
+                                className="text-slate-400 hover:text-rose-600 transition"
+                                aria-label={`Remove ${item}`}
+                            >
+                                ✕
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
 
 // ============================================
-// GALLERY UPLOAD COMPONENT - STORE AS FILES
+// GALLERY UPLOAD COMPONENT
 // ============================================
+
 interface GalleryUploadProps {
-    value: string[]; // Store image URLs from server
+    value?: string[];
     onChange: (images: string[]) => void;
-    onFilesChange?: (files: File[]) => void; // For storing File objects
+    onFilesChange?: (files: File[]) => void;
     maxImages?: number;
     maxSize?: number;
 }
-// components/Admin/AccessoryFormModal.tsx - Updated GalleryUpload
-
-// components/Admin/AccessoryFormModal.tsx - Updated GalleryUpload
-
-// components/Admin/AccessoryFormModal.tsx - Complete Fixed GalleryUpload
 
 const GalleryUpload: React.FC<GalleryUploadProps> = ({
     value = [],
@@ -238,61 +241,40 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
 }) => {
     const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
     const [localPreviews, setLocalPreviews] = useState<string[]>([]);
-    const [isUploading, setIsUploading] = useState(false);
-    const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Initialize local previews from existing server URLs OR new files
     useEffect(() => {
-        console.log('📸 GalleryUpload - value received:', value);
-        console.log('📸 GalleryUpload - galleryFiles length:', galleryFiles.length);
-
-        // If we have gallery files (new uploads), use their blob URLs
         if (galleryFiles.length > 0) {
-            const blobUrls = galleryFiles.map(file => URL.createObjectURL(file));
+            const blobUrls = galleryFiles.map((file) => URL.createObjectURL(file));
             setLocalPreviews(blobUrls);
-            setFailedImages(new Set());
             return;
         }
 
-        // If we have existing value (server URLs or filenames)
         if (value && value.length > 0) {
-            // Check if value is an array, if not, try to parse it
-            let imageArray = value;
-            if (typeof value === 'string') {
+            let imageArray: string[] = [];
+            if (Array.isArray(value)) {
+                imageArray = value;
+            } else if (typeof value === 'string') {
                 try {
-                    imageArray = JSON.parse(value);
-                } catch (e) {
+                    const parsed = JSON.parse(value);
+                    if (Array.isArray(parsed)) imageArray = parsed;
+                } catch {
                     imageArray = [];
                 }
             }
 
-            // Ensure it's an array
-            if (!Array.isArray(imageArray)) {
-                imageArray = [];
-            }
-
-            console.log('📸 GalleryUpload - parsed imageArray:', imageArray);
-
             const previews = imageArray.map((img: string) => {
-                // If it's already a full URL (base64 or http)
                 if (img.startsWith('data:image') || img.startsWith('http://') || img.startsWith('https://')) {
                     return img;
                 }
-                // If it starts with /uploads, prepend base URL
                 if (img.startsWith('/uploads')) {
                     return `${IMAGE_BASE_URL}${img}`;
                 }
-                // If it's just a filename, assume it's in /uploads/products/
-                const fullUrl = `${IMAGE_BASE_URL}/uploads/products/${img}`;
-                console.log(`📸 GalleryUpload - generated URL for ${img}:`, fullUrl);
-                return fullUrl;
+                return `${IMAGE_BASE_URL}/uploads/products/${img}`;
             });
             setLocalPreviews(previews);
-            setFailedImages(new Set());
         } else {
             setLocalPreviews([]);
-            setFailedImages(new Set());
         }
     }, [value, galleryFiles]);
 
@@ -300,207 +282,113 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
 
-        // Check current count
-        let currentCount = 0;
-        if (Array.isArray(value)) {
-            currentCount = value.length;
-        } else if (typeof value === 'string') {
-            try {
-                const parsed = JSON.parse(value);
-                if (Array.isArray(parsed)) {
-                    currentCount = parsed.length;
-                }
-            } catch (e) {
-                currentCount = 0;
-            }
-        }
-
+        const currentCount = Array.isArray(value) ? value.length : 0;
         if (files.length + currentCount > maxImages) {
             toast.error(`Maximum ${maxImages} images allowed`);
             return;
         }
 
-        setIsUploading(true);
+        const validFiles: File[] = [];
+        const newPreviews: string[] = [];
 
-        try {
-            const validFiles: File[] = [];
-            const newPreviews: string[] = [];
-
-            for (const file of files) {
-                if (!file.type.startsWith('image/')) {
-                    toast.error(`${file.name} is not an image`);
-                    continue;
-                }
-
-                if (file.size > maxSize * 1024 * 1024) {
-                    toast.error(`${file.name} exceeds ${maxSize}MB limit`);
-                    continue;
-                }
-
-                validFiles.push(file);
-                // ✅ Create blob URL for preview
-                const previewUrl = URL.createObjectURL(file);
-                newPreviews.push(previewUrl);
+        for (const file of files) {
+            if (!file.type.startsWith('image/')) {
+                toast.error(`${file.name} is not a supported image file`);
+                continue;
             }
 
-            if (validFiles.length === 0) return;
-
-            // ✅ Store files for later submission
-            const updatedFiles = [...galleryFiles, ...validFiles];
-            setGalleryFiles(updatedFiles);
-            if (onFilesChange) {
-                onFilesChange(updatedFiles);
+            if (file.size > maxSize * 1024 * 1024) {
+                toast.error(`${file.name} exceeds the ${maxSize}MB size limit`);
+                continue;
             }
 
-            // ✅ Update local previews with blob URLs
-            setLocalPreviews([...localPreviews, ...newPreviews]);
+            validFiles.push(file);
+            newPreviews.push(URL.createObjectURL(file));
+        }
 
-            // ✅ Update value with filenames (for server storage reference)
-            let currentValue = [];
-            if (Array.isArray(value)) {
-                currentValue = value;
-            } else if (typeof value === 'string') {
-                try {
-                    const parsed = JSON.parse(value);
-                    if (Array.isArray(parsed)) {
-                        currentValue = parsed;
-                    }
-                } catch (e) {
-                    currentValue = [];
-                }
-            }
+        if (validFiles.length === 0) return;
 
-            const newFileNames = validFiles.map(f => f.name);
-            const updatedValue = [...currentValue, ...newFileNames];
-            onChange(updatedValue);
+        const updatedFiles = [...galleryFiles, ...validFiles];
+        setGalleryFiles(updatedFiles);
+        onFilesChange?.(updatedFiles);
 
-            toast.success(`Added ${validFiles.length} image(s)`);
-        } catch (error) {
-            console.error('Gallery upload error:', error);
-            toast.error('Failed to upload images');
-        } finally {
-            setIsUploading(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+        setLocalPreviews((prev) => [...prev, ...newPreviews]);
+
+        const currentValues = Array.isArray(value) ? value : [];
+        onChange([...currentValues, ...validFiles.map((f) => f.name)]);
+
+        toast.success(`Added ${validFiles.length} image(s)`);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
     const removeImage = (index: number) => {
-        // Remove from files
         const newFiles = galleryFiles.filter((_, i) => i !== index);
         setGalleryFiles(newFiles);
-        if (onFilesChange) {
-            onFilesChange(newFiles);
-        }
+        onFilesChange?.(newFiles);
 
-        // Revoke blob URL to avoid memory leaks
         if (localPreviews[index]?.startsWith('blob:')) {
             URL.revokeObjectURL(localPreviews[index]);
         }
 
-        // Remove from previews
         const newPreviews = localPreviews.filter((_, i) => i !== index);
         setLocalPreviews(newPreviews);
 
-        // Remove from value
-        let currentValue = [];
-        if (Array.isArray(value)) {
-            currentValue = value;
-        } else if (typeof value === 'string') {
-            try {
-                const parsed = JSON.parse(value);
-                if (Array.isArray(parsed)) {
-                    currentValue = parsed;
-                }
-            } catch (e) {
-                currentValue = [];
-            }
-        }
-
-        const newValue = currentValue.filter((_, i) => i !== index);
-        onChange(newValue);
-
-        // Reset failed images set
-        setFailedImages(new Set());
+        const currentValues = Array.isArray(value) ? value : [];
+        onChange(currentValues.filter((_, i) => i !== index));
     };
 
-    // Get current count safely
-    const getCurrentCount = () => {
-        if (Array.isArray(value)) {
-            return value.length;
-        }
-        if (typeof value === 'string') {
-            try {
-                const parsed = JSON.parse(value);
-                if (Array.isArray(parsed)) {
-                    return parsed.length;
-                }
-            } catch (e) {
-                return 0;
-            }
-        }
-        return 0;
-    };
-
-    // ✅ Clean up blob URLs on unmount
     useEffect(() => {
         return () => {
-            localPreviews.forEach(url => {
+            localPreviews.forEach((url) => {
                 if (url.startsWith('blob:')) {
                     URL.revokeObjectURL(url);
                 }
             });
         };
-    }, []);
+    }, [localPreviews]);
 
     return (
-        <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                {`Product Gallery (Up to ${maxImages} Images)`}
-            </label>
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Product Gallery
+                </label>
+                <span className="text-xs text-slate-400">
+                    {localPreviews.length} / {maxImages} uploaded
+                </span>
+            </div>
+
             <div className="flex flex-wrap gap-3">
-                {localPreviews.map((img, index) => {
-                    const hasFailed = failedImages.has(index);
-                    console.log(`📸 GalleryUpload - rendering image ${index}:`, img, 'hasFailed:', hasFailed);
-                    return (
-                        <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-xs">
-                            {!hasFailed ? (
-                                <img
-                                    src={img}
-                                    alt={`Gallery ${index + 1}`}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        console.error('❌ Failed to load gallery image:', img);
-                                        setFailedImages(prev => new Set(prev).add(index));
-                                        const target = e.target as HTMLImageElement;
-                                        target.style.display = 'none';
-                                        const parent = target.parentElement;
-                                        if (parent) {
-                                            const fallback = document.createElement('div');
-                                            fallback.className = 'w-full h-full flex items-center justify-center text-2xl bg-gray-100';
-                                            fallback.textContent = '🖼️';
-                                            parent.appendChild(fallback);
-                                        }
-                                    }}
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl bg-gray-100">
-                                    🖼️
-                                </div>
-                            )}
-                            <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors z-10"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    );
-                })}
-                {getCurrentCount() < maxImages && (
-                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-[#0B192C] transition-colors bg-slate-50">
+                {localPreviews.map((img, index) => (
+                    <div
+                        key={index}
+                        className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-xs group"
+                    >
+                        <img
+                            src={img}
+                            alt={`Gallery preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-rose-700 transition shadow-xs z-10"
+                            title="Remove image"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                ))}
+
+                {localPreviews.length < maxImages && (
+                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 hover:border-slate-400 flex flex-col items-center justify-center cursor-pointer transition bg-slate-50/60 hover:bg-slate-50">
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -509,90 +397,27 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
                             onChange={handleFileSelect}
                             className="hidden"
                         />
-                        <span className="text-2xl text-slate-400">+</span>
+                        <span className="text-xl text-slate-400 leading-none mb-0.5">+</span>
+                        <span className="text-[10px] font-semibold text-slate-500">Upload</span>
                     </label>
                 )}
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
-                {getCurrentCount()} of {maxImages} images selected
-            </p>
-            {isUploading && (
-                <p className="text-xs text-blue-500 mt-1">Uploading images...</p>
-            )}
+            <p className="text-[11px] text-slate-400">Supported formats: JPEG, PNG, WEBP (up to {maxSize}MB each)</p>
         </div>
-    );
-};
-
-// ============================================
-// PRODUCT THUMBNAIL COMPONENT
-// ============================================
-interface ProductThumbnailProps {
-    imageUrl: string;
-    name: string;
-    className?: string;
-}
-
-const ProductThumbnail: React.FC<ProductThumbnailProps> = ({
-    imageUrl,
-    name,
-    className = ''
-}) => {
-    const [hasError, setHasError] = useState<boolean>(false);
-
-    const getFullUrl = useCallback((path: string): string | null => {
-        if (!path || path.trim() === '') return null;
-        const trimmed = path.trim();
-
-        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-            return trimmed;
-        }
-
-        const baseUrl = IMAGE_BASE_URL;
-
-        if (trimmed.startsWith('/uploads')) {
-            return `${baseUrl}${trimmed}`;
-        }
-
-        return `${baseUrl}/uploads/products/${trimmed}`;
-    }, []);
-
-    const fullUrl = getFullUrl(imageUrl);
-
-    const showFallback = !imageUrl || hasError || !fullUrl || isDefaultImage(imageUrl);
-
-    if (showFallback) {
-        return (
-            <div className={`w-full h-full flex items-center justify-center bg-gray-100 ${className}`}>
-                <span className="text-2xl">⚡</span>
-            </div>
-        );
-    }
-
-    return (
-        <img
-            src={fullUrl}
-            alt={name}
-            className={`w-full h-full object-cover ${className}`}
-            onError={(e) => {
-                console.error('❌ Failed to load image:', fullUrl);
-                setHasError(true);
-                e.currentTarget.style.display = 'none';
-            }}
-            loading="lazy"
-        />
     );
 };
 
 // ============================================
 // MAIN MODAL COMPONENT
 // ============================================
+
 export default function AccessoryFormModal({
     isOpen,
     onClose,
     onSubmit,
     initialData,
-    brands,
-    products,
+    brands = [],
+    products = [],
     categories = [],
     isSubmitting,
     title = 'Add New Accessory',
@@ -602,31 +427,33 @@ export default function AccessoryFormModal({
     const [mainImageFile, setMainImageFile] = useState<File | null>(null);
     const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
     const [imagePreview, setImagePreview] = useState<string>('');
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ============================================
-    // EFFECTS
-    // ============================================
-
-    // Reset form when modal opens/closes
+    // Sync Form State
     useEffect(() => {
         if (isOpen) {
             if (initialData) {
-                setFormData(initialData);
+                setFormData({
+                    ...INITIAL_FORM,
+                    ...initialData,
+                    technicalDetails: {
+                        ...INITIAL_FORM.technicalDetails,
+                        ...(initialData.technicalDetails || {}),
+                    },
+                });
                 if (initialData.imageUrl) {
                     const url = initialData.imageUrl.startsWith('/uploads')
                         ? `${IMAGE_BASE_URL}${initialData.imageUrl}`
                         : initialData.imageUrl;
-                    setImagePreview(url || '');
+                    setImagePreview(url);
                 } else {
                     setImagePreview('');
                     setMainImageFile(null);
                 }
-                // Reset gallery files
                 setGalleryFiles([]);
             } else {
-                setFormData({ ...INITIAL_FORM });
+                setFormData(INITIAL_FORM);
                 setImagePreview('');
                 setMainImageFile(null);
                 setGalleryFiles([]);
@@ -637,7 +464,7 @@ export default function AccessoryFormModal({
         }
     }, [initialData, isOpen]);
 
-    // Clean up preview URLs on unmount
+    // Clean up Object URL
     useEffect(() => {
         return () => {
             if (imagePreview && imagePreview.startsWith('blob:')) {
@@ -646,42 +473,30 @@ export default function AccessoryFormModal({
         };
     }, [imagePreview]);
 
-    // ============================================
-    // MEMOIZED VALUES
-    // ============================================
-
+    // Active Catalogs
     const activeProducts = useMemo(() => {
-        if (!products || !Array.isArray(products)) {
-            return [];
-        }
-        return products.filter(p => p.isActive !== false && p.name && p.name.trim() !== '');
+        return products.filter((p) => p.isActive !== false && p.name?.trim());
     }, [products]);
 
     const activeBrands = useMemo(() => {
-        return brands?.filter(b => b.isActive !== false) || [];
+        return brands.filter((b) => b.isActive !== false);
     }, [brands]);
 
     const activeCategories = useMemo(() => {
-        if (!categories || !Array.isArray(categories)) {
-            return [];
-        }
-        return categories.filter(c => c.isActive !== false);
+        return categories.filter((c) => c.isActive !== false);
     }, [categories]);
 
-    // ============================================
-    // HANDLERS
-    // ============================================
-
+    // Cover Image Handler
     const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            toast.error('Please upload an image file');
+            toast.error('Please upload a valid image file');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image size should be less than 5MB');
+            toast.error('Image size should not exceed 5MB');
             return;
         }
 
@@ -689,14 +504,14 @@ export default function AccessoryFormModal({
         const previewUrl = URL.createObjectURL(file);
         setImagePreview(previewUrl);
         setFormData((prev) => ({ ...prev, imageUrl: file.name }));
-        toast.success('Image selected');
+        toast.success('Cover image chosen');
 
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     }, []);
 
-    const removeImage = useCallback(() => {
+    const removeCoverImage = useCallback(() => {
         if (imagePreview && imagePreview.startsWith('blob:')) {
             URL.revokeObjectURL(imagePreview);
         }
@@ -708,182 +523,153 @@ export default function AccessoryFormModal({
         }
     }, [imagePreview]);
 
-    const handleGalleryFilesChange = useCallback((files: File[]) => {
-        setGalleryFiles(files);
-    }, []);
+    // Submit Handler
+    const handleSubmit = useCallback(
+        async (e: React.FormEvent) => {
+            e.preventDefault();
 
-    // Handle Form Submit
-    const handleSubmit = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
+            if (!formData.name.trim()) {
+                toast.error('Accessory name is required');
+                return;
+            }
+            if (!formData.model.trim()) {
+                toast.error('Model identifier is required');
+                return;
+            }
+            if (!formData.brand) {
+                toast.error('Brand selection is required');
+                return;
+            }
+            if (!formData.category) {
+                toast.error('Category selection is required');
+                return;
+            }
+            if (!formData.parentProductId) {
+                toast.error('Parent product assignment is required');
+                return;
+            }
+            if (!formData.accessoryType) {
+                toast.error('Accessory classification type is required');
+                return;
+            }
+            if (!mainImageFile && !initialData?.imageUrl) {
+                toast.error('A primary cover image is required');
+                return;
+            }
 
-        // Validate required fields
-        if (!formData.name.trim()) {
-            toast.error('Accessory name is required');
-            return;
-        }
-        if (!formData.model.trim()) {
-            toast.error('Model is required');
-            return;
-        }
-        if (!formData.brand) {
-            toast.error('Brand is required');
-            return;
-        }
-        if (!formData.category) {
-            toast.error('Category is required');
-            return;
-        }
-        if (!formData.parentProductId) {
-            toast.error('Parent product is required');
-            return;
-        }
-        if (!formData.accessoryType) {
-            toast.error('Accessory type is required');
-            return;
-        }
-        if (!mainImageFile && !initialData?.imageUrl) {
-            toast.error('Main image is required');
-            return;
-        }
+            setIsProcessing(true);
 
-        setIsProcessing(true);
+            try {
+                const formDataToSend = new FormData();
 
-        try {
-            const formDataToSend = new FormData();
+                formDataToSend.append('name', formData.name.trim());
+                formDataToSend.append('model', formData.model.trim());
+                formDataToSend.append('brand', formData.brand);
+                formDataToSend.append('category', formData.category);
+                formDataToSend.append('categoryLabel', formData.categoryLabel || 'Accessory');
+                formDataToSend.append('price', String(formData.price || 0));
+                formDataToSend.append('rating', String(formData.rating || 0));
+                formDataToSend.append('stock', String(formData.stock || 0));
+                formDataToSend.append('isActive', String(formData.isActive));
+                formDataToSend.append('parentProductId', formData.parentProductId);
+                formDataToSend.append('accessoryType', formData.accessoryType);
+                formDataToSend.append('isAccessory', 'true');
 
-            // Append all text fields
-            formDataToSend.append('name', formData.name.trim());
-            formDataToSend.append('model', formData.model.trim());
-            formDataToSend.append('brand', formData.brand);
-            formDataToSend.append('category', formData.category);
-            formDataToSend.append('categoryLabel', formData.categoryLabel || 'Accessory');
-            formDataToSend.append('price', String(formData.price || 0));
-            formDataToSend.append('rating', String(formData.rating || 0));
-            formDataToSend.append('stock', String(formData.stock || 0));
-            formDataToSend.append('isActive', String(formData.isActive));
-            formDataToSend.append('parentProductId', formData.parentProductId);
-            formDataToSend.append('accessoryType', formData.accessoryType);
-            formDataToSend.append('isAccessory', 'true');
+                formDataToSend.append('specs', JSON.stringify(formData.specs || []));
+                formDataToSend.append('features', JSON.stringify(formData.features || []));
+                formDataToSend.append('compatibleWith', JSON.stringify([formData.parentProductId]));
 
-            // Append arrays as JSON strings
-            formDataToSend.append('specs', JSON.stringify(formData.specs || []));
-            formDataToSend.append('features', JSON.stringify(formData.features || []));
-            formDataToSend.append('compatibleWith', JSON.stringify([formData.parentProductId]));
+                formDataToSend.append('shortDescription', formData.shortDescription || '');
+                formDataToSend.append('description', formData.description || '');
 
-            // Append descriptions
-            formDataToSend.append('shortDescription', formData.shortDescription || '');
-            formDataToSend.append('description', formData.description || '');
+                formDataToSend.append(
+                    'technicalDetails',
+                    JSON.stringify({
+                        powerOutput: formData.technicalDetails?.powerOutput || 'N/A',
+                        inputVoltage: formData.technicalDetails?.inputVoltage || 'N/A',
+                        connectorType: formData.technicalDetails?.connectorType || 'N/A',
+                        dimensions: formData.technicalDetails?.dimensions || 'N/A',
+                        weight: formData.technicalDetails?.weight || 'N/A',
+                        enclosureRating: formData.technicalDetails?.enclosureRating || 'N/A',
+                        warranty: formData.technicalDetails?.warranty || 'N/A',
+                    })
+                );
 
-            // Append technical details as JSON
-            formDataToSend.append('technicalDetails', JSON.stringify({
-                powerOutput: formData.technicalDetails.powerOutput || 'N/A',
-                inputVoltage: formData.technicalDetails.inputVoltage || 'N/A',
-                connectorType: formData.technicalDetails.connectorType || 'N/A',
-                dimensions: formData.technicalDetails.dimensions || 'N/A',
-                weight: formData.technicalDetails.weight || 'N/A',
-                enclosureRating: formData.technicalDetails.enclosureRating || 'N/A',
-                warranty: formData.technicalDetails.warranty || 'N/A',
+                galleryFiles.forEach((file) => {
+                    formDataToSend.append('galleryImages', file);
+                });
+
+                if (mainImageFile) {
+                    formDataToSend.append('image', mainImageFile);
+                }
+
+                await onSubmit(formDataToSend);
+
+                if (!isSubmitting) {
+                    setFormData(INITIAL_FORM);
+                    setMainImageFile(null);
+                    setGalleryFiles([]);
+                    setImagePreview('');
+                }
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : 'Failed to save accessory';
+                toast.error(message);
+            } finally {
+                setIsProcessing(false);
+            }
+        },
+        [formData, mainImageFile, galleryFiles, initialData, onSubmit, isSubmitting]
+    );
+
+    const updateField = useCallback(
+        <K extends keyof AccessoryFormData>(field: K, value: AccessoryFormData[K]) => {
+            setFormData((prev) => ({ ...prev, [field]: value }));
+        },
+        []
+    );
+
+    const updateTechnicalDetails = useCallback(
+        <K extends keyof TechnicalDetails>(field: K, value: string) => {
+            setFormData((prev) => ({
+                ...prev,
+                technicalDetails: {
+                    ...prev.technicalDetails,
+                    [field]: value,
+                },
             }));
-
-            // ✅ Append gallery images as FILES (not base64)
-            galleryFiles.forEach((file) => {
-                formDataToSend.append('galleryImages', file);
-            });
-
-            // Append main image if new file selected
-            if (mainImageFile) {
-                formDataToSend.append('image', mainImageFile);
-            }
-
-            console.log('📦 Sending Accessory FormData:');
-            for (let [key, value] of formDataToSend.entries()) {
-                if (value instanceof File) {
-                    console.log(`  ${key}: File(${value.name}, ${value.size} bytes)`);
-                } else {
-                    console.log(`  ${key}: ${value}`);
-                }
-            }
-
-            await onSubmit(formDataToSend);
-
-            if (!isSubmitting) {
-                setFormData(INITIAL_FORM);
-                setMainImageFile(null);
-                setGalleryFiles([]);
-                setImagePreview('');
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                }
-            }
-        } catch (error) {
-            console.error('Submit error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to submit form');
-        } finally {
-            setIsProcessing(false);
-        }
-    }, [formData, mainImageFile, galleryFiles, initialData, onSubmit, isSubmitting]);
-
-    const updateField = useCallback(<K extends keyof AccessoryFormData>(
-        field: K,
-        value: AccessoryFormData[K]
-    ) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-    }, []);
-
-    const updateTechnicalDetails = useCallback(<K extends keyof AccessoryFormData['technicalDetails']>(
-        field: K,
-        value: string
-    ) => {
-        setFormData((prev) => ({
-            ...prev,
-            technicalDetails: { ...prev.technicalDetails, [field]: value }
-        }));
-    }, []);
-
-    const handleParentProductChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const parentId = e.target.value;
-        setFormData((prev) => ({
-            ...prev,
-            parentProductId: parentId,
-            compatibleWith: parentId ? [parentId] : []
-        }));
-    }, []);
-
-    // ============================================
-    // CONDITIONAL RETURN
-    // ============================================
+        },
+        []
+    );
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B192C]/40 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
             <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200">
-                {/* HEADER */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
                     <div>
-                        <h2 className="text-lg font-bold text-[#0B192C]">{title}</h2>
-                        <p className="text-xs text-slate-500">
-                            {title.includes('Edit') ? 'Update accessory details' : 'Create a new product accessory'}
+                        <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                            {title.includes('Edit') ? 'Update accessory information and technical specs' : 'Create a hardware accessory profile linked to compatible charging hardware'}
                         </p>
                     </div>
                     <button
                         onClick={onClose}
-                        disabled={isSubmitting}
-                        className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
+                        disabled={isSubmitting || isProcessing}
+                        className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
                         aria-label="Close modal"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        ✕
                     </button>
                 </div>
 
-                {/* FORM */}
+                {/* Modal Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Basic Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    {/* General Information */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                 Accessory Name <span className="text-rose-500">*</span>
                             </label>
                             <input
@@ -891,36 +677,36 @@ export default function AccessoryFormModal({
                                 value={formData.name}
                                 onChange={(e) => updateField('name', e.target.value)}
                                 required
-                                placeholder="e.g., Type 2 Charging Cable 5m"
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                placeholder="e.g. Type 2 High-Duty Fast Charging Cable"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Model <span className="text-rose-500">*</span>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Model Number <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={formData.model}
                                 onChange={(e) => updateField('model', e.target.value)}
                                 required
-                                placeholder="e.g., CBL-T2-5M"
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                placeholder="e.g. CBL-T2-7M"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Brand <span className="text-rose-500">*</span>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Brand Partner <span className="text-rose-500">*</span>
                             </label>
                             <select
                                 value={formData.brand}
                                 onChange={(e) => updateField('brand', e.target.value)}
                                 required
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                             >
-                                <option value="">Select a brand...</option>
+                                <option value="">Select brand...</option>
                                 {activeBrands.map((brand) => (
                                     <option key={brand.id || brand._id} value={brand.id || brand._id}>
                                         {brand.icon} {brand.name}
@@ -930,46 +716,41 @@ export default function AccessoryFormModal({
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Category <span className="text-rose-500">*</span>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Category Group <span className="text-rose-500">*</span>
                             </label>
                             <select
                                 value={formData.category}
                                 onChange={(e) => {
                                     const categoryId = e.target.value;
-                                    const selectedCategory = activeCategories.find(c => c.id === categoryId || c._id === categoryId);
+                                    const found = activeCategories.find((c) => (c.id || c._id) === categoryId);
                                     setFormData((prev) => ({
                                         ...prev,
                                         category: categoryId,
-                                        categoryLabel: selectedCategory?.name || ''
+                                        categoryLabel: found?.name || '',
                                     }));
                                 }}
                                 required
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                             >
-                                <option value="">Select a category...</option>
-                                {activeCategories.map((category) => (
-                                    <option key={category.id || category._id} value={category.id || category._id}>
-                                        {category.icon} {category.name}
+                                <option value="">Select category...</option>
+                                {activeCategories.map((cat) => (
+                                    <option key={cat.id || cat._id} value={cat.id || cat._id}>
+                                        {cat.icon} {cat.name}
                                     </option>
                                 ))}
                             </select>
-                            {activeCategories.length === 0 && (
-                                <p className="text-xs text-amber-600 mt-1">
-                                    ⚠️ No categories available. Please create a category first.
-                                </p>
-                            )}
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                 Accessory Type <span className="text-rose-500">*</span>
                             </label>
                             <select
                                 value={formData.accessoryType}
                                 onChange={(e) => updateField('accessoryType', e.target.value)}
                                 required
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                             >
                                 <option value="">Select type...</option>
                                 {accessoryTypes.map((type) => (
@@ -981,8 +762,8 @@ export default function AccessoryFormModal({
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Price ($) <span className="text-rose-500">*</span>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Price (USD) <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 type="number"
@@ -992,111 +773,78 @@ export default function AccessoryFormModal({
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 font-mono transition"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Stock
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Stock Count
                             </label>
                             <input
                                 type="number"
                                 value={formData.stock}
-                                onChange={(e) => updateField('stock', parseInt(e.target.value) || 0)}
+                                onChange={(e) => updateField('stock', parseInt(e.target.value, 10) || 0)}
                                 min="0"
                                 placeholder="0"
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 font-mono transition"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Parent Product <span className="text-rose-500">*</span>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Target Compatible Product <span className="text-rose-500">*</span>
                             </label>
                             <select
                                 value={formData.parentProductId}
-                                onChange={handleParentProductChange}
+                                onChange={(e) => {
+                                    const parentId = e.target.value;
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        parentProductId: parentId,
+                                        compatibleWith: parentId ? [parentId] : [],
+                                    }));
+                                }}
                                 required
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                             >
-                                <option value="">Select a parent product...</option>
-                                {activeProducts.length > 0 ? (
-                                    activeProducts.map((product) => (
-                                        <option
-                                            key={product.id || product._id}
-                                            value={product.id || product._id}
-                                        >
-                                            {product.name} {product.model ? `(${product.model})` : ''}
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option value="" disabled>No products available. Create a product first.</option>
-                                )}
+                                <option value="">Select compatible charger...</option>
+                                {activeProducts.map((product) => (
+                                    <option key={product.id || product._id} value={product.id || product._id}>
+                                        {product.name} ({product.model})
+                                    </option>
+                                ))}
                             </select>
-                            {activeProducts.length === 0 && (
-                                <p className="text-xs text-amber-600 mt-1">
-                                    ⚠️ No active products available. Please create a product first.
-                                </p>
-                            )}
-                            <p className="text-xs text-gray-400 mt-1">
-                                Total products: {products?.length || 0}
-                            </p>
-                        </div>
-
-                        <div>
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Rating (0.0 - 5.0)
-                            </label>
-                            <input
-                                type="number"
-                                value={formData.rating}
-                                onChange={(e) => updateField('rating', parseFloat(e.target.value) || 0)}
-                                min="0"
-                                max="5"
-                                step="0.1"
-                                placeholder="0.0"
-                                className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
-                            />
                         </div>
                     </div>
 
-                    {/* Product Media */}
-                    <div className="border-t border-slate-100 pt-4">
-                        <h3 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider mb-3">Product Media</h3>
+                    {/* Media Section */}
+                    <div className="border-t border-slate-100 pt-5 space-y-5">
+                        <div>
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Product Media</h3>
 
-                        {/* Primary Cover Image */}
-                        <div className="mb-4">
-                            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Primary Cover Image <span className="text-rose-500">*</span>
-                                {isProcessing && <span className="text-blue-500 ml-2">(Processing...)</span>}
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Primary Image <span className="text-rose-500">*</span>
                             </label>
                             <div className="flex items-center gap-4">
                                 {imagePreview ? (
-                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50">
-                                        {imagePreview.startsWith('blob:') ? (
-                                            <img
-                                                src={imagePreview}
-                                                alt="Accessory preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <ProductThumbnail
-                                                imageUrl={imagePreview}
-                                                name="Accessory preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        )}
+                                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shrink-0 shadow-xs">
+                                        <img
+                                            src={imagePreview}
+                                            alt="Accessory preview"
+                                            className="w-full h-full object-cover"
+                                        />
                                         <button
                                             type="button"
-                                            onClick={removeImage}
-                                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-sm"
+                                            onClick={removeCoverImage}
+                                            className="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-rose-700 transition shadow-xs z-10"
+                                            title="Remove image"
                                         >
-                                            ×
+                                            ✕
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="w-24 h-24 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 bg-slate-50 flex-shrink-0">
+                                    <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 bg-slate-50/60 shrink-0">
                                         <span className="text-2xl">📷</span>
                                     </div>
                                 )}
@@ -1106,14 +854,14 @@ export default function AccessoryFormModal({
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isProcessing || isSubmitting}
-                                        className="px-4 py-2 border-2 border-dashed border-slate-300 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-colors text-sm text-slate-600 w-full disabled:opacity-50"
+                                        className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition disabled:opacity-50"
                                     >
-                                        {isProcessing ? 'Processing...' : imagePreview ? 'Change Image' : 'Upload Cover Image'}
+                                        {imagePreview ? 'Change Primary Image' : 'Select Cover Image'}
                                     </button>
-                                    <p className="text-xs text-slate-400 mt-1">Select an image file (JPEG, PNG, WEBP, max 5MB)</p>
+                                    <p className="text-[11px] text-slate-400 mt-1">JPEG, PNG, WEBP (Max 5MB)</p>
                                     {mainImageFile && (
-                                        <p className="text-xs text-emerald-600 mt-1">
-                                            Selected: {mainImageFile.name} ({(mainImageFile.size / 1024).toFixed(1)} KB)
+                                        <p className="text-xs text-emerald-600 font-medium mt-1">
+                                            ✓ {mainImageFile.name} ({(mainImageFile.size / 1024).toFixed(1)} KB)
                                         </p>
                                     )}
                                 </div>
@@ -1128,162 +876,165 @@ export default function AccessoryFormModal({
                             </div>
                         </div>
 
-                        {/* Gallery Images - Updated to use files */}
-                        <div>
-                            <GalleryUpload
-                                value={formData.galleryImages}
-                                onChange={(images) => updateField('galleryImages', images)}
-                                onFilesChange={handleGalleryFilesChange}
-                                maxImages={10}
-                                maxSize={5}
-                            />
-                        </div>
+                        {/* Gallery Upload */}
+                        <GalleryUpload
+                            value={formData.galleryImages}
+                            onChange={(images) => updateField('galleryImages', images)}
+                            onFilesChange={setGalleryFiles}
+                            maxImages={10}
+                            maxSize={5}
+                        />
                     </div>
 
-                    {/* Descriptions */}
-                    <div className="border-t border-slate-100 pt-4 space-y-4">
-                        <h3 className="text-xs font-bold text-[#0B192C] uppercase tracking-wider mb-2">Descriptions</h3>
+                    {/* Description Section */}
+                    <div className="border-t border-slate-100 pt-5 space-y-4">
+                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Descriptions & Content</h3>
 
                         <TextEditor
                             label="Short Overview"
                             required
-                            value={formData.shortDescription}
-                            onChange={(value) => updateField('shortDescription', value)}
-                            placeholder="Write a brief product teaser..."
-                            height={140}
+                            value={formData.shortDescription || ''}
+                            onChange={(val) => updateField('shortDescription', val)}
+                            placeholder="Brief summary of the accessory..."
+                            minHeight={120}
                         />
 
                         <TextEditor
-                            label="Full Technical & Marketing Description"
-                            value={formData.description}
-                            onChange={(value) => updateField('description', value)}
-                            placeholder="Write in-depth equipment details..."
-                            height={220}
+                            label="Comprehensive Details"
+                            value={formData.description || ''}
+                            onChange={(val) => updateField('description', val)}
+                            placeholder="Detailed technical overview and product compatibility notes..."
+                            minHeight={180}
                         />
                     </div>
 
-                    {/* Specs */}
-                    <div className="border-t border-slate-100 pt-4">
+                    {/* Specifications & Features */}
+                    <div className="border-t border-slate-100 pt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
                         <TextArrayInput
-                            label="Specifications"
+                            label="Key Specifications"
                             value={formData.specs}
                             onChange={(specs) => updateField('specs', specs)}
-                            placeholder="Enter a specification and press Enter"
+                            placeholder="e.g. 32A Current Capacity"
                         />
-                    </div>
 
-                    {/* Features */}
-                    <div className="border-t border-slate-100 pt-4">
                         <TextArrayInput
-                            label="Features"
+                            label="Features & Benefits"
                             value={formData.features}
                             onChange={(features) => updateField('features', features)}
-                            placeholder="Enter a feature and press Enter"
+                            placeholder="e.g. Weatherproof Ergonomic Grip"
                         />
                     </div>
 
-                    {/* Technical Details */}
-                    <div className="border-t border-slate-100 pt-4">
-                        <h4 className="text-sm font-bold text-[#0B192C] mb-4">Hardware Engineering Specs</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Technical Engineering Details */}
+                    <div className="border-t border-slate-100 pt-5 space-y-3">
+                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                            Engineering & Hardware Specifications
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Power Output
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                    Power Rating
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.technicalDetails.powerOutput}
+                                    value={formData.technicalDetails?.powerOutput || ''}
                                     onChange={(e) => updateTechnicalDetails('powerOutput', e.target.value)}
-                                    placeholder="e.g., 7.4kW"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                    placeholder="e.g. 22 kW"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
                                     Input Voltage
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.technicalDetails.inputVoltage}
+                                    value={formData.technicalDetails?.inputVoltage || ''}
                                     onChange={(e) => updateTechnicalDetails('inputVoltage', e.target.value)}
-                                    placeholder="e.g., 230V"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                    placeholder="e.g. 400V AC"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Connector Type
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                    Connector Standard
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.technicalDetails.connectorType}
+                                    value={formData.technicalDetails?.connectorType || ''}
                                     onChange={(e) => updateTechnicalDetails('connectorType', e.target.value)}
-                                    placeholder="e.g., Type 2"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                    placeholder="e.g. CCS2 / Type 2"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Enclosure Rating
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                    IP / Enclosure Rating
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.technicalDetails.enclosureRating}
+                                    value={formData.technicalDetails?.enclosureRating || ''}
                                     onChange={(e) => updateTechnicalDetails('enclosureRating', e.target.value)}
-                                    placeholder="e.g., IP67"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                    placeholder="e.g. IP66"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                    Warranty
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails.warranty}
-                                    onChange={(e) => updateTechnicalDetails('warranty', e.target.value)}
-                                    placeholder="e.g., 2 years"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
                                     Dimensions
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.technicalDetails.dimensions}
+                                    value={formData.technicalDetails?.dimensions || ''}
                                     onChange={(e) => updateTechnicalDetails('dimensions', e.target.value)}
-                                    placeholder="e.g., 300 x 200 x 150mm"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                    placeholder="e.g. 5m Cable Length"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
                                     Weight
                                 </label>
                                 <input
                                     type="text"
-                                    value={formData.technicalDetails.weight}
+                                    value={formData.technicalDetails?.weight || ''}
                                     onChange={(e) => updateTechnicalDetails('weight', e.target.value)}
-                                    placeholder="e.g., 4.5kg"
-                                    className="w-full px-3.5 py-2 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all"
+                                    placeholder="e.g. 3.2 kg"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                    Warranty Term
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.technicalDetails?.warranty || ''}
+                                    onChange={(e) => updateTechnicalDetails('warranty', e.target.value)}
+                                    placeholder="e.g. 3 Years Limited"
+                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* Active Flag */}
+                    {/* Active Status Check */}
                     <div className="flex items-center gap-2 pt-1">
                         <input
                             type="checkbox"
                             id="accessory-active"
                             checked={formData.isActive}
                             onChange={(e) => updateField('isActive', e.target.checked)}
-                            className="w-4 h-4 rounded-md border-slate-300 text-[#0B192C] focus:ring-[#0B192C]"
+                            className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300"
                         />
                         <label htmlFor="accessory-active" className="text-xs font-semibold text-slate-700 cursor-pointer">
-                            Accessory Active
+                            Set as active listing in hardware catalog
                         </label>
                     </div>
 
@@ -1292,25 +1043,31 @@ export default function AccessoryFormModal({
                         <button
                             type="button"
                             onClick={onClose}
-                            disabled={isSubmitting}
-                            className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-bold transition-colors disabled:opacity-50"
+                            disabled={isSubmitting || isProcessing}
+                            className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting || isProcessing}
-                            className="flex-1 bg-[#0B192C] hover:bg-[#1E3E62] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#0B192C]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="flex-1 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {isSubmitting || isProcessing ? (
                                 <>
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path
+                                            className="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        />
                                     </svg>
-                                    {isSubmitting ? 'Saving...' : 'Processing...'}
+                                    <span>Saving...</span>
                                 </>
-                            ) : submitLabel}
+                            ) : (
+                                submitLabel
+                            )}
                         </button>
                     </div>
                 </form>

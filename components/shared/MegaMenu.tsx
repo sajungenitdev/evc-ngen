@@ -4,9 +4,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { solutionsList, getSolutionIcon } from '@/lib/solutionsDb';
-import { industriesList, getIndustryIcon } from '@/lib/industriesDb';
 import { trainingPrograms } from '@/lib/trainingDb';
+import { getImageUrl, isDefaultImage } from '@/utils/imageHelper';
 
 export type MegaMenuType =
     | 'products'
@@ -74,7 +73,6 @@ interface Product {
     isActive?: boolean;
 }
 
-// ✅ Accessory interface
 interface Accessory {
     _id?: string;
     id?: string;
@@ -87,6 +85,69 @@ interface Accessory {
     price?: number;
     isActive?: boolean;
     parentProductId?: string;
+}
+
+interface Solution {
+    _id?: string;
+    id: string;
+    label: string;
+    link: string;
+    desc: string;
+    imageUrl: string;
+    title: string;
+    subtitle: string;
+    overview: string;
+    isActive: boolean;
+    features: string[];
+}
+
+interface Industry {
+    _id: string;
+    id: string;
+    label: string;
+    slug: string;
+    desc: string;
+    icon: string;
+    imageUrl: string;
+    title: string;
+    subtitle: string;
+    overview: string;
+    challenges: string[];
+    solutions: string[];
+    benefits: string[];
+    caseStudy: {
+        title: string;
+        description: string;
+        imageUrl: string;
+        link: string;
+    };
+    features: string[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+interface Training {
+    _id: string;
+    id: string;
+    title: string;
+    badge: string;
+    description: string;
+    details: string;
+    duration: string;
+    format: string;
+    imageUrl: string;
+    link: string;
+    color: string;
+    icon: string;
+    features: string[];
+    price: string;
+    schedule: string;
+    prerequisites: string[];
+    actionText: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -102,18 +163,27 @@ interface CacheStore {
         categories?: Category[];
         products?: Product[];
         accessories?: Accessory[];
+        solutions?: Solution[];
+        industries?: Industry[];
+        training?: Training[];
     };
     timestamp: {
         services?: number;
         brands?: number;
         products?: number;
         accessories?: number;
+        solutions?: number;
+        industries?: number;
+        training?: number;
     };
     inFlight: {
         services?: Promise<Service[]>;
         brands?: Promise<Brand[]>;
         products?: Promise<{ categories: Category[]; products: Product[] }>;
         accessories?: Promise<Accessory[]>;
+        solutions?: Promise<Solution[]>;
+        industries?: Promise<Industry[]>;
+        training?: Promise<Training[]>;
     };
 }
 
@@ -123,7 +193,7 @@ const memoryCache: CacheStore = {
     inFlight: {}
 };
 
-const isCacheValid = (key: 'services' | 'brands' | 'products' | 'accessories'): boolean => {
+const isCacheValid = (key: 'services' | 'brands' | 'products' | 'accessories' | 'solutions' | 'industries' | 'training'): boolean => {
     const ts = memoryCache.timestamp[key];
     if (!ts) return false;
     return Date.now() - ts < CACHE_TTL_MS;
@@ -199,8 +269,11 @@ const useMegaMenuData = (type: MegaMenuType) => {
     const [products, setProducts] = useState<Product[]>(memoryCache.data.products || []);
     const [categories, setCategories] = useState<Category[]>(memoryCache.data.categories || []);
     const [accessories, setAccessories] = useState<Accessory[]>(memoryCache.data.accessories || []);
+    const [solutions, setSolutions] = useState<Solution[]>(memoryCache.data.solutions || []);
+    const [industries, setIndustries] = useState<Industry[]>(memoryCache.data.industries || []);
+    const [training, setTraining] = useState<Training[]>(memoryCache.data.training || []);
 
-    const isDynamicType = type === 'services' || type === 'brands' || type === 'products' || type === 'accessories';
+    const isDynamicType = type === 'services' || type === 'brands' || type === 'products' || type === 'accessories' || type === 'solutions' || type === 'industries' || type === 'training';
 
     const [isLoading, setIsLoading] = useState<boolean>(() => {
         if (!isDynamicType) return false;
@@ -208,6 +281,9 @@ const useMegaMenuData = (type: MegaMenuType) => {
         if (type === 'brands') return !memoryCache.data.brands;
         if (type === 'products') return !memoryCache.data.products || !memoryCache.data.categories;
         if (type === 'accessories') return !memoryCache.data.accessories;
+        if (type === 'solutions') return !memoryCache.data.solutions;
+        if (type === 'industries') return !memoryCache.data.industries;
+        if (type === 'training') return !memoryCache.data.training; // ✅ Add this
         return false;
     });
 
@@ -326,7 +402,7 @@ const useMegaMenuData = (type: MegaMenuType) => {
                 }
             }
 
-            // ✅ Accessories
+            // Accessories
             if (type === 'accessories') {
                 const hasValidCache = isCacheValid('accessories');
                 if (!force && hasValidCache) return;
@@ -353,6 +429,122 @@ const useMegaMenuData = (type: MegaMenuType) => {
                     console.error('Error fetching accessories:', err);
                 } finally {
                     delete memoryCache.inFlight.accessories;
+                    if (isMountedRef.current) setIsLoading(false);
+                }
+            }
+            // Inside the syncData function, add this after the solutions block
+            // ✅ Industries - Fetch from API
+            if (type === 'industries') {
+                const hasValidCache = isCacheValid('industries');
+                if (!force && hasValidCache) return;
+
+                if (!memoryCache.data.industries) setIsLoading(true);
+
+                if (!memoryCache.inFlight.industries) {
+                    memoryCache.inFlight.industries = (async () => {
+                        const res = await fetch(`${API_BASE_URL}/industries?limit=100&isActive=true`);
+                        const json = await res.json();
+                        const industries = extractDataArray<Industry>(json).filter((i) => i.isActive !== false);
+                        return industries;
+                    })();
+                }
+
+                try {
+                    const items = await memoryCache.inFlight.industries;
+                    memoryCache.data.industries = items;
+                    memoryCache.timestamp.industries = Date.now();
+                    if (isMountedRef.current) {
+                        setIndustries(items);
+                        setIsLoading(false);
+                    }
+                } catch (err) {
+                    console.error('Error fetching industries:', err);
+                } finally {
+                    delete memoryCache.inFlight.industries;
+                    if (isMountedRef.current) setIsLoading(false);
+                }
+            }
+
+            // Inside syncData function, add this after industries block
+            // ✅ Training - Fetch from API
+            if (type === 'training') {
+                const hasValidCache = isCacheValid('training');
+                if (!force && hasValidCache) return;
+
+                if (!memoryCache.data.training) setIsLoading(true);
+
+                if (!memoryCache.inFlight.training) {
+                    memoryCache.inFlight.training = (async () => {
+                        const res = await fetch(`${API_BASE_URL}/training?limit=100&isActive=true`);
+                        const json = await res.json();
+                        const training = extractDataArray<Training>(json).filter((t) => t.isActive !== false);
+                        return training;
+                    })();
+                }
+
+                try {
+                    const items = await memoryCache.inFlight.training;
+                    memoryCache.data.training = items;
+                    memoryCache.timestamp.training = Date.now();
+                    if (isMountedRef.current) {
+                        setTraining(items);
+                        setIsLoading(false);
+                    }
+                } catch (err) {
+                    console.error('Error fetching training:', err);
+                } finally {
+                    delete memoryCache.inFlight.training;
+                    if (isMountedRef.current) setIsLoading(false);
+                }
+            }
+
+            // ✅ Solutions - Fetch from API with proper data mapping
+            if (type === 'solutions') {
+                const hasValidCache = isCacheValid('solutions');
+                if (!force && hasValidCache) return;
+
+                if (!memoryCache.data.solutions) setIsLoading(true);
+
+                if (!memoryCache.inFlight.solutions) {
+                    memoryCache.inFlight.solutions = (async () => {
+                        const res = await fetch(`${API_BASE_URL}/solutions?limit=100`);
+                        const json = await res.json();
+                        const solutions = extractDataArray<Solution>(json).filter((s) => s.isActive !== false);
+
+                        // ✅ Map solutions and ensure clean slugs
+                        return solutions.map((s) => {
+                            // Generate clean slug
+                            const cleanSlug = s.id && !s.id.includes(' ')
+                                ? s.id.toLowerCase().replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-')
+                                : generateCleanSlug(s.label);
+
+                            return {
+                                ...s,
+                                icon: '📋',
+                                desc: s.desc || s.subtitle || '',
+                                // ✅ Ensure link uses clean slug
+                                link: s.link && !s.link.includes(' ')
+                                    ? s.link
+                                    : `/solutions/${cleanSlug}`,
+                                // ✅ Store clean slug for reference
+                                _slug: cleanSlug,
+                            };
+                        });
+                    })();
+                }
+
+                try {
+                    const items = await memoryCache.inFlight.solutions;
+                    memoryCache.data.solutions = items;
+                    memoryCache.timestamp.solutions = Date.now();
+                    if (isMountedRef.current) {
+                        setSolutions(items);
+                        setIsLoading(false);
+                    }
+                } catch (err) {
+                    console.error('Error fetching solutions:', err);
+                } finally {
+                    delete memoryCache.inFlight.solutions;
                     if (isMountedRef.current) setIsLoading(false);
                 }
             }
@@ -410,20 +602,16 @@ const useMegaMenuData = (type: MegaMenuType) => {
             .slice(0, 3);
     }, [categories, products, type]);
 
-    // ✅ Group accessories by type for the menu
+    // Group accessories by type
     const groupedAccessories = useMemo(() => {
         if (type !== 'accessories') return {};
-
-        // If we have accessories from API, group them
         if (accessories.length > 0) {
             return groupAccessoriesByType(accessories);
         }
-
-        // Fallback to static data if no accessories are loaded
         return {};
     }, [accessories, type]);
 
-    // ✅ Get unique accessory types with counts
+    // Get unique accessory types with counts
     const accessoryTypeSummary = useMemo(() => {
         if (type !== 'accessories') return [];
 
@@ -448,7 +636,6 @@ const useMegaMenuData = (type: MegaMenuType) => {
             .sort((a, b) => b.count - a.count);
     }, [accessories, type]);
 
-    // ✅ Get accessories for a specific type
     const getAccessoriesByType = (type: string) => {
         return accessories.filter((a) => (a.accessoryType || 'other') === type);
     };
@@ -459,6 +646,9 @@ const useMegaMenuData = (type: MegaMenuType) => {
         products,
         categories,
         accessories,
+        solutions,
+        industries,  // ✅ Add this - it's currently missing
+        training,
         isLoading,
         activeProductCategories,
         groupedAccessories,
@@ -604,42 +794,196 @@ const ProductsMenu: React.FC<{
     );
 };
 
+// components/shared/MegaMenu.tsx - Complete SolutionsMenu
+
+// ✅ Helper to generate clean slug
+const generateCleanSlug = (text: string): string => {
+    if (!text) return 'solution';
+    return text
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+};
+
 // ----------------------------------------------------------------------------
-// ✅ Accessories Menu - DYNAMIC from API
+// ✅ Solutions Menu - Dynamic from API with proper links
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ✅ Solutions Menu - Dynamic from API with proper links
+// ----------------------------------------------------------------------------
+const SolutionsMenu: React.FC<{
+    solutions: Solution[];
+    isLoading: boolean;
+}> = ({ solutions, isLoading }) => {
+    const displaySolutions = solutions.slice(0, 6);
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">SOLUTIONS</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="animate-pulse flex items-center gap-3.5 p-3.5 rounded-2xl border border-gray-100">
+                            <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                            <div className="flex-1">
+                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                                <div className="h-3 bg-gray-100 rounded w-1/2" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (solutions.length === 0) {
+        return (
+            <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">SOLUTIONS</div>
+                <div className="text-center py-8 text-gray-500 text-sm">
+                    No solutions available.
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                    <Link href="/solutions" className="font-bold text-[#1b7936] hover:underline">
+                        View All Solutions →
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
+            <div className="font-bold text-[#1b7936] uppercase tracking-widest">SOLUTIONS</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {displaySolutions.map((solution, idx) => {
+                    // ✅ Generate clean slug from label (always use label as source of truth)
+                    const cleanSlug = solution.label
+                        ? solution.label
+                            .toLowerCase()
+                            .trim()
+                            .replace(/\s+/g, '-')
+                            .replace(/[^\w\-]+/g, '')
+                            .replace(/\-\-+/g, '-')
+                            .replace(/^-+/, '')
+                            .replace(/-+$/, '')
+                        : 'solution';
+
+                    // ✅ Use clean slug for link
+                    const link = `/solutions/${cleanSlug}`;
+
+                    // ✅ Get full image URL
+                    const imageUrl = solution.imageUrl ? getImageUrl(solution.imageUrl) : null;
+                    const hasValidImage = imageUrl && !isDefaultImage(solution.imageUrl);
+
+                    return (
+                        <Link
+                            key={solution.id || solution._id}
+                            href={link}
+                            className={`group p-4 rounded-2xl border transition-all flex items-center gap-3.5 min-w-0 ${idx === 0
+                                ? 'bg-[#f8f9fa] border-gray-200/80 shadow-xs'
+                                : 'bg-white border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
+                                }`}
+                        >
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                                {hasValidImage ? (
+                                    <img
+                                        src={imageUrl}
+                                        alt={solution.label}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent) {
+                                                const fallback = document.createElement('span');
+                                                fallback.className = 'text-xl';
+                                                fallback.textContent = '📋';
+                                                parent.appendChild(fallback);
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="text-xl">📋</span>
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate">
+                                    {solution.label}
+                                </h4>
+                                <p className="text-gray-500 text-[11px] leading-snug mt-0.5 truncate">
+                                    {solution.desc || solution.subtitle}
+                                </p>
+                            </div>
+                        </Link>
+                    );
+                })}
+            </div>
+            <div className="bg-[#f8f9fa] rounded-2xl p-6 border border-gray-200/80 space-y-4">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">CASES</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 text-xs">
+                    <div className="min-w-0 truncate">
+                        <span className="font-bold text-[#071322]">Limited grid capacity?</span>
+                        <span className="text-gray-600"> — Add 40kW of chargers without exceeding existing service.</span>
+                    </div>
+                    <div className="min-w-0 truncate">
+                        <span className="font-bold text-[#071322]">24/7 uptime needed?</span>
+                        <span className="text-gray-600"> — Keep chargers running through grid outages with a microgrid.</span>
+                    </div>
+                    <div className="min-w-0 truncate">
+                        <span className="font-bold text-[#071322]">Want to use solar?</span>
+                        <span className="text-gray-600"> — Combine EV charging with solar + storage.</span>
+                    </div>
+                    <div className="min-w-0 truncate">
+                        <span className="font-bold text-[#071322]">Need to bill tenants?</span>
+                        <span className="text-gray-600"> — Meter and invoice usage automatically over OCPP.</span>
+                    </div>
+                </div>
+            </div>
+            <div className="pt-4 border-t border-gray-200">
+                <Link href="/solutions" className="font-bold text-[#1b7936] hover:underline">
+                    View All Solutions →
+                </Link>
+            </div>
+        </div>
+    );
+};
+
+// ----------------------------------------------------------------------------
+// Accessories Menu - WITH IMAGE SUPPORT
 // ----------------------------------------------------------------------------
 const AccessoriesMenu: React.FC<{
     accessories: Accessory[];
     isLoading: boolean;
 }> = ({ accessories, isLoading }) => {
-    // Group accessories by type
     const groupedAccessories = useMemo(() => {
         if (accessories.length === 0) return {};
-
         const grouped: Record<string, Accessory[]> = {};
         accessories.forEach((acc) => {
             const type = acc.accessoryType || 'other';
-            if (!grouped[type]) {
-                grouped[type] = [];
-            }
+            if (!grouped[type]) grouped[type] = [];
             grouped[type].push(acc);
         });
         return grouped;
     }, [accessories]);
 
-    // Get sorted types with counts
     const sortedTypes = useMemo(() => {
         const types = Object.keys(groupedAccessories);
-        const typeInfo = types.map((type) => ({
-            type,
-            count: groupedAccessories[type].length,
-            label: accessoryTypeMap[type]?.label || 'Other',
-            icon: accessoryTypeMap[type]?.icon || '📦',
-            description: accessoryTypeMap[type]?.description || 'Additional EV charging accessories'
-        }));
-        return typeInfo.sort((a, b) => b.count - a.count);
+        return types
+            .map((type) => ({
+                type,
+                count: groupedAccessories[type].length,
+                label: accessoryTypeMap[type]?.label || 'Other',
+                icon: accessoryTypeMap[type]?.icon || '📦',
+                description: accessoryTypeMap[type]?.description || 'Additional EV charging accessories'
+            }))
+            .sort((a, b) => b.count - a.count);
     }, [groupedAccessories]);
 
-    // Get accessories for a specific type
     const getAccessoriesByType = (type: string) => {
         return groupedAccessories[type] || [];
     };
@@ -667,9 +1011,7 @@ const AccessoriesMenu: React.FC<{
         return (
             <div className="bg-white rounded-3xl shadow-2xl p-8 w-210 max-w-[95vw] text-left space-y-6 border border-gray-100">
                 <div className="font-bold text-[#1b7936] uppercase tracking-widest">ACCESSORIES</div>
-                <div className="text-center py-8 text-gray-500 text-sm">
-                    No accessories available.
-                </div>
+                <div className="text-center py-8 text-gray-500 text-sm">No accessories available.</div>
                 <div className="pt-4 border-t border-gray-200">
                     <Link href="/accessories" className="font-bold text-[#1b7936] hover:underline">
                         View All Accessories →
@@ -685,33 +1027,53 @@ const AccessoriesMenu: React.FC<{
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {sortedTypes.slice(0, 6).map((typeInfo) => {
                     const typeAccessories = getAccessoriesByType(typeInfo.type);
-                    // Show first 3 accessories for this type
                     const displayAccessories = typeAccessories.slice(0, 3);
                     const hasMore = typeAccessories.length > 3;
 
                     return (
                         <div key={typeInfo.type} className="space-y-2">
-                            {/* <div className="flex items-center gap-2 mb-1">
-                                <span className="text-lg">{typeInfo.icon}</span>
-                                <span className="font-semibold text-[#071322] text-sm">
-                                    {typeInfo.label}
-                                </span>
-                                <span className="text-xs text-gray-400">({typeInfo.count})</span>
-                            </div> */}
                             <div className="space-y-2">
                                 {displayAccessories.map((acc) => {
                                     const slug = getCleanSlug(acc);
+                                    // ✅ Get image URL with fallback
+                                    const imageUrl = acc.imageUrl ? getImageUrl(acc.imageUrl) : null;
+                                    const hasValidImage = imageUrl && !isDefaultImage(acc.imageUrl);
+
                                     return (
                                         <Link
                                             key={acc._id || acc.id}
                                             href={`/ev-chargers/${slug}`}
-                                            className="block group min-w-0"
+                                            className="flex items-center gap-3 group p-2 rounded-xl hover:bg-[#f8f9fa] transition-colors min-w-0"
                                         >
-                                            <div className="text-[#071322] text-[13px] hover:text-[#1b7936] transition-colors leading-tight truncate">
-                                                {acc.name}
+                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                                                {hasValidImage ? (
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt={acc.name}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.style.display = 'none';
+                                                            const parent = target.parentElement;
+                                                            if (parent) {
+                                                                const fallback = document.createElement('span');
+                                                                fallback.className = 'text-xl';
+                                                                fallback.textContent = typeInfo.icon || '📦';
+                                                                parent.appendChild(fallback);
+                                                            }
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <span className="text-xl">{typeInfo.icon || '📦'}</span>
+                                                )}
                                             </div>
-                                            <div className="text-gray-400 text-[10px] leading-relaxed font-normal truncate">
-                                                {acc.model || 'N/A'}
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-[#071322] text-[13px] hover:text-[#1b7936] transition-colors leading-tight truncate">
+                                                    {acc.name}
+                                                </div>
+                                                <div className="text-gray-400 text-[10px] leading-relaxed font-normal truncate">
+                                                    {acc.model || typeInfo.label}
+                                                </div>
                                             </div>
                                         </Link>
                                     );
@@ -719,7 +1081,7 @@ const AccessoriesMenu: React.FC<{
                                 {hasMore && (
                                     <Link
                                         href={`/accessories?type=${typeInfo.type}`}
-                                        className="text-xs text-[#1b7936] hover:underline font-medium"
+                                        className="text-xs text-[#1b7936] hover:underline font-medium block pl-2"
                                     >
                                         +{typeAccessories.length - 3} more...
                                     </Link>
@@ -859,132 +1221,197 @@ const ServicesMenu: React.FC<{
 };
 
 // ----------------------------------------------------------------------------
-// Solutions Menu
+// ✅ Industries Menu - Dynamic from API
 // ----------------------------------------------------------------------------
-const SolutionsMenu: React.FC = () => {
-    const dynamicSolutions = solutionsList.map((solution) => ({
-        id: solution.id,
-        label: solution.label,
-        link: solution.link,
-        desc: solution.desc,
-        icon: getSolutionIcon(solution.id)
-    }));
+const IndustriesMenu: React.FC<{
+    industries: Industry[];
+    isLoading: boolean;
+}> = ({ industries, isLoading }) => {
+    const displayIndustries = industries.slice(0, 6);
 
-    return (
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
-            <div className="font-bold text-[#1b7936] uppercase tracking-widest">SOLUTIONS</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {dynamicSolutions.map((solution, idx) => (
-                    <Link
-                        key={solution.id}
-                        href={solution.link}
-                        className={`group p-4 rounded-2xl border transition-all flex items-center gap-3.5 min-w-0 ${idx === 0
-                            ? 'bg-[#f8f9fa] border-gray-200/80 shadow-xs'
-                            : 'bg-white border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
-                            }`}
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
-                            {solution.icon}
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">INDUSTRIES</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="animate-pulse flex items-center gap-3.5 p-3.5 rounded-2xl border border-gray-100">
+                            <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                            <div className="flex-1">
+                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                                <div className="h-3 bg-gray-100 rounded w-1/2" />
+                            </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate">
-                                {solution.label}
-                            </h4>
-                            <p className="text-gray-500 text-[11px] leading-snug mt-0.5 truncate">{solution.desc}</p>
-                        </div>
-                    </Link>
-                ))}
-            </div>
-            <div className="bg-[#f8f9fa] rounded-2xl p-6 border border-gray-200/80 space-y-4">
-                <div className="font-bold text-[#1b7936] uppercase tracking-widest">CASES</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 text-xs">
-                    <div className="min-w-0 truncate">
-                        <span className="font-bold text-[#071322]">Limited grid capacity?</span>
-                        <span className="text-gray-600"> — Add 40kW of chargers without exceeding existing service.</span>
-                    </div>
-                    <div className="min-w-0 truncate">
-                        <span className="font-bold text-[#071322]">24/7 uptime needed?</span>
-                        <span className="text-gray-600"> — Keep chargers running through grid outages with a microgrid.</span>
-                    </div>
-                    <div className="min-w-0 truncate">
-                        <span className="font-bold text-[#071322]">Want to use solar?</span>
-                        <span className="text-gray-600"> — Combine EV charging with solar + storage.</span>
-                    </div>
-                    <div className="min-w-0 truncate">
-                        <span className="font-bold text-[#071322]">Need to bill tenants?</span>
-                        <span className="text-gray-600"> — Meter and invoice usage automatically over OCPP.</span>
-                    </div>
+                    ))}
                 </div>
             </div>
-        </div>
-    );
-};
+        );
+    }
 
-// ----------------------------------------------------------------------------
-// Industries Menu
-// ----------------------------------------------------------------------------
-const IndustriesMenu: React.FC = () => {
-    const dynamicIndustries = industriesList.map((industry) => ({
-        id: industry.id,
-        label: industry.label,
-        link: `/industries/${industry.id}`,
-        desc: industry.desc,
-        icon: getIndustryIcon(industry.id)
-    }));
+    if (industries.length === 0) {
+        return (
+            <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">INDUSTRIES</div>
+                <div className="text-center py-8 text-gray-500 text-sm">No industries available.</div>
+                <div className="pt-4 border-t border-gray-200">
+                    <Link href="/industries" className="font-bold text-[#1b7936] hover:underline">
+                        View All Industries →
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
             <div className="font-bold text-[#1b7936] uppercase tracking-widest">INDUSTRIES</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {dynamicIndustries.map((item) => (
-                    <Link
-                        key={item.id}
-                        href={item.link}
-                        className="group p-3.5 rounded-2xl border border-transparent hover:bg-[#f8f9fa] hover:border-gray-200 transition-all flex items-start gap-3 min-w-0"
-                    >
-                        <div className="text-xl shrink-0">{item.icon}</div>
-                        <div className="min-w-0 flex-1">
-                            <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate" title={item.label}>
-                                {item.label}
-                            </h4>
-                            <p className="text-gray-500 text-[11px] leading-snug mt-0.5 truncate" title={item.desc}>
-                                {item.desc}
-                            </p>
-                        </div>
-                    </Link>
-                ))}
+                {displayIndustries.map((industry) => {
+                    // Get icon from industry or use default
+                    const icon = industry.icon || '🏢';
+
+                    // Get full image URL for icon if available
+                    const imageUrl = industry.imageUrl ? getImageUrl(industry.imageUrl) : null;
+                    const hasValidImage = imageUrl && !isDefaultImage(industry.imageUrl);
+
+                    return (
+                        <Link
+                            key={industry._id || industry.id}
+                            href={`/industries/${industry.id || industry.slug}`}
+                            className="group p-3.5 rounded-2xl border border-transparent hover:bg-[#f8f9fa] hover:border-gray-200 transition-all flex items-start gap-3 min-w-0"
+                        >
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                                {hasValidImage ? (
+                                    <img
+                                        src={imageUrl}
+                                        alt={industry.label}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent) {
+                                                const fallback = document.createElement('span');
+                                                fallback.className = 'text-xl';
+                                                fallback.textContent = icon;
+                                                parent.appendChild(fallback);
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="text-xl">{icon}</span>
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate" title={industry.label}>
+                                    {industry.label}
+                                </h4>
+                                <p className="text-gray-500 text-[11px] leading-snug mt-0.5 truncate" title={industry.desc}>
+                                    {industry.desc || industry.subtitle || `${industry.label} solutions`}
+                                </p>
+                            </div>
+                        </Link>
+                    );
+                })}
+            </div>
+            <div className="pt-4 border-t border-gray-200">
+                <Link href="/industries" className="font-bold text-[#1b7936] hover:underline">
+                    View All Industries →
+                </Link>
             </div>
         </div>
     );
 };
 
 // ----------------------------------------------------------------------------
-// Training Menu
+// ✅ Training Menu - Dynamic from API
 // ----------------------------------------------------------------------------
-const TrainingMenu: React.FC = () => {
+const TrainingMenu: React.FC<{
+    training: Training[];
+    isLoading: boolean;
+}> = ({ training, isLoading }) => {
+    const displayTraining = training.slice(0, 6);
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-3xl shadow-2xl p-6 w-170 max-w-[95vw] text-left space-y-6 border border-gray-100">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">TRAINING</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="animate-pulse flex items-center gap-3.5 p-3.5 rounded-2xl border border-gray-100">
+                            <div className="w-10 h-10 rounded-xl bg-gray-200" />
+                            <div className="flex-1">
+                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                                <div className="h-3 bg-gray-100 rounded w-1/2" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (training.length === 0) {
+        return (
+            <div className="bg-white rounded-3xl shadow-2xl p-6 w-170 max-w-[95vw] text-left space-y-6 border border-gray-100">
+                <div className="font-bold text-[#1b7936] uppercase tracking-widest">TRAINING</div>
+                <div className="text-center py-8 text-gray-500 text-sm">No training programs available.</div>
+                <div className="pt-4 border-t border-gray-200">
+                    <Link href="/training" className="font-bold text-[#1b7936] hover:underline">
+                        View All Training →
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-6 w-170 max-w-[95vw] text-left space-y-6 border border-gray-100">
             <div className="font-bold text-[#1b7936] uppercase tracking-widest">TRAINING</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                {trainingPrograms.map((item) => (
-                    <Link
-                        key={item.id}
-                        href={item.link}
-                        className="group p-2 rounded-2xl border border-transparent hover:bg-[#f8f9fa] hover:border-gray-200 transition-all flex items-center gap-3.5 min-w-0"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
-                            {item.icon}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <h4 className="text-[#071322] sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate" title={item.title}>
-                                {item.title}
-                            </h4>
-                            <p className="text-gray-500 text-[11px] font-light mt-0.5 truncate" title={item.description}>
-                                {item.description}
-                            </p>
-                        </div>
-                    </Link>
-                ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {displayTraining.map((item) => {
+                    const imageUrl = item.imageUrl ? getImageUrl(item.imageUrl) : null;
+                    const hasValidImage = imageUrl && !isDefaultImage(item.imageUrl);
+
+                    return (
+                        <Link
+                            key={item._id || item.id}
+                            href={`/training/${item.id}`}
+                            className="group p-3.5 rounded-2xl border border-transparent hover:bg-[#f8f9fa] hover:border-gray-200 transition-all flex items-center gap-3.5 min-w-0"
+                        >
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                                {hasValidImage ? (
+                                    <img
+                                        src={imageUrl}
+                                        alt={item.title}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent) {
+                                                const fallback = document.createElement('span');
+                                                fallback.className = 'text-xl';
+                                                fallback.textContent = item.icon || '📋';
+                                                parent.appendChild(fallback);
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="text-xl">{item.icon || '📋'}</span>
+                                )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate" title={item.title}>
+                                    {item.title}
+                                </h4>
+                                <p className="text-gray-500 text-[11px] font-light mt-0.5 truncate" title={item.description}>
+                                    {item.description}
+                                </p>
+                            </div>
+                        </Link>
+                    );
+                })}
             </div>
             <div className="pt-4 border-t border-gray-200">
                 <Link href="/training" className="font-bold text-[#1b7936] hover:underline">
@@ -1005,24 +1432,27 @@ export default function MegaMenu({ type }: MegaMenuProps) {
         products,
         categories,
         accessories,
+        industries,  // ✅ Add this - it's missing
+        training,
+        solutions,
         isLoading
     } = useMegaMenuData(type);
 
     switch (type) {
         case 'products':
             return <ProductsMenu categories={categories} products={products} isLoading={isLoading} />;
+        case 'solutions':
+            return <SolutionsMenu solutions={solutions} isLoading={isLoading} />;
         case 'accessories':
             return <AccessoriesMenu accessories={accessories} isLoading={isLoading} />;
         case 'brands':
             return <BrandsMenu brands={brands} isLoading={isLoading} />;
         case 'services':
             return <ServicesMenu services={services} isLoading={isLoading} />;
-        case 'solutions':
-            return <SolutionsMenu />;
         case 'industries':
-            return <IndustriesMenu />;
+            return <IndustriesMenu industries={industries} isLoading={isLoading} />;  // ✅ Update this
         case 'training':
-            return <TrainingMenu />;
+            return <TrainingMenu training={training} isLoading={isLoading} />; // ✅ Update this
         default:
             return null;
     }

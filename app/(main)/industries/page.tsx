@@ -1,22 +1,90 @@
 // app/(main)/industries/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { industriesList, getIndustryIcon } from '@/lib/industriesDb';
 import PageHeader from '@/components/pagesComps/PageHeader';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, Loader2 } from 'lucide-react';
+import { getImageUrl, isDefaultImage } from '@/utils/imageHelper';
+
+// Industry Interface
+interface Industry {
+    _id: string;
+    id: string;
+    label: string;
+    slug: string;
+    desc: string;
+    icon: string;
+    imageUrl: string;
+    title: string;
+    subtitle: string;
+    overview: string;
+    challenges: string[];
+    solutions: string[];
+    benefits: string[];
+    caseStudy: {
+        title: string;
+        description: string;
+        imageUrl: string;
+        link: string;
+    };
+    features: string[];
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function IndustriesPage() {
+    const [industries, setIndustries] = useState<Industry[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const filteredIndustries = industriesList.filter(industry =>
-        industry.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        industry.desc.toLowerCase().includes(searchQuery.toLowerCase())
+    // Fetch industries from API
+    useEffect(() => {
+        const fetchIndustries = async () => {
+            setIsLoading(true);
+            try {
+                const res = await fetch(`${API_BASE_URL}/industries?limit=100&isActive=true`);
+                const data = await res.json();
+
+                if (data.success) {
+                    setIndustries(data.data || []);
+                } else {
+                    console.error('Failed to fetch industries:', data.message);
+                    setIndustries([]);
+                }
+            } catch (error) {
+                console.error('Error fetching industries:', error);
+                setIndustries([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchIndustries();
+    }, []);
+
+    // Filter industries based on search
+    const filteredIndustries = industries.filter(industry =>
+        industry.label?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        industry.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        industry.title?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    console.log(filteredIndustries, "filteredIndustries")
+    // Helper to get icon
+    const getIndustryIcon = (industry: Industry) => {
+        return industry.icon || '🏢';
+    };
+
+    // Helper to get image URL
+    const getIndustryImageUrl = (imageUrl: string) => {
+        if (!imageUrl) return '/images/industries/default.jpg';
+        return getImageUrl(imageUrl);
+    };
+
     return (
         <div className="bg-white min-h-screen">
             <PageHeader
@@ -29,7 +97,7 @@ export default function IndustriesPage() {
                 description="From fuel retail to fleet logistics, we provide tailored EV charging solutions for every industry."
             />
 
-            <section className="max-w-7xl mx-auto py-12 pb-24">
+            <section className="max-w-7xl mx-auto py-12 pb-24 px-4 sm:px-6">
 
                 {/* Search Bar */}
                 <div className="mb-10 max-w-2xl mx-auto">
@@ -45,64 +113,94 @@ export default function IndustriesPage() {
                     </div>
                 </div>
 
-                {/* Industries Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredIndustries.map((industry) => {
-                        const icon = getIndustryIcon(industry.id);
-                        return (
-                            <Link
-                                key={industry.id}
-                                href={`/industries/${industry.id}`}
-                                className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-                            >
-                                {/* Image */}
-                                <div className="relative h-48 overflow-hidden bg-[#f8f9fa]">
-                                    <Image
-                                        src={industry.imageUrl}
-                                        alt={industry.label}
-                                        fill
-                                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                    />
-                                    <div className="absolute inset-0 bg-linear-to-t from-ev-dark-blue/60 to-transparent"></div>
-                                    <div className="absolute bottom-4 left-4 text-white text-3xl">
-                                        {icon}
-                                    </div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="p-5">
-                                    <h3 className="text-lg font-extrabold text-ev-dark-green group-hover:text-[#1b7936] transition-colors">
-                                        {industry.label}
-                                    </h3>
-                                    <p className="text-sm font-semibold text-[#071322] mt-1 leading-relaxed">
-                                        {industry.subtitle}
-                                    </p>
-                                    <p className="text-gray-500 text-xs mt-2 leading-relaxed">
-                                        {industry.desc}
-                                    </p>
-                                    <div className="mt-3 flex items-center text-[#1b7936] font-semibold text-sm group-hover:gap-2 transition-all">
-                                        Learn More <ArrowRight className="w-4 h-4 ml-1 group-hover:ml-2 transition-all" />
-                                    </div>
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* No Results */}
-                {filteredIndustries.length === 0 && (
-                    <div className="text-center py-20">
-                        <div className="text-6xl mb-4">🔍</div>
-                        <h3 className="text-2xl font-extrabold text-[#071322]">No industries found</h3>
-                        <p className="text-gray-500 text-sm mt-2">
-                            Try adjusting your search terms.
-                        </p>
+                {/* Loading State */}
+                {isLoading && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <Loader2 className="w-12 h-12 text-[#1b7936] animate-spin" />
+                        <p className="text-gray-500 text-sm mt-4">Loading industries...</p>
                     </div>
                 )}
 
+                {/* Industries Grid */}
+                {!isLoading && (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredIndustries.map((industry) => {
+                                const icon = getIndustryIcon(industry);
+                                const imageUrl = getIndustryImageUrl(industry.imageUrl);
+                                const hasValidImage = imageUrl && !isDefaultImage(industry.imageUrl);
+
+                                return (
+                                    <Link
+                                        key={industry._id || industry.id}
+                                        href={`/industries/${industry.id || industry.slug}`}
+                                        className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                                    >
+                                        {/* Image */}
+                                        <div className="relative h-48 overflow-hidden bg-[#f8f9fa]">
+                                            {hasValidImage ? (
+                                                <img
+                                                    src={imageUrl}
+                                                    alt={industry.label || 'Industry'}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const parent = target.parentElement;
+                                                        if (parent) {
+                                                            const fallback = document.createElement('div');
+                                                            fallback.className = 'w-full h-full flex items-center justify-center text-6xl bg-[#f8f9fa]';
+                                                            fallback.textContent = icon;
+                                                            parent.appendChild(fallback);
+                                                        }
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-6xl bg-[#f8f9fa]">
+                                                    {icon}
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-ev-dark-blue/60 to-transparent"></div>
+                                            <div className="absolute bottom-4 left-4 text-white text-3xl">
+                                                {icon}
+                                            </div>
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="p-5">
+                                            <h3 className="text-lg font-extrabold text-ev-dark-green group-hover:text-[#1b7936] transition-colors">
+                                                {industry.label || 'Unnamed Industry'}
+                                            </h3>
+                                            <p className="text-sm font-semibold text-[#071322] mt-1 leading-relaxed">
+                                                {industry.subtitle || industry.title || ''}
+                                            </p>
+                                            <p className="text-gray-500 text-xs mt-2 leading-relaxed line-clamp-2">
+                                                {industry.desc || 'Industry solutions for EV charging'}
+                                            </p>
+                                            <div className="mt-3 flex items-center text-[#1b7936] font-semibold text-sm group-hover:gap-2 transition-all">
+                                                Learn More <ArrowRight className="w-4 h-4 ml-1 group-hover:ml-2 transition-all" />
+                                            </div>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+
+                        {/* No Results */}
+                        {filteredIndustries.length === 0 && (
+                            <div className="text-center py-20">
+                                <div className="text-6xl mb-4">🔍</div>
+                                <h3 className="text-2xl font-extrabold text-[#071322]">No industries found</h3>
+                                <p className="text-gray-500 text-sm mt-2">
+                                    Try adjusting your search terms.
+                                </p>
+                            </div>
+                        )}
+                    </>
+                )}
 
                 {/* CTA */}
-                <div className="mt-20 bg-linear-to-br from-ev-dark-blue to-ev-dark-green rounded-3xl p-12 text-center text-white">
+                <div className="mt-20 bg-gradient-to-br from-ev-dark-blue to-ev-dark-green rounded-3xl p-12 text-center text-white">
                     <h2 className="text-3xl font-extrabold mb-4">
                         Don't See Your Industry?
                     </h2>
