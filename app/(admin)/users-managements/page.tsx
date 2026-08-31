@@ -103,6 +103,16 @@ function getAvatarColor(name: string): string {
     return colors[charCode % colors.length];
 }
 
+function getApiMessage(response: unknown, fallback: string): string {
+    if (typeof response === 'object' && response !== null && 'message' in response) {
+        const message = response.message;
+        if (typeof message === 'string' && message.trim().length > 0) {
+            return message;
+        }
+    }
+    return fallback;
+}
+
 // -----------------------------------------------------------------------------
 // 3. Main Component
 // -----------------------------------------------------------------------------
@@ -145,7 +155,8 @@ export default function UsersManagementPage() {
                     setUsers(response.data);
                     if (toastId) toast.success(`Loaded ${response.data.length} users`, { id: toastId });
                 } else {
-                    if (toastId) toast.error(response.message || 'Unable to fetch users', { id: toastId });
+                    const message = 'message' in response && typeof response.message === 'string' ? response.message : 'Unable to fetch users';
+                    if (toastId) toast.error(message, { id: toastId });
                 }
             } catch (error: unknown) {
                 const message = error instanceof Error ? error.message : 'Network failure';
@@ -225,7 +236,8 @@ export default function UsersManagementPage() {
                 setFormData(INITIAL_FORM);
                 toast.success(`Account created for ${formData.name}`, { id: toastId });
             } else {
-                toast.error(response.message || 'Creation rejected', { id: toastId });
+                const message = 'message' in response && typeof response.message === 'string' ? response.message : 'Creation rejected';
+                toast.error(message, { id: toastId });
             }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : 'Failed to create user';
@@ -284,7 +296,8 @@ export default function UsersManagementPage() {
                 setFormData(INITIAL_FORM);
                 toast.success('User updated successfully', { id: toastId });
             } else {
-                toast.error(response.message || 'Update failed', { id: toastId });
+                const message = 'message' in response && typeof response.message === 'string' ? response.message : 'Update failed';
+                toast.error(message, { id: toastId });
             }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : 'Failed to update user';
@@ -311,7 +324,8 @@ export default function UsersManagementPage() {
                 toast.success('Account permanently deleted', { id: toastId });
             } else {
                 setUsers(previousUsers);
-                toast.error(response.message || 'Deletion failed', { id: toastId });
+                const message = 'message' in response && typeof response.message === 'string' ? response.message : 'Deletion failed';
+                toast.error(message, { id: toastId });
             }
         } catch (error: unknown) {
             setUsers(previousUsers);
@@ -341,7 +355,8 @@ export default function UsersManagementPage() {
                 setUsers((prev) =>
                     prev.map((u) => (u._id === user._id ? { ...u, isActive: originalStatus } : u))
                 );
-                toast.error(response.message || 'Could not update user status');
+                const message = 'message' in response && typeof response.message === 'string' ? response.message : 'Could not update user status';
+                toast.error(message);
             }
         } catch (error: unknown) {
             setUsers((prev) =>
@@ -566,8 +581,8 @@ export default function UsersManagementPage() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
                                                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${user.isActive
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                            : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        : 'bg-slate-100 text-slate-500 border-slate-200'
                                                         }`}
                                                 >
                                                     <span className={`w-1.5 h-1.5 rounded-full ${user.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -612,8 +627,8 @@ export default function UsersManagementPage() {
                                                     <button
                                                         onClick={() => handleToggleStatus(user)}
                                                         className={`p-1.5 rounded-lg transition ${user.isActive
-                                                                ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
-                                                                : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
+                                                            ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                                                            : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
                                                             }`}
                                                         title={user.isActive ? 'Deactivate Account' : 'Activate Account'}
                                                     >
@@ -984,8 +999,8 @@ export default function UsersManagementPage() {
                                         </span>
                                         <span
                                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${selectedUser.isActive
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                : 'bg-slate-100 text-slate-500 border-slate-200'
                                                 }`}
                                         >
                                             {selectedUser.isActive ? 'Active' : 'Inactive'}
