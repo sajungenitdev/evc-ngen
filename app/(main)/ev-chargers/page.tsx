@@ -695,7 +695,7 @@ function EVChargersContent() {
                                         {/* Key Specs */}
                                         {item.specs && item.specs.length > 0 && (
                                             <div className="space-y-1.5 pt-1">
-                                                {item.specs.slice(0, 2).map((spec, idx) => (
+                                                {item.specs.slice(0, 2).map((spec: string, idx: number) => (
                                                     <div key={idx} className="flex items-start gap-2 text-xs text-gray-600 font-medium">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-[#3ec06a] mt-1.5 shrink-0"></span>
                                                         <span className="line-clamp-1">{spec}</span>

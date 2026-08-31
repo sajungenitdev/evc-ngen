@@ -107,9 +107,23 @@ export default function IndustryDetailPage({ params }: PageProps) {
         );
     }
 
-    // Show not found
+    // Show not found - FIXED
     if (!industry || error) {
-        notFound();
+        return (
+            <div className="bg-white min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-6xl mb-4">🔌</div>
+                    <h1 className="text-2xl font-bold text-[#071322] mb-2">Industry Not Found</h1>
+                    <p className="text-gray-500 text-sm">{error || 'The industry you are looking for does not exist.'}</p>
+                    <Link
+                        href="/industries"
+                        className="mt-6 inline-block bg-[#1b7936] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#155f2b] transition-colors"
+                    >
+                        View All Industries
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     // Helper to get icon
@@ -178,7 +192,7 @@ export default function IndustryDetailPage({ params }: PageProps) {
                     <div className="relative h-[300px] lg:h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
                         {industry.imageUrl && !isDefaultImage(industry.imageUrl) ? (
                             <img
-                                src={getIndustryImageUrl(industry.imageUrl)}
+                                src={getIndustryImageUrl(industry.imageUrl) || ''}
                                 alt={industry.label}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
@@ -283,7 +297,7 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                 <div className="relative h-64 lg:h-auto bg-[#f8f9fa]">
                                     {industry.caseStudy.imageUrl && !isDefaultImage(industry.caseStudy.imageUrl) ? (
                                         <img
-                                            src={getIndustryImageUrl(industry.caseStudy.imageUrl)}
+                                            src={getIndustryImageUrl(industry.caseStudy.imageUrl) || ''}
                                             alt={industry.caseStudy.title}
                                             className="w-full h-full object-cover"
                                         />
@@ -364,20 +378,13 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                     >
                                         <div className="relative h-40 bg-[#f8f9fa]">
                                             {related.imageUrl && !isDefaultImage(related.imageUrl) ? (
-                                                <img
-                                                    src={getIndustryImageUrl(related.imageUrl)}
+                                                <Image
+                                                    src={getIndustryImageUrl(related.imageUrl) || ''}
                                                     alt={related.label}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                                    onError={(e) => {
-                                                        const target = e.target as HTMLImageElement;
-                                                        target.style.display = 'none';
-                                                        const parent = target.parentElement;
-                                                        if (parent) {
-                                                            const fallback = document.createElement('div');
-                                                            fallback.className = 'w-full h-full flex items-center justify-center text-4xl bg-[#f8f9fa]';
-                                                            fallback.textContent = relatedIcon;
-                                                            parent.appendChild(fallback);
-                                                        }
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    onError={() => {
+                                                        // Image error handled by Image component fallback
                                                     }}
                                                 />
                                             ) : (

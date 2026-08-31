@@ -108,13 +108,25 @@ export default function TrainingDetailPage({ params }: PageProps) {
 
     // Show not found
     if (!training || error) {
-        notFound();
+        return (
+            <div className="bg-white min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-6xl mb-4">📋</div>
+                    <h1 className="text-2xl font-bold text-[#071322] mb-2">Training Not Found</h1>
+                    <p className="text-gray-500 text-sm">{error || 'The training program you are looking for does not exist.'}</p>
+                    <Link href="/training" className="mt-6 inline-block bg-[#1b7936] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#155f2b] transition-colors">
+                        View All Training Programs
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     // Helper to get image URL
-    const getTrainingImageUrl = (imageUrl: string) => {
+    const getTrainingImageUrl = (imageUrl: string | null | undefined): string => {
         if (!imageUrl) return '/images/training/default.jpg';
-        return getImageUrl(imageUrl);
+        const url = getImageUrl(imageUrl);
+        return url || '/images/training/default.jpg';
     };
 
     return (
@@ -125,7 +137,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                     { label: 'Training', link: '/training' },
                     { label: training.title }
                 ]}
-                imageUrl={getTrainingImageUrl(training.imageUrl)}
+                imageUrl={getTrainingImageUrl(training.imageUrl)}  // ✅ Now returns string
                 title={training.title}
                 description={training.description}
             />
@@ -202,7 +214,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                     <div className="relative h-[300px] lg:h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
                         {training.imageUrl && !isDefaultImage(training.imageUrl) ? (
                             <img
-                                src={getTrainingImageUrl(training.imageUrl)}
+                                src={getTrainingImageUrl(training.imageUrl)}  // ✅ Now returns string
                                 alt={training.title}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
@@ -303,7 +315,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {relatedTrainings.map((item) => {
-                                const imageUrl = item.imageUrl ? getTrainingImageUrl(item.imageUrl) : null;
+                                const imageUrl = getTrainingImageUrl(item.imageUrl);
                                 const hasValidImage = imageUrl && !isDefaultImage(item.imageUrl);
 
                                 return (
