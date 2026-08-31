@@ -23,6 +23,65 @@ import {
 // TYPES
 // ============================================
 
+// Helper to convert Solution (API response) to SolutionFormData (form data)
+const convertSolutionToFormData = (solution: Solution | null): any => {
+    if (!solution) return undefined;
+
+    return {
+        label: solution.label,
+        link: solution.link || '',
+        desc: solution.desc || '',
+        imageUrl: solution.imageUrl || '',
+        title: solution.title,
+        subtitle: solution.subtitle || '',
+        overview: solution.overview || '',
+        isActive: solution.isActive,
+        features: solution.features || [],
+        section1: solution.section1 ? {
+            tabs: (solution.section1.tabs || []).map(tab => ({
+                tabLabel: tab.tabLabel,
+                badge: tab.badge || '',
+                title: tab.title,
+                description: tab.description,
+                imageUrl: tab.imageUrl || '',
+                links: (tab.links || []).map(link => ({
+                    label: link.label,
+                    url: link.url
+                }))
+            }))
+        } : undefined,
+        section2: solution.section2 ? {
+            title: solution.section2.title || '',
+            imageUrl: solution.section2.imageUrl || '',
+            useCases: (solution.section2.useCases || []).map(uc => ({
+                label: uc.label,
+                icon: uc.icon || '',
+                imageUrl: uc.imageUrl || '',
+                link: uc.link || ''
+            }))
+        } : undefined,
+        section3: solution.section3 ? {
+            badge: solution.section3.badge || '',
+            title: solution.section3.title || '',
+            cards: (solution.section3.cards || []).map(card => ({
+                icon: card.icon || '',
+                title: card.title,
+                description: card.description,
+                actionText: card.actionText || '',
+                actionLink: card.actionLink || '',
+                theme: card.theme || 'light'
+            }))
+        } : undefined,
+        section4: solution.section4 ? {
+            heading: solution.section4.heading || '',
+            subtext: solution.section4.subtext || '',
+            buttonText: solution.section4.buttonText || '',
+            buttonLink: solution.section4.buttonLink || ''
+        } : undefined
+    };
+};
+
+
 export interface LinkItem {
     _id?: string;
     label: string;
@@ -560,7 +619,7 @@ export default function SolutionsManagementPage() {
                                             <div className="flex items-center gap-3.5">
                                                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200/90 shrink-0 bg-slate-50">
                                                     <ImageHelper
-                                                        src={solution.imageUrl}
+                                                        src={solution.imageUrl || ''}
                                                         alt={solution.label}
                                                         className="w-full h-full object-cover"
                                                         fallback="💡"
@@ -591,8 +650,8 @@ export default function SolutionsManagementPage() {
                                         <td className="px-6 py-3.5 whitespace-nowrap">
                                             <span
                                                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${solution.isActive
-                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                    : 'bg-slate-100 text-slate-500 border-slate-200'
                                                     }`}
                                             >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${solution.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -627,8 +686,8 @@ export default function SolutionsManagementPage() {
                                                 <button
                                                     onClick={() => handleToggleStatus(solution)}
                                                     className={`p-1.5 rounded-lg transition ${solution.isActive
-                                                            ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
-                                                            : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
+                                                        ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                                                        : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
                                                         }`}
                                                     title={solution.isActive ? 'Deactivate' : 'Activate'}
                                                 >
@@ -696,7 +755,7 @@ export default function SolutionsManagementPage() {
                     setSelectedSolution(null);
                 }}
                 onSubmit={handleUpdate}
-                initialData={selectedSolution as any}
+                initialData={convertSolutionToFormData(selectedSolution)}
                 isSubmitting={isSubmitting}
                 title="Edit Solution"
                 submitLabel="Update Solution"
@@ -729,7 +788,7 @@ export default function SolutionsManagementPage() {
                             <div className="flex items-start gap-4">
                                 <div className="w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 shrink-0 bg-slate-50 shadow-xs">
                                     <ImageHelper
-                                        src={selectedSolution.imageUrl}
+                                        src={selectedSolution.imageUrl || ''}
                                         alt={selectedSolution.label}
                                         className="w-full h-full object-cover"
                                         fallback="💡"
@@ -740,8 +799,8 @@ export default function SolutionsManagementPage() {
                                         <h3 className="text-xl font-bold text-slate-900">{selectedSolution.label}</h3>
                                         <span
                                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${selectedSolution.isActive
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                : 'bg-slate-100 text-slate-500 border-slate-200'
                                                 }`}
                                         >
                                             <span className={`w-1.5 h-1.5 rounded-full ${selectedSolution.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -803,7 +862,7 @@ export default function SolutionsManagementPage() {
                                                     {tab.imageUrl && (
                                                         <div className="w-full h-32 rounded-xl overflow-hidden bg-slate-100 mb-3 border border-slate-200/60">
                                                             <ImageHelper
-                                                                src={tab.imageUrl}
+                                                                src={tab.imageUrl || ''}
                                                                 alt={tab.tabLabel}
                                                                 className="w-full h-full object-cover"
                                                                 fallback="🖼️"
@@ -852,7 +911,7 @@ export default function SolutionsManagementPage() {
                                     {selectedSolution.section2?.imageUrl && (
                                         <div className="w-full h-44 rounded-2xl overflow-hidden bg-slate-100 mb-3 border border-slate-200">
                                             <ImageHelper
-                                                src={selectedSolution.section2.imageUrl}
+                                                src={selectedSolution.section2.imageUrl || ''}
                                                 alt="Section 2 Image"
                                                 className="w-full h-full object-cover"
                                                 fallback="🖼️"
@@ -981,7 +1040,7 @@ export default function SolutionsManagementPage() {
                 }}
                 onConfirm={handleDelete}
                 title="Delete Solution"
-                itemName={selectedSolution?.label || ''}
+                itemName={selectedSolution?.label || ''}  // ✅ This is correct with fallback
                 isSubmitting={isSubmitting}
             />
         </div>

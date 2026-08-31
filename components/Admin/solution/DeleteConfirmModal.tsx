@@ -9,7 +9,7 @@ interface DeleteConfirmModalProps {
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    itemName: string;
+    itemName?: string;
     isSubmitting?: boolean;
 }
 
