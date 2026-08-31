@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 import { Loader2 } from 'lucide-react';
-import { FoundationData } from '@/lib/api/about';
 import { foundationAPI, FoundationData, FoundationItem } from '@/lib/api/foundation';
 
 // Default data as fallback
