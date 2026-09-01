@@ -232,10 +232,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                         <h2 className="text-3xl font-extrabold text-[#071322] tracking-tight">
                             Overview & Technology
                         </h2>
-                        <p className="text-gray-600 font-light pt-4 w-full lg:w-2/4 text-sm sm:text-base leading-relaxed">
-
-                            <div dangerouslySetInnerHTML={{ __html: solution.overview }} />
-                        </p>
+                        <p className="text-gray-600 font-light pt-4 w-full lg:w-2/4 text-sm sm:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: solution.overview }} />
                     </div>
 
                     {/* SECTION 1: Interactive Tabs */}
