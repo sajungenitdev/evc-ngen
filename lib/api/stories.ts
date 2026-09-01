@@ -45,6 +45,15 @@ export interface ApiResponse<T> {
 }
 
 // ============================================================================
+// Helper to get auth token
+// ============================================================================
+
+const getToken = (): string | null => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+};
+
+// ============================================================================
 // API Service
 // ============================================================================
 
@@ -98,12 +107,15 @@ export const storiesAPI = {
         }
     },
 
+    // ✅ JSON create (no files)
     create: async (data: Partial<StoriesData>): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/stories`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(data)
             });
@@ -123,12 +135,42 @@ export const storiesAPI = {
         }
     },
 
+    // ✅ NEW: Create with FormData (for file uploads)
+    createWithFormData: async (formData: FormData): Promise<ApiResponse<StoriesData>> => {
+        try {
+            const token = getToken();
+            const response = await fetch(`${API_BASE_URL}/stories`, {
+                method: 'POST',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('❌ Error creating stories with FormData:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to create stories'
+            };
+        }
+    },
+
+    // ✅ JSON update (no files)
     update: async (id: string, data: Partial<StoriesData>): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/stories/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify(data)
             });
@@ -148,12 +190,41 @@ export const storiesAPI = {
         }
     },
 
+    // ✅ NEW: Update with FormData (for file uploads)
+    updateWithFormData: async (id: string, formData: FormData): Promise<ApiResponse<StoriesData>> => {
+        try {
+            const token = getToken();
+            const response = await fetch(`${API_BASE_URL}/stories/${id}`, {
+                method: 'PUT',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('❌ Error updating stories with FormData:', error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Failed to update stories'
+            };
+        }
+    },
+
     delete: async (id: string): Promise<ApiResponse<null>> => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/stories/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
 
@@ -174,10 +245,12 @@ export const storiesAPI = {
 
     toggleStatus: async (id: string): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/stories/${id}/toggle`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
 
@@ -196,14 +269,18 @@ export const storiesAPI = {
         }
     },
 
-    // Image upload methods
+    // Image upload methods - Single image uploads
     uploadMainImage: async (id: string, file: File): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const formData = new FormData();
             formData.append('image', file);
 
             const response = await fetch(`${API_BASE_URL}/stories/${id}/upload-main-image`, {
                 method: 'POST',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: formData
             });
             return response.json();
@@ -218,11 +295,15 @@ export const storiesAPI = {
 
     uploadCategoryImage: async (id: string, categoryIndex: number, file: File): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const formData = new FormData();
             formData.append('image', file);
 
             const response = await fetch(`${API_BASE_URL}/stories/${id}/upload-category-image/${categoryIndex}`, {
                 method: 'POST',
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
                 body: formData
             });
             return response.json();
@@ -237,10 +318,12 @@ export const storiesAPI = {
 
     removeMainImage: async (id: string): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/stories/${id}/remove-main-image`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
             return response.json();
@@ -255,10 +338,12 @@ export const storiesAPI = {
 
     removeCategoryImage: async (id: string, categoryIndex: number): Promise<ApiResponse<StoriesData>> => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/stories/${id}/remove-category-image/${categoryIndex}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
             return response.json();
