@@ -18,7 +18,170 @@ import {
     ImageIcon
 } from 'lucide-react';
 import { storiesAPI, StoriesData, Category, MainStory } from '@/lib/api/stories';
-import ImageUpload from '@/components/Admin/ImageUpload';
+import { getImageUrl } from '@/utils/imageHelper';
+
+// ============================================================================
+// Image Upload Component with ImgBB Support
+// ============================================================================
+
+interface ImageUploadProps {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    onAdd: (files: File[]) => Promise<void>;
+    onRemove: () => Promise<void>;
+    isUploading: boolean;
+    multiple?: boolean;
+    maxSize?: number;
+    itemTitle?: string;
+}
+
+const ImageUpload: React.FC<ImageUploadProps> = ({
+    label,
+    value,
+    onChange,
+    onAdd,
+    onRemove,
+    isUploading,
+    multiple = false,
+    maxSize = 5,
+    itemTitle = 'image'
+}) => {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState<string>('');
+    const [hasError, setHasError] = useState(false);
+
+    useEffect(() => {
+        if (value) {
+            // ✅ Use getImageUrl helper for ImgBB support
+            const fullUrl = getImageUrl(value);
+            setPreview(fullUrl || '');
+            setHasError(false);
+        } else {
+            setPreview('');
+        }
+    }, [value]);
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const validFiles: File[] = [];
+        for (const file of Array.from(files)) {
+            if (!file.type.startsWith('image/')) {
+                toast.error(`${file.name} is not an image`);
+                continue;
+            }
+            if (file.size > maxSize * 1024 * 1024) {
+                toast.error(`${file.name} exceeds ${maxSize}MB limit`);
+                continue;
+            }
+            validFiles.push(file);
+        }
+
+        if (validFiles.length === 0) return;
+
+        // Show preview immediately
+        if (validFiles.length === 1) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+                setHasError(false);
+            };
+            reader.readAsDataURL(validFiles[0]);
+        }
+
+        await onAdd(validFiles);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const handleImageError = () => {
+        setHasError(true);
+        // Try to load from backup URL if available
+        if (value && !value.startsWith('http')) {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+            setPreview(`${baseUrl}${value}`);
+        }
+    };
+
+    const handleRemove = async () => {
+        await onRemove();
+        setPreview('');
+        setHasError(false);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                {label}
+            </label>
+            <div className="flex items-center gap-4">
+                {/* Image Preview */}
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
+                    {preview && !hasError ? (
+                        <img
+                            src={preview}
+                            alt={itemTitle}
+                            className="w-full h-full object-cover"
+                            onError={handleImageError}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                            <ImageIcon className="w-6 h-6" />
+                        </div>
+                    )}
+                    {isUploading && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <Loader2 className="w-6 h-6 text-white animate-spin" />
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex-1">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        multiple={multiple}
+                        className="hidden"
+                        id={`upload-${label.replace(/\s/g, '-')}`}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                        <label
+                            htmlFor={`upload-${label.replace(/\s/g, '-')}`}
+                            className="inline-flex items-center gap-2 px-4 py-2 border-2 border-dashed border-slate-300 hover:border-[#1b7936] hover:bg-[#1b7936]/5 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer transition"
+                        >
+                            <Upload className="w-3.5 h-3.5" />
+                            {preview ? 'Change Image' : 'Upload Image'}
+                        </label>
+                        {preview && (
+                            <button
+                                type="button"
+                                onClick={handleRemove}
+                                className="px-4 py-2 border border-rose-200 hover:bg-rose-50 rounded-xl text-xs font-semibold text-rose-600 transition"
+                            >
+                                Remove
+                            </button>
+                        )}
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                        JPEG, PNG, WebP (Max {maxSize}MB)
+                    </p>
+                    {value && value.includes('i.ibb.co') && (
+                        <p className="text-[10px] text-emerald-600 mt-0.5">✅ Hosted on ImgBB</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 // ============================================================================
 // Default Empty Stories Data
@@ -48,6 +211,161 @@ const EMPTY_STORIES_DATA: StoriesData = {
     backgroundColor: '#ffffff',
     textColor: '#071322',
     sectionId: 'stories'
+};
+
+// ============================================================================
+// Category Card Component with Live Preview
+// ============================================================================
+
+interface CategoryCardProps {
+    category: Category;
+    index: number;
+    totalCategories: number;
+    onUpdate: (index: number, field: keyof Category, value: any) => void;
+    onRemove: (index: number) => void;
+    onMove: (index: number, direction: 'up' | 'down') => void;
+    onImageUpload: (index: number, files: File[]) => Promise<void>;
+    onImageRemove: (index: number) => Promise<void>;
+    isUploading: boolean;
+}
+
+const CategoryCard: React.FC<CategoryCardProps> = ({
+    category,
+    index,
+    totalCategories,
+    onUpdate,
+    onRemove,
+    onMove,
+    onImageUpload,
+    onImageRemove,
+    isUploading
+}) => {
+    // ✅ Get full image URL for preview
+    const imageUrl = category.imageUrl ? getImageUrl(category.imageUrl) : null;
+
+    return (
+        <div className="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-900">Category #{index + 1}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${category.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                        {category.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    {category.imageUrl && category.imageUrl.includes('i.ibb.co') && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            ☁️ ImgBB
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => onMove(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                    >
+                        <MoveUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        onClick={() => onMove(index, 'down')}
+                        disabled={index === totalCategories - 1}
+                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                    >
+                        <MoveDown className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        onClick={() => onRemove(index)}
+                        className="p-1 text-slate-400 hover:text-rose-600 transition"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Image Upload with preview */}
+            <ImageUpload
+                label="Category Image"
+                value={category.imageUrl || ''}
+                onChange={(val) => onUpdate(index, 'imageUrl', val as string)}
+                onAdd={async (files) => {
+                    if (files.length > 0) {
+                        await onImageUpload(index, files);
+                    }
+                }}
+                onRemove={async () => {
+                    await onImageRemove(index);
+                }}
+                isUploading={isUploading}
+                multiple={false}
+                maxSize={5}
+                itemTitle={category.title || `Category ${index + 1}`}
+            />
+
+            {/* ✅ Live preview of the category card */}
+            {imageUrl && (
+                <div className="mt-2 p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Live Preview</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
+                            <img
+                                src={imageUrl}
+                                alt={category.title || 'Preview'}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                {category.title || 'Untitled Category'}
+                            </p>
+                            <p className="text-xs text-slate-500 truncate">
+                                {category.link || '/solutions'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Title <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        value={category.title}
+                        onChange={(e) => onUpdate(index, 'title', e.target.value)}
+                        placeholder="e.g., At Home"
+                        className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Link
+                    </label>
+                    <input
+                        type="text"
+                        value={category.link}
+                        onChange={(e) => onUpdate(index, 'link', e.target.value)}
+                        placeholder="/solutions?tab=home"
+                        className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
+                    />
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                    <input
+                        type="checkbox"
+                        checked={category.isActive}
+                        onChange={(e) => onUpdate(index, 'isActive', e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-[#1b7936] focus:ring-[#1b7936]"
+                    />
+                    <label className="text-xs font-semibold text-slate-700 cursor-pointer">
+                        Active
+                    </label>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 // ============================================================================
@@ -204,20 +522,20 @@ export default function StoriesAdminPage() {
     // Image Upload Handlers
     // ============================================================================
 
-    const handleMainImageUpload = async (file: File) => {
+    const handleMainImageUpload = async (files: File[]) => {
         if (!storiesData || !storiesData._id) {
             toast.error('Please save the section first before uploading images');
             return;
         }
 
         setUploadingType('main');
-        const toastId = toast.loading('Uploading main story image...');
+        const toastId = toast.loading('Uploading main story image to ImgBB...');
 
         try {
-            const response = await storiesAPI.uploadMainImage(storiesData._id, file);
+            const response = await storiesAPI.uploadMainImage(storiesData._id, files[0]);
             if (response.success && response.data) {
                 setStoriesData(response.data);
-                toast.success('Main story image uploaded!', { id: toastId });
+                toast.success('Main story image uploaded to ImgBB!', { id: toastId });
             } else {
                 toast.error(response.message || 'Failed to upload image', { id: toastId });
             }
@@ -229,20 +547,20 @@ export default function StoriesAdminPage() {
         }
     };
 
-    const handleCategoryImageUpload = async (index: number, file: File) => {
+    const handleCategoryImageUpload = async (index: number, files: File[]) => {
         if (!storiesData || !storiesData._id) {
             toast.error('Please save the section first');
             return;
         }
 
         setUploadingType(`category-${index}`);
-        const toastId = toast.loading('Uploading category image...');
+        const toastId = toast.loading('Uploading category image to ImgBB...');
 
         try {
-            const response = await storiesAPI.uploadCategoryImage(storiesData._id, index, file);
+            const response = await storiesAPI.uploadCategoryImage(storiesData._id, index, files[0]);
             if (response.success && response.data) {
                 setStoriesData(response.data);
-                toast.success('Category image uploaded!', { id: toastId });
+                toast.success('Category image uploaded to ImgBB!', { id: toastId });
             } else {
                 toast.error(response.message || 'Failed to upload image', { id: toastId });
             }
@@ -257,13 +575,13 @@ export default function StoriesAdminPage() {
     const handleRemoveMainImage = async () => {
         if (!storiesData || !storiesData._id) return;
 
-        const toastId = toast.loading('Removing image...');
+        const toastId = toast.loading('Removing image from ImgBB...');
 
         try {
             const response = await storiesAPI.removeMainImage(storiesData._id);
             if (response.success && response.data) {
                 setStoriesData(response.data);
-                toast.success('Image removed!', { id: toastId });
+                toast.success('Image removed from ImgBB!', { id: toastId });
             } else {
                 toast.error(response.message || 'Failed to remove image', { id: toastId });
             }
@@ -276,13 +594,13 @@ export default function StoriesAdminPage() {
     const handleRemoveCategoryImage = async (index: number) => {
         if (!storiesData || !storiesData._id) return;
 
-        const toastId = toast.loading('Removing image...');
+        const toastId = toast.loading('Removing image from ImgBB...');
 
         try {
             const response = await storiesAPI.removeCategoryImage(storiesData._id, index);
             if (response.success && response.data) {
                 setStoriesData(response.data);
-                toast.success('Image removed!', { id: toastId });
+                toast.success('Image removed from ImgBB!', { id: toastId });
             } else {
                 toast.error(response.message || 'Failed to remove image', { id: toastId });
             }
@@ -443,31 +761,28 @@ export default function StoriesAdminPage() {
             <div className="flex border-b border-slate-200 bg-white rounded-t-2xl px-6 pt-4">
                 <button
                     onClick={() => setActiveTab('content')}
-                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${
-                        activeTab === 'content'
+                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'content'
                             ? 'border-[#1b7936] text-[#1b7936]'
                             : 'border-transparent text-slate-500 hover:text-slate-700'
-                    }`}
+                        }`}
                 >
                     Content
                 </button>
                 <button
                     onClick={() => setActiveTab('mainStory')}
-                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${
-                        activeTab === 'mainStory'
+                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'mainStory'
                             ? 'border-[#1b7936] text-[#1b7936]'
                             : 'border-transparent text-slate-500 hover:text-slate-700'
-                    }`}
+                        }`}
                 >
                     Main Story
                 </button>
                 <button
                     onClick={() => setActiveTab('categories')}
-                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${
-                        activeTab === 'categories'
+                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'categories'
                             ? 'border-[#1b7936] text-[#1b7936]'
                             : 'border-transparent text-slate-500 hover:text-slate-700'
-                    }`}
+                        }`}
                 >
                     Categories ({storiesData.categories?.length || 0})
                 </button>
@@ -530,17 +845,12 @@ export default function StoriesAdminPage() {
                                 label="Main Story Image"
                                 value={storiesData.mainStory.imageUrl || ''}
                                 onChange={(val) => updateMainStory('imageUrl', val as string)}
-                                onAdd={async (files) => {
-                                    if (files.length > 0) {
-                                        await handleMainImageUpload(files[0]);
-                                    }
-                                }}
-                                onRemove={async () => {
-                                    await handleRemoveMainImage();
-                                }}
+                                onAdd={handleMainImageUpload}
+                                onRemove={handleRemoveMainImage}
                                 isUploading={uploadingType === 'main'}
                                 multiple={false}
                                 maxSize={5}
+                                itemTitle="Main Story"
                             />
                         </div>
 
@@ -613,99 +923,23 @@ export default function StoriesAdminPage() {
 
                         {storiesData.categories?.length === 0 ? (
                             <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                                <p className="text-xs text-slate-400 font-medium">No categories configured. Click &quot;Add Category&quot; to get started.</p>
+                                <p className="text-xs text-slate-400 font-medium">No categories configured. Click "Add Category" to get started.</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {storiesData.categories.map((category, index) => (
-                                    <div key={index} className="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold text-slate-900">Category #{index + 1}</span>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full ${category.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
-                                                    {category.isActive ? 'Active' : 'Inactive'}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => moveCategory(index, 'up')}
-                                                    disabled={index === 0}
-                                                    className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
-                                                >
-                                                    <MoveUp className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => moveCategory(index, 'down')}
-                                                    disabled={index === storiesData.categories.length - 1}
-                                                    className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
-                                                >
-                                                    <MoveDown className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => removeCategory(index)}
-                                                    className="p-1 text-slate-400 hover:text-rose-600 transition"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Category Image Upload */}
-                                        <ImageUpload
-                                            label="Category Image"
-                                            value={category.imageUrl || ''}
-                                            onChange={(val) => updateCategory(index, 'imageUrl', val as string)}
-                                            onAdd={async (files) => {
-                                                if (files.length > 0) {
-                                                    await handleCategoryImageUpload(index, files[0]);
-                                                }
-                                            }}
-                                            onRemove={async () => {
-                                                await handleRemoveCategoryImage(index);
-                                            }}
-                                            isUploading={uploadingType === `category-${index}`}
-                                            multiple={false}
-                                            maxSize={5}
-                                        />
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                                    Title <span className="text-rose-500">*</span>
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={category.title}
-                                                    onChange={(e) => updateCategory(index, 'title', e.target.value)}
-                                                    placeholder="e.g., At Home"
-                                                    className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                                    Link
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={category.link}
-                                                    onChange={(e) => updateCategory(index, 'link', e.target.value)}
-                                                    placeholder="/solutions?tab=home"
-                                                    className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
-                                                />
-                                            </div>
-                                            <div className="flex items-center gap-2 pt-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={category.isActive}
-                                                    onChange={(e) => updateCategory(index, 'isActive', e.target.checked)}
-                                                    className="w-4 h-4 rounded border-slate-300 text-[#1b7936] focus:ring-[#1b7936]"
-                                                />
-                                                <label className="text-xs font-semibold text-slate-700 cursor-pointer">
-                                                    Active
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <CategoryCard
+                                        key={index}
+                                        category={category}
+                                        index={index}
+                                        totalCategories={storiesData.categories.length}
+                                        onUpdate={updateCategory}
+                                        onRemove={removeCategory}
+                                        onMove={moveCategory}
+                                        onImageUpload={handleCategoryImageUpload}
+                                        onImageRemove={handleRemoveCategoryImage}
+                                        isUploading={uploadingType === `category-${index}`}
+                                    />
                                 ))}
                             </div>
                         )}
