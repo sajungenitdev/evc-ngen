@@ -475,14 +475,20 @@ export default function CreateProductModal({
 
                         <div>
                             <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Base Price ($) <span className="text-rose-500">*</span>
+                                Base Price ($)
                             </label>
                             <input
-                                type="number"
-                                value={formData.price}
-                                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                                required
-                                min="0"
+                                type="text"  // ✅ Change from "number" to "text" to allow empty value
+                                value={formData.price === 0 ? '' : formData.price}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // Allow empty or valid numbers with decimal
+                                    if (value === '') {
+                                        setFormData({ ...formData, price: 0 });
+                                    } else if (/^\d*\.?\d*$/.test(value)) {
+                                        setFormData({ ...formData, price: parseFloat(value) || 0 });
+                                    }
+                                }}
                                 step="0.01"
                                 placeholder="0.00"
                                 className="w-full px-3.5 py-2 text-sm text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/15 focus:border-[#0B192C] transition-all font-mono"

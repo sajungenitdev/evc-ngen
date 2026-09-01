@@ -219,7 +219,7 @@ export default function BrandsPage() {
                                     {brand.description && (
                                         <div className="px-6 pt-4">
                                             <p className="text-gray-500 text-xs line-clamp-2">
-                                                {brand.description}
+                                                <div dangerouslySetInnerHTML={{ __html: brand.description }} />
                                             </p>
                                         </div>
                                     )}
@@ -245,7 +245,7 @@ export default function BrandsPage() {
                                         {/* Product Preview */}
                                         {totalProducts > 0 && (
                                             <div className="flex -space-x-2">
-                                                {brandProducts.slice(0, 4).map((product) => (
+                                                {/* {brandProducts.slice(0, 4).map((product) => (
                                                     <div
                                                         key={product._id || product.id}
                                                         className="w-10 h-10 rounded-full border-2 border-white bg-[#f8f9fa] overflow-hidden"
@@ -264,7 +264,7 @@ export default function BrandsPage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                ))}
+                                                ))} */}
                                                 {totalProducts > 4 && (
                                                     <div className="w-10 h-10 rounded-full border-2 border-white bg-[#f8f9fa] flex items-center justify-center text-xs font-bold text-gray-500">
                                                         +{totalProducts - 4}

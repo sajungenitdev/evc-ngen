@@ -539,7 +539,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
                                 {accessory.shortDescription && (
                                     <p className="text-gray-600 text-sm leading-relaxed">
-                                        {accessory.shortDescription}
+                                        <div dangerouslySetInnerHTML={{ __html: accessory.shortDescription }} />
                                     </p>
                                 )}
 
@@ -772,7 +772,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
                             {product.shortDescription && (
                                 <p className="text-gray-600 text-sm leading-relaxed">
-                                    {product.shortDescription}
+                                    <div dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
                                 </p>
                             )}
 
@@ -785,7 +785,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                                         {product.specs.slice(0, 4).map((spec, idx) => (
                                             <div key={idx} className="flex items-start gap-2 text-xs text-gray-600">
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-[#3ec06a] flex-shrink-0 mt-0.5" />
-                                                <span className="font-medium">{spec}</span>
+                                                <span className="font-medium">
+
+                                                    <div dangerouslySetInnerHTML={{ __html: spec }} />
+                                                </span>
                                             </div>
                                         ))}
                                     </div>
@@ -868,8 +871,8 @@ export default function ProductDetailPage({ params }: PageProps) {
                                     <h3 className="text-2xl font-extrabold text-[#071322] tracking-tight mb-4">
                                         Product Description
                                     </h3>
-                                    <p className="text-gray-600 text-base leading-relaxed text-justify">
-                                        {product.description || product.shortDescription || 'No description available.'}
+                                    <p className="text-gray-600 text-base leading-relaxed ">
+                                        <div dangerouslySetInnerHTML={{ __html: product.description }} />
                                     </p>
                                     {techDetails.length > 0 && (
                                         <div className="mt-8">

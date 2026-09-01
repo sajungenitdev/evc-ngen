@@ -233,7 +233,8 @@ export default function SolutionDetailPage({ params }: PageProps) {
                             Overview & Technology
                         </h2>
                         <p className="text-gray-600 font-light pt-4 w-full lg:w-2/4 text-sm sm:text-base leading-relaxed">
-                            {solution.overview}
+
+                            <div dangerouslySetInnerHTML={{ __html: solution.overview }} />
                         </p>
                     </div>
 
@@ -267,7 +268,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                             {solution.section1.tabs[activeTab].title}
                                         </h3>
                                         <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                                            {solution.section1.tabs[activeTab].description}
+                                            <div dangerouslySetInnerHTML={{ __html: solution.section1.tabs[activeTab].description }} />
                                         </p>
                                         <div className="flex flex-wrap gap-8 pt-2">
                                             {solution.section1.tabs[activeTab].links && solution.section1.tabs[activeTab].links.map((lnk, linkIdx) => (

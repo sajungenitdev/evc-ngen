@@ -177,6 +177,17 @@ export default function EditProductModal({
     const [isCompressing, setIsCompressing] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+
+    const getFullImageUrl = (imagePath: string): string => {
+        if (!imagePath) return '';
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+            return imagePath;
+        }
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        return `${baseUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+    };
+
+
     // Sync product record on modal open
     useEffect(() => {
         if (product && isOpen) {
@@ -206,7 +217,8 @@ export default function EditProductModal({
                 stock: product.stock || 0,
                 isActive: product.isActive !== undefined ? product.isActive : true,
             });
-            setMainImagePreview(product.imageUrl || '');
+            // ✅ FIX: Set the full URL for preview
+            setMainImagePreview(getFullImageUrl(product.imageUrl || ''));
         }
     }, [product, isOpen]);
 
