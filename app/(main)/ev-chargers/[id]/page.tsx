@@ -781,10 +781,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                         {product.specs.slice(0, 4).map((spec, idx) => (
                                             <div key={idx} className="flex items-start gap-2 text-xs text-gray-600">
                                                 <CheckCircle2 className="w-3.5 h-3.5 text-[#3ec06a] flex-shrink-0 mt-0.5" />
-                                                <span className="font-medium">
-
-                                                    <div dangerouslySetInnerHTML={{ __html: spec }} />
-                                                </span>
+                                                <span className="font-medium" dangerouslySetInnerHTML={{ __html: spec }} />
                                             </div>
                                         ))}
                                     </div>

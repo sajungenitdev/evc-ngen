@@ -218,9 +218,7 @@ export default function BrandsPage() {
                                     {/* Brand Description */}
                                     {brand.description && (
                                         <div className="px-6 pt-4">
-                                            <p className="text-gray-500 text-xs line-clamp-2">
-                                                <div dangerouslySetInnerHTML={{ __html: brand.description }} />
-                                            </p>
+                                            <p className="text-gray-500 text-xs line-clamp-2" dangerouslySetInnerHTML={{ __html: brand.description }} />
                                         </div>
                                     )}
 

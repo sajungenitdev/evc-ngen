@@ -264,9 +264,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                         <h3 className="text-3xl sm:text-4xl font-extrabold text-[#071322] tracking-tight leading-tight">
                                             {solution.section1.tabs[activeTab].title}
                                         </h3>
-                                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                                            <div dangerouslySetInnerHTML={{ __html: solution.section1.tabs[activeTab].description }} />
-                                        </p>
+                                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: solution.section1.tabs[activeTab].description }} />
                                         <div className="flex flex-wrap gap-8 pt-2">
                                             {solution.section1.tabs[activeTab].links && solution.section1.tabs[activeTab].links.map((lnk, linkIdx) => (
                                                 <Link
