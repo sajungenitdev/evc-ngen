@@ -1,8 +1,9 @@
 // components/Admin/ImageUpload.tsx
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { Loader2, Upload } from 'lucide-react';
 
 interface ImageUploadProps {
     value: string | string[];
@@ -17,6 +18,16 @@ interface ImageUploadProps {
     onAdd?: (files: File[]) => Promise<void>;
     isUploading?: boolean;
 }
+
+// ✅ Helper function outside component to prevent recreation
+const getImageUrlHelper = (path: string): string => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+    return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 export default function ImageUpload({
     value,
@@ -35,20 +46,36 @@ export default function ImageUpload({
     const [isUploadingLocal, setIsUploadingLocal] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // ✅ Use useCallback to memoize the getImageUrl function
+    const getImageUrl = useCallback((path: string): string => {
+        if (!path) return '';
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+            return path;
+        }
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+    }, []);
+
+    // ✅ Fix: Only run when value changes, not on every render
     useEffect(() => {
         if (Array.isArray(value)) {
-            setPreviews(value.filter(Boolean));
+            const validImages = value.filter(img => img && img.trim() !== '');
+            setPreviews(validImages.map(img => getImageUrl(img)));
         } else if (typeof value === 'string') {
-            // Handle comma-separated string for backward compatibility
             if (value.includes(',')) {
-                setPreviews(value.split(',').filter(Boolean));
+                const images = value.split(',').filter(img => img && img.trim() !== '');
+                setPreviews(images.map(img => getImageUrl(img)));
+            } else if (value) {
+                setPreviews([getImageUrl(value)]);
             } else {
-                setPreviews(value ? [value] : []);
+                setPreviews([]);
             }
         } else {
             setPreviews([]);
         }
-    }, [value]);
+    }, [value]); // ✅ Only depend on value, not getImageUrl
+
+    // components/Admin/ImageUpload.tsx - Fix the file handling
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -79,11 +106,12 @@ export default function ImageUpload({
         setIsUploadingLocal(true);
 
         try {
-            if (multiple && onAdd) {
-                // Use custom upload handler for multiple files
+            // ✅ CRITICAL FIX: Make sure onAdd is called with the files
+            if (onAdd) {
+                console.log('📸 ImageUpload: Calling onAdd with', validFiles.length, 'files');
                 await onAdd(validFiles);
             } else {
-                // Convert files to base64
+                // Fallback: convert to base64
                 const base64Images = await Promise.all(
                     validFiles.map((file) => {
                         return new Promise<string>((resolve) => {
@@ -95,21 +123,19 @@ export default function ImageUpload({
                 );
 
                 if (multiple) {
-                    // Append to existing images
                     const newPreviews = [...previews, ...base64Images];
                     setPreviews(newPreviews);
                     onChange(newPreviews);
                     toast.success(`${base64Images.length} image(s) uploaded`);
                 } else {
-                    // Replace single image
                     setPreviews(base64Images);
                     onChange(base64Images[0]);
                     toast.success('Image uploaded successfully');
                 }
             }
         } catch (error) {
-            toast.error('Failed to upload image');
             console.error('Upload error:', error);
+            toast.error('Failed to upload image');
         } finally {
             setIsUploadingLocal(false);
             if (fileInputRef.current) {
@@ -122,7 +148,11 @@ export default function ImageUpload({
         if (multiple) {
             const newPreviews = previews.filter((_, i) => i !== index);
             setPreviews(newPreviews);
-            onChange(newPreviews);
+            // Update the value with the remaining paths
+            if (Array.isArray(value)) {
+                const newValue = value.filter((_, i) => i !== index);
+                onChange(newValue);
+            }
             if (onRemove) {
                 onRemove(index);
             }
@@ -155,6 +185,16 @@ export default function ImageUpload({
                                     src={img}
                                     alt={`Preview ${index + 1}`}
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        const parent = e.currentTarget.parentElement;
+                                        if (parent) {
+                                            const fallback = document.createElement('div');
+                                            fallback.className = 'w-full h-full flex items-center justify-center text-slate-400';
+                                            fallback.innerHTML = '📷';
+                                            parent.appendChild(fallback);
+                                        }
+                                    }}
                                 />
                                 <button
                                     type="button"
@@ -179,10 +219,7 @@ export default function ImageUpload({
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
+                                    <Loader2 className="animate-spin h-4 w-4" />
                                     Uploading...
                                 </span>
                             ) : (

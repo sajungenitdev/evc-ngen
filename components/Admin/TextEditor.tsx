@@ -1,7 +1,7 @@
 // components/Admin/TextEditor.tsx
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 
@@ -15,6 +15,7 @@ interface TextEditorProps {
     label?: string;
     required?: boolean;
     error?: string;
+    debounceDelay?: number; // ✅ New prop for debounce
 }
 
 // Dynamically import ReactQuill to prevent SSR window issues
@@ -53,8 +54,40 @@ export default function TextEditor({
     label,
     required = false,
     error,
+    debounceDelay = 300, // ✅ Default 300ms debounce
 }: TextEditorProps) {
     const [mounted, setMounted] = useState(false);
+    const [localValue, setLocalValue] = useState(value);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Update local value when prop changes
+    useEffect(() => {
+        setLocalValue(value);
+    }, [value]);
+
+    // Debounced onChange
+    const handleChange = useCallback((val: string) => {
+        setLocalValue(val);
+        
+        // Clear existing timeout
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        
+        // Set new timeout
+        timeoutRef.current = setTimeout(() => {
+            onChange(val);
+        }, debounceDelay);
+    }, [onChange, debounceDelay]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         setMounted(true);
@@ -132,8 +165,8 @@ export default function TextEditor({
             >
                 <ReactQuill
                     theme="snow"
-                    value={value}
-                    onChange={onChange}
+                    value={localValue}
+                    onChange={handleChange}
                     modules={modules}
                     formats={formats}
                     placeholder={placeholder}

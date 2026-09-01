@@ -44,9 +44,24 @@ export const menuItems: MenuItem[] = [
         icon: '👥',
         badgeKey: 'users',
         subItems: [
-            { id: 'all-users', name: 'All Users', href: '/users-managements', icon: '👤' },
-            { id: 'roles', name: 'Roles', href: '/users-managements/roles', icon: '🔑' },
-            { id: 'permissions', name: 'Permissions', href: '/users-managements/permissions', icon: '🛡️' },
+            {
+                id: 'all-users',
+                name: 'All Users',
+                href: '/users-managements',
+                icon: '👤',
+            },
+            {
+                id: 'roles',
+                name: 'Roles',
+                href: '/users-managements/roles',
+                icon: '🎭',
+            },
+            {
+                id: 'permissions',
+                name: 'Permissions',
+                href: '/users-managements/permissions',
+                icon: '🛡️',
+            },
         ],
     },
 
@@ -57,13 +72,37 @@ export const menuItems: MenuItem[] = [
         id: 'catalog-management',
         name: 'Catalog & Products',
         href: '/product-management',
-        icon: '⚡',
+        icon: '🛍️',
         badgeKey: 'products',
         subItems: [
-            { id: 'product-list', name: 'All Products', href: '/product-management', icon: '📦', badgeKey: 'products' },
-            { id: 'category-management', name: 'Categories', href: '/category-management', icon: '📂', badgeKey: 'categories' },
-            { id: 'brand-management', name: 'Brands', href: '/brands-management', icon: '🏷️', badgeKey: 'brands' },
-            { id: 'accessories-management', name: 'Accessories', href: '/accessories-management', icon: '🔩', badgeKey: 'accessories' },
+            {
+                id: 'product-list',
+                name: 'All Products',
+                href: '/product-management',
+                icon: '📦',
+                badgeKey: 'products',
+            },
+            {
+                id: 'category-management',
+                name: 'Categories',
+                href: '/category-management',
+                icon: '🗂️',
+                badgeKey: 'categories',
+            },
+            {
+                id: 'brand-management',
+                name: 'Brands',
+                href: '/brands-management',
+                icon: '🏷️',
+                badgeKey: 'brands',
+            },
+            {
+                id: 'accessories-management',
+                name: 'Accessories',
+                href: '/accessories-management',
+                icon: '🔩',
+                badgeKey: 'accessories',
+            },
         ],
     },
 
@@ -77,9 +116,26 @@ export const menuItems: MenuItem[] = [
         icon: '🛠️',
         badgeKey: 'services',
         subItems: [
-            { id: 'service-management', name: 'Services', href: '/service-management', icon: '🔧', badgeKey: 'services' },
-            { id: 'solutions-management', name: 'Solutions', href: '/solutions-management', icon: '💡', badgeKey: 'solutions' },
-            { id: 'industries-management', name: 'Industries', href: '/industries-management', icon: '🏭' },
+            {
+                id: 'service-management',
+                name: 'Services',
+                href: '/service-management',
+                icon: '🔧',
+                badgeKey: 'services',
+            },
+            {
+                id: 'solutions-management',
+                name: 'Solutions',
+                href: '/solutions-management',
+                icon: '💡',
+                badgeKey: 'solutions',
+            },
+            {
+                id: 'industries-management',
+                name: 'Industries',
+                href: '/industries-management',
+                icon: '🏭',
+            },
         ],
     },
 
@@ -93,8 +149,19 @@ export const menuItems: MenuItem[] = [
         icon: '🎓',
         badgeKey: 'trainings',
         subItems: [
-            { id: 'training-management', name: 'All Programs', href: '/training-management', icon: '📚', badgeKey: 'trainings' },
-            { id: 'training-category-management', name: 'Training Categories', href: '/training-category-management', icon: '🗂️' },
+            {
+                id: 'training-management',
+                name: 'All Programs',
+                href: '/training-management',
+                icon: '📚',
+                badgeKey: 'trainings',
+            },
+            {
+                id: 'training-category-management',
+                name: 'Training Categories',
+                href: '/training-category-management',
+                icon: '🗂️',
+            },
         ],
     },
 
@@ -105,66 +172,92 @@ export const menuItems: MenuItem[] = [
         id: 'contacts-management',
         name: 'Contacts & Inquiries',
         href: '/contacts-management',
-        icon: '📧',
+        icon: '📬',
         badgeKey: 'contacts',
     },
     {
         id: 'survey-management',
         name: 'Surveys & Feedback',
         href: '/survey-management',
-        icon: '📋',
+        icon: '📝',
         badgeKey: 'surveys',
     },
-
-    // ============================================
-    // SESSIONS / OPERATIONS (EV / IOT)
-    // ============================================
-    // {
-    //     id: 'sessions',
-    //     name: 'Charging Sessions',
-    //     href: '/sessions',
-    //     icon: '🔌',
-    //     badgeKey: 'sessions',
-    //     subItems: [
-    //         { id: 'active-sessions', name: 'Active Sessions', href: '/sessions/active', icon: '🟢' },
-    //         { id: 'session-history', name: 'History Logs', href: '/sessions/history', icon: '📜' },
-    //     ],
-    // },
-
-    // ============================================
-    // REPORTS & ANALYTICS
-    // ============================================
-    // {
-    //     id: 'reports',
-    //     name: 'Reports & Analytics',
-    //     href: '/reports',
-    //     icon: '📈',
-    //     subItems: [
-    //         { id: 'analytics', name: 'Performance Analytics', href: '/reports/analytics', icon: '📊' },
-    //         { id: 'charging-reports', name: 'Charging Reports', href: '/reports/charging', icon: '🔋' },
-    //         { id: 'user-reports', name: 'User Growth Reports', href: '/reports/users', icon: '👥' },
-    //         { id: 'service-reports', name: 'Service Logs', href: '/reports/services', icon: '📋' },
-    //     ],
-    // },
 
     // ============================================
     // SETTINGS & CMS
     // ============================================
     {
         id: 'settings',
-        name: 'Settings',
+        name: 'Settings & CMS',
         href: '/settings',
         icon: '⚙️',
         subItems: [
-            { id: 'hero-sections', name: 'Hero Sections', href: '/settings/homepage/heroSection', icon: '🏠' },
-            { id: 'hero-counter', name: 'Hero Counter', href: '/settings/counter', icon: '🏠' },
-            { id: 'hero-foundation', name: 'Home Foundation', href: '/settings/foundation', icon: '🏠' },
-            { id: 'about-settings', name: 'About Page', href: '/settings/about', icon: 'ℹ️' },
-            { id: 'faq-settings', name: 'FAQ Manager', href: '/settings/faq', icon: '❓' },
-            { id: 'terms-settings', name: 'Terms & Policies', href: '/settings/terms', icon: '📄' },
-            { id: 'general-settings', name: 'General Config', href: '/settings/general', icon: '⚙️' },
-            { id: 'security-settings', name: 'Security & Auth', href: '/settings/security', icon: '🔒' },
-            { id: 'api-keys', name: 'API Credentials', href: '/settings/api-keys', icon: '🔑' },
+            {
+                id: 'hero-sections',
+                name: 'Hero Sections',
+                href: '/settings/homepage/heroSection',
+                icon: '🖼️',
+            },
+            {
+                id: 'hero-counter',
+                name: 'Statistics & Counters',
+                href: '/settings/counter',
+                icon: '📈',
+            },
+            {
+                id: 'home-foundation',
+                name: 'Foundation Section',
+                href: '/settings/foundation',
+                icon: '🏛️',
+            },
+            {
+                id: 'home-solution',
+                name: 'Solutions Section',
+                href: '/settings/solution-section',
+                icon: '💡',
+            },
+            {
+                id: 'home-story',
+                name: 'Our Story Section',
+                href: '/settings/story-section',
+                icon: '📖',
+            },
+            {
+                id: 'help-support',
+                name: 'Help & Support',
+                href: '/settings/helpSupport-section',
+                icon: '🎧',
+            },
+            {
+                id: 'ev-shop',
+                name: 'EV Shop Section',
+                href: '/settings/ev-shop',
+                icon: '⚡',
+            },
+            {
+                id: 'end-to-end',
+                name: 'End-to-End Solutions',
+                href: '/settings/end-to-end',
+                icon: '🔗',
+            },
+            {
+                id: 'faq-settings',
+                name: 'FAQ Manager',
+                href: '/settings/faq',
+                icon: '💬',
+            },
+            {
+                id: 'terms-settings',
+                name: 'Terms & Policies',
+                href: '/settings/terms',
+                icon: '📜',
+            },  
+            {
+                id: 'about-settings',
+                name: 'About Page',
+                href: '/settings/about',
+                icon: 'ℹ️',
+            },
         ],
     },
 ];

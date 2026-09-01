@@ -1,22 +1,162 @@
+// app/(main)/faq/page.tsx
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/pagesComps/PageHeader';
-import { faqPageData } from '@/lib/db';
-import { ChevronDown, Search, MessageSquare } from 'lucide-react';
+import { faqAPI, FaqData, FaqItem, filterActiveFaqs, getUniqueCategories, getFaqImageUrl } from '@/lib/api/faq';
+import { ChevronDown, Search, MessageSquare, Loader2 } from 'lucide-react';
+
+// ============================================================================
+// Default Data
+// ============================================================================
+
+const DEFAULT_FAQ_DATA: FaqData = {
+    _id: '',
+    header: {
+        breadcrumbs: [
+            { label: 'Home', link: '/' },
+            { label: 'FAQ & Support' }
+        ],
+        imageUrl: '/images/help/EV Charging_1.jpg',
+        title: 'Frequently Asked Questions',
+        description: 'Find answers regarding EV charger hardware specifications, OCPP software integration, billing, and site installation.'
+    },
+    categories: ['All', 'Hardware & Installation', 'Software & OCPP', 'Pricing & Billing', 'Maintenance'],
+    faqs: [
+        {
+            question: 'What is the typical installation timeline for a commercial DC fast charger?',
+            answer: 'A standard commercial DC fast-charging hub deployment typically takes between 4 to 6 weeks from initial site survey and electrical assessment to grid commissioning and final software activation.',
+            category: 'Hardware & Installation',
+            order: 0,
+            isActive: true
+        },
+        {
+            question: 'Do your EV chargers support OCPP standards?',
+            answer: 'Yes, all our smart AC wallboxes and DC fast-charging stations are fully Open Charge Point Protocol (OCPP 1.6J and 2.0.1) compliant, allowing seamless integration with third-party backend management platforms.',
+            category: 'Software & OCPP',
+            order: 1,
+            isActive: true
+        },
+        {
+            question: 'How does dynamic load balancing work across multiple chargers?',
+            answer: 'Dynamic load balancing automatically distributes the available electrical capacity among active vehicles in real-time, preventing peak load surcharges and protecting your site\'s main electrical infrastructure from overloading.',
+            category: 'Hardware & Installation',
+            order: 2,
+            isActive: true
+        },
+        {
+            question: 'Can I monitor energy usage and manage driver billing remotely?',
+            answer: 'Yes, our cloud-based monitoring dashboard and driver mobile apps provide real-time session tracking, remote firmware updates, flexible pricing configuration, and automated RFID or app-based billing.',
+            category: 'Software & OCPP',
+            order: 3,
+            isActive: true
+        },
+        {
+            question: 'What kind of warranty and maintenance support do you offer?',
+            answer: 'We provide comprehensive 24/7 technical customer support, remote diagnostics, and standard multi-year hardware warranties with optional on-site SLA maintenance packages.',
+            category: 'Maintenance',
+            order: 4,
+            isActive: true
+        },
+        {
+            question: 'Are there government grants or rebates available for installing EV chargers?',
+            answer: 'Many federal, regional, and utility-specific programs offer financial incentives, tax credits, and rebates for commercial and fleet EV infrastructure deployment. Our team can help guide you through the consultation and application process.',
+            category: 'Pricing & Billing',
+            order: 5,
+            isActive: true
+        }
+    ],
+    ctaBanner: {
+        title: 'Still have questions?',
+        description: 'Our engineering and sales team are available to discuss your specific infrastructure and fleet requirements.',
+        primaryButton: { text: 'Contact Our Team', link: '/contact', isActive: true },
+        secondaryButton: { text: 'Request Site Survey', link: '/request-survey', isActive: true },
+        isActive: true
+    },
+    isActive: true
+};
+
+// ============================================================================
+// Main Component
+// ============================================================================
 
 export default function FAQPage() {
+    const [faqData, setFaqData] = useState<FaqData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [openIndex, setOpenIndex] = useState<number | null>(0);
     const [activeCategory, setActiveCategory] = useState('All');
 
-    const { header, categories, faqs, ctaBanner } = faqPageData;
+    useEffect(() => {
+        const fetchFaqData = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
 
-    const filteredFaqs = faqs.filter(faq => {
+                const response = await faqAPI.getActive();
+
+                if (response.success && response.data) {
+                    setFaqData(response.data);
+                    // Set initial categories
+                    if (response.data.categories && response.data.categories.length > 0) {
+                        // Ensure 'All' is first
+                        const categories = ['All', ...response.data.categories.filter(c => c !== 'All')];
+                        setFaqData({ ...response.data, categories });
+                    }
+                } else {
+                    setFaqData(DEFAULT_FAQ_DATA);
+                }
+            } catch (error) {
+                console.error('Error fetching FAQ data:', error);
+                setError('Failed to load FAQ data');
+                setFaqData(DEFAULT_FAQ_DATA);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchFaqData();
+    }, []);
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#1b7936] animate-spin mx-auto" />
+                    <p className="text-gray-500 text-sm mt-4">Loading FAQ...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!faqData) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <p className="text-gray-500">No FAQ data available</p>
+            </div>
+        );
+    }
+
+    const { header, categories, faqs, ctaBanner } = faqData;
+
+    // Filter active FAQs
+    const activeFaqs = filterActiveFaqs(faqs);
+
+    // Get unique categories from FAQs
+    const uniqueCategories = getUniqueCategories(activeFaqs);
+
+    // Use provided categories or generate from FAQs
+    const displayCategories = categories && categories.length > 0
+        ? ['All', ...categories.filter(c => c !== 'All')]
+        : uniqueCategories;
+
+    const filteredFaqs = activeFaqs.filter(faq => {
         const matchesCategory = activeCategory === 'All' || faq.category === activeCategory;
         const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+            faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
@@ -25,7 +165,7 @@ export default function FAQPage() {
             {/* Branded Page Header */}
             <PageHeader
                 breadcrumbs={header.breadcrumbs}
-                imageUrl={header.imageUrl}
+                imageUrl={getFaqImageUrl(header.imageUrl)}
                 title={header.title}
                 description={header.description}
             />
@@ -33,7 +173,7 @@ export default function FAQPage() {
             {/* Main Content Section */}
             <section className="py-20 px-6 md:px-12 lg:px-20">
                 <div className="max-w-5xl mx-auto space-y-12">
-                    
+
                     {/* Search Bar & Category Filters */}
                     <div className="space-y-6">
                         {/* Search Input */}
@@ -52,15 +192,14 @@ export default function FAQPage() {
 
                         {/* Category Filter Pills */}
                         <div className="flex flex-wrap justify-center gap-2 pt-2">
-                            {categories.map((cat, idx) => (
+                            {displayCategories.map((cat, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => setActiveCategory(cat)}
-                                    className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs ${
-                                        activeCategory === cat
+                                    className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs ${activeCategory === cat
                                             ? 'bg-[#1b7936] text-white'
                                             : 'bg-[#f8f9fa] text-gray-600 hover:bg-gray-200 border border-gray-200'
-                                    }`}
+                                        }`}
                                 >
                                     {cat}
                                 </button>
@@ -75,7 +214,7 @@ export default function FAQPage() {
                                 const isOpen = openIndex === index;
                                 return (
                                     <div
-                                        key={index}
+                                        key={faq._id || index}
                                         className="bg-[#f8f9fa] border border-gray-200/80 rounded-2xl overflow-hidden transition-all shadow-xs"
                                     >
                                         <button
@@ -85,7 +224,7 @@ export default function FAQPage() {
                                             <span className="text-base sm:text-lg font-bold text-[#071322]">
                                                 {faq.question}
                                             </span>
-                                            <span className={`w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 transition-transform duration-200 shadow-xs ${isOpen ? 'rotate-180 bg-[#1b7936] text-white' : 'text-gray-600'}`}>
+                                            <span className={`w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 transition-transform duration-200 shadow-xs ${isOpen ? 'rotate-180 bg-[#1b7936] text-black' : 'text-gray-600'}`}>
                                                 <ChevronDown className="w-4 h-4" />
                                             </span>
                                         </button>
@@ -106,33 +245,38 @@ export default function FAQPage() {
                     </div>
 
                     {/* Still Have Questions CTA Banner */}
-                    <div className="bg-[#0c1f38] text-white rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-xl relative overflow-hidden mt-16">
-                        <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-[#3ec06a]/10 rounded-full blur-2xl pointer-events-none"></div>
-                        <div className="relative z-10 max-w-xl mx-auto space-y-3">
-                            <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                                {ctaBanner.title}
-                            </h3>
-                            <p className="text-gray-300 text-sm leading-relaxed">
-                                {ctaBanner.description}
-                            </p>
-                            <div className="pt-4 flex flex-wrap justify-center gap-4">
-                                <Link
-                                    href={ctaBanner.primaryButton.link}
-                                    className="inline-flex items-center gap-2 bg-[#3ec06a] hover:bg-[#34a55b] text-[#071322] font-bold text-sm px-8 py-3.5 rounded-xl shadow-lg transition-all"
-                                >
-                                    <MessageSquare className="w-4 h-4" />
-                                    {ctaBanner.primaryButton.text}
-                                </Link>
-                                <Link
-                                    href={ctaBanner.secondaryButton.link}
-                                    className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-sm px-8 py-3.5 rounded-xl border border-white/20 transition-all"
-                                >
-                                    {ctaBanner.secondaryButton.text}
-                                </Link>
+                    {ctaBanner && ctaBanner.isActive !== false && (
+                        <div className="bg-[#0c1f38] text-white rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-xl relative overflow-hidden mt-16">
+                            <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-[#3ec06a]/10 rounded-full blur-2xl pointer-events-none"></div>
+                            <div className="relative z-10 max-w-xl mx-auto space-y-3">
+                                <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                                    {ctaBanner.title || 'Still have questions?'}
+                                </h3>
+                                <p className="text-gray-300 text-sm leading-relaxed">
+                                    {ctaBanner.description || 'Our engineering and sales team are available to discuss your specific infrastructure and fleet requirements.'}
+                                </p>
+                                <div className="pt-4 flex flex-wrap justify-center gap-4">
+                                    {ctaBanner.primaryButton && ctaBanner.primaryButton.isActive !== false && (
+                                        <Link
+                                            href={ctaBanner.primaryButton.link || '/contact'}
+                                            className="inline-flex items-center gap-2 bg-[#3ec06a] hover:bg-[#34a55b] text-[#071322] font-bold text-sm px-8 py-3.5 rounded-xl shadow-lg transition-all"
+                                        >
+                                            <MessageSquare className="w-4 h-4" />
+                                            {ctaBanner.primaryButton.text || 'Contact Our Team'}
+                                        </Link>
+                                    )}
+                                    {ctaBanner.secondaryButton && ctaBanner.secondaryButton.isActive !== false && (
+                                        <Link
+                                            href={ctaBanner.secondaryButton.link || '/request-survey'}
+                                            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-sm px-8 py-3.5 rounded-xl border border-white/20 transition-all"
+                                        >
+                                            {ctaBanner.secondaryButton.text || 'Request Site Survey'}
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-
+                    )}
                 </div>
             </section>
         </main>
