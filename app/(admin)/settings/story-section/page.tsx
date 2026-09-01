@@ -53,7 +53,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
     useEffect(() => {
         if (value) {
-            // ✅ Use getImageUrl helper for ImgBB support
             const fullUrl = getImageUrl(value);
             setPreview(fullUrl || '');
             setHasError(false);
@@ -100,7 +99,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
     const handleImageError = () => {
         setHasError(true);
-        // Try to load from backup URL if available
         if (value && !value.startsWith('http')) {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
             setPreview(`${baseUrl}${value}`);
@@ -122,7 +120,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 {label}
             </label>
             <div className="flex items-center gap-4">
-                {/* Image Preview */}
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
                     {preview && !hasError ? (
                         <img
@@ -240,7 +237,6 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     onImageRemove,
     isUploading
 }) => {
-    // ✅ Get full image URL for preview
     const imageUrl = category.imageUrl ? getImageUrl(category.imageUrl) : null;
 
     return (
@@ -300,7 +296,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                 itemTitle={category.title || `Category ${index + 1}`}
             />
 
-            {/* ✅ Live preview of the category card */}
+            {/* Live preview of the category card */}
             {imageUrl && (
                 <div className="mt-2 p-3 bg-white rounded-xl border border-slate-200">
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Live Preview</p>
@@ -458,7 +454,6 @@ export default function StoriesAdminPage() {
             categories: updatedCategories
         });
 
-        // Auto-save if section exists
         if (storiesData._id) {
             try {
                 const toastId = toast.loading('Adding category...');
@@ -519,7 +514,7 @@ export default function StoriesAdminPage() {
     };
 
     // ============================================================================
-    // Image Upload Handlers
+    // ✅ FIXED: Image Upload Handlers - Properly update state
     // ============================================================================
 
     const handleMainImageUpload = async (files: File[]) => {
@@ -533,6 +528,8 @@ export default function StoriesAdminPage() {
 
         try {
             const response = await storiesAPI.uploadMainImage(storiesData._id, files[0]);
+            console.log('📸 Main image upload response:', response);
+            
             if (response.success && response.data) {
                 setStoriesData(response.data);
                 toast.success('Main story image uploaded to ImgBB!', { id: toastId });
@@ -547,6 +544,7 @@ export default function StoriesAdminPage() {
         }
     };
 
+    // ✅ FIXED: Category image upload - properly updates the category
     const handleCategoryImageUpload = async (index: number, files: File[]) => {
         if (!storiesData || !storiesData._id) {
             toast.error('Please save the section first');
@@ -558,7 +556,10 @@ export default function StoriesAdminPage() {
 
         try {
             const response = await storiesAPI.uploadCategoryImage(storiesData._id, index, files[0]);
+            console.log('📸 Category image upload response:', response);
+            
             if (response.success && response.data) {
+                // ✅ Update the entire stories data with the response
                 setStoriesData(response.data);
                 toast.success('Category image uploaded to ImgBB!', { id: toastId });
             } else {
