@@ -603,10 +603,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 <h3 className="text-2xl font-extrabold text-[#071322] tracking-tight mb-4">
                                     Accessory Description
                                 </h3>
-                                <p className="text-gray-600 text-base leading-relaxed text-justify">
-                                    {accessory.description || accessory.shortDescription || 'No description available.'}
-                                </p>
-
+                                <p className="text-gray-600 text-base leading-relaxed text-justify" dangerouslySetInnerHTML={{ __html: accessory.description || accessory.shortDescription }} />
                                 {techDetails.length > 0 && (
                                     <div className="mt-8">
                                         <h4 className="text-lg font-extrabold text-[#071322] tracking-tight mb-4">
