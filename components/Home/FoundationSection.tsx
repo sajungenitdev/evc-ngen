@@ -167,7 +167,7 @@ export default function FoundationSection() {
                                 <h3 className="text-white font-extrabold text-2xl mb-3 tracking-tight">
                                     {item.title}
                                 </h3>
-                                <p className="text-[#d8dfe8] text-sm leading-relaxed">
+                                <p className="text-[#d8dfe8] text-sm leading-relaxed h-10">
                                     {item.description}
                                 </p>
                             </div>
