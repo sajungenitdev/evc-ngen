@@ -138,15 +138,14 @@ export default function ChargingNeedsSection() {
                 const data = await response.json();
 
                 if (data.success && Array.isArray(data.data)) {
-                    // Filter active products
-                    const activeProducts = data.data.filter((p: Product) => p.isActive !== false);
+                    const activeProducts = (data.data as Product[]).filter((p) => p.isActive !== false);
                     setProducts(activeProducts);
 
-                    // Get unique categories from products
-                    const uniqueCategories = [...new Set(activeProducts.map((p: Product) => p.category))];
+                    const uniqueCategories = Array.from(
+                        new Set(activeProducts.map((p) => p.category))
+                    ).filter((category): category is string => typeof category === 'string');
                     setCategories(uniqueCategories);
 
-                    // Set first category as active tab
                     if (uniqueCategories.length > 0) {
                         setActiveTab(uniqueCategories[0]);
                     }
@@ -279,7 +278,7 @@ export default function ChargingNeedsSection() {
                                         {product.name}
                                     </h3>
                                     <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-                                        {product.shortDescription || product.description || 'High-quality EV charging solution.'}
+                                        {product.shortDescription || 'High-quality EV charging solution.'}
                                     </p>
                                     {product.specs && product.specs.length > 0 && (
                                         <div className="flex flex-wrap gap-1 justify-center mt-2">
