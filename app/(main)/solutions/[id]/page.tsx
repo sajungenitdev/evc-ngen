@@ -354,9 +354,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                                     {card.title}
                                                 </h4>
                                             </div>
-                                            <p className="text-gray-600 text-sm leading-relaxed">
-                                                {card.description}
-                                            </p>
+                                            <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: card.description }} /> 
                                         </div>
                                         <div>
                                             <Link

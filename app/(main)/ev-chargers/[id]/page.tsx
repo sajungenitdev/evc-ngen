@@ -538,9 +538,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 )}
 
                                 {accessory.shortDescription && (
-                                    <p className="text-gray-600 text-sm leading-relaxed">
-                                        <div dangerouslySetInnerHTML={{ __html: accessory.shortDescription }} />
-                                    </p>
+                                    <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: accessory.shortDescription }} />
                                 )}
 
                                 {accessory.parentProductDetails && (
@@ -771,9 +769,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                             )}
 
                             {product.shortDescription && (
-                                <p className="text-gray-600 text-sm leading-relaxed">
-                                    <div dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
-                                </p>
+                                <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
                             )}
 
                             {product.specs && product.specs.length > 0 && (
@@ -871,9 +867,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                     <h3 className="text-2xl font-extrabold text-[#071322] tracking-tight mb-4">
                                         Product Description
                                     </h3>
-                                    <p className="text-gray-600 text-base leading-relaxed ">
-                                        <div dangerouslySetInnerHTML={{ __html: product.description }} />
-                                    </p>
+                                    <p className="text-gray-600 text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: product.description }} />
                                     {techDetails.length > 0 && (
                                         <div className="mt-8">
                                             <h4 className="text-lg font-extrabold text-[#071322] tracking-tight mb-4">

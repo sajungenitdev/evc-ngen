@@ -1,13 +1,10 @@
 // components/Home/ChargingNeedsSection.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { getImageUrl, isDefaultImage } from '@/utils/imageHelper';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-const IMAGE_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 // ============================================================================
 // Types
@@ -22,6 +19,7 @@ interface Product {
     category: string;
     categoryLabel: string;
     imageUrl: string;
+    galleryImages?: string[];
     price: number;
     rating: number;
     stock: number;
@@ -43,48 +41,40 @@ interface Product {
 }
 
 // ============================================================================
-// Image Component (Same pattern as ProductThumbnail)
+// Image Component with proper error handling
 // ============================================================================
 
 interface ProductImageProps {
-    imageUrl: string;
+    imageUrl: string | null | undefined;
     alt: string;
     className?: string;
     fallback?: React.ReactNode;
+    onError?: () => void;
 }
 
 const ProductImage: React.FC<ProductImageProps> = ({
     imageUrl,
     alt,
     className = 'w-full h-full object-cover',
-    fallback = '⚡'
+    fallback = '⚡',
+    onError
 }) => {
     const [hasError, setHasError] = useState<boolean>(false);
+    const [fullUrl, setFullUrl] = useState<string | null>(null);
 
-    const getFullUrl = (path: string): string | null => {
-        if (!path || path.trim() === '') return null;
-        const trimmed = path.trim();
+    useEffect(() => {
+        // Reset error state when imageUrl changes
+        setHasError(false);
+        const url = getImageUrl(imageUrl);
+        setFullUrl(url);
 
-        if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-            return trimmed;
-        }
-
-        if (trimmed.startsWith('data:image')) {
-            return trimmed;
-        }
-
-        if (trimmed.startsWith('/uploads')) {
-            return `${IMAGE_BASE_URL}${trimmed}`;
-        }
-
-        if (trimmed.startsWith('/images')) {
-            return `${IMAGE_BASE_URL}${trimmed}`;
-        }
-
-        return `${IMAGE_BASE_URL}/uploads/products/${trimmed}`;
-    };
-
-    const fullUrl = getFullUrl(imageUrl);
+        // Debug logging
+        console.log('🖼️ ProductImage Debug:', {
+            imageUrl,
+            fullUrl: url,
+            isDefault: isDefaultImage(imageUrl)
+        });
+    }, [imageUrl]);
 
     const showFallback = !imageUrl || hasError || !fullUrl || isDefaultImage(imageUrl);
 
@@ -101,11 +91,15 @@ const ProductImage: React.FC<ProductImageProps> = ({
             src={fullUrl}
             alt={alt}
             className={className}
-            onError={() => {
+            onError={(e) => {
                 console.error('❌ Failed to load product image:', fullUrl);
                 setHasError(true);
+                if (onError) onError();
             }}
             loading="lazy"
+            onLoad={() => {
+                console.log('✅ Image loaded successfully:', fullUrl);
+            }}
         />
     );
 };
@@ -121,6 +115,8 @@ export default function ChargingNeedsSection() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -135,6 +131,10 @@ export default function ChargingNeedsSection() {
                     }
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 if (data.success && Array.isArray(data.data)) {
@@ -143,11 +143,21 @@ export default function ChargingNeedsSection() {
 
                     const uniqueCategories = Array.from(
                         new Set(activeProducts.map((p) => p.category))
-                    ).filter((category): category is string => typeof category === 'string');
+                    ).filter((category): category is string => typeof category === 'string' && category);
+
                     setCategories(uniqueCategories);
 
                     if (uniqueCategories.length > 0) {
                         setActiveTab(uniqueCategories[0]);
+                    }
+
+                    // Debug: Log first product image
+                    if (activeProducts.length > 0) {
+                        console.log('📦 Sample product image:', {
+                            name: activeProducts[0].name,
+                            imageUrl: activeProducts[0].imageUrl,
+                            fullUrl: getImageUrl(activeProducts[0].imageUrl)
+                        });
                     }
                 } else {
                     setError('Failed to load products');
@@ -163,7 +173,7 @@ export default function ChargingNeedsSection() {
         };
 
         fetchProducts();
-    }, []);
+    }, [API_BASE_URL]);
 
     // Get category label (convert category ID to display name)
     const getCategoryLabel = (categoryId: string): string => {
@@ -174,8 +184,10 @@ export default function ChargingNeedsSection() {
             'dc-charger': 'DC Chargers',
             'accessories': 'Accessories',
             'cables': 'Cables & Connectors',
+            'commercial': 'Commercial',
+            'residential': 'Residential',
         };
-        return labels[categoryId] || categoryId.replace('-', ' ').toUpperCase();
+        return labels[categoryId] || categoryId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     };
 
     // Filter products by selected category
@@ -192,6 +204,26 @@ export default function ChargingNeedsSection() {
                     <div className="flex items-center justify-center py-20">
                         <Loader2 className="w-12 h-12 text-[#1b7936] animate-spin" />
                     </div>
+                </div>
+            </section>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <section className="bg-[#f8f9fa] py-24 px-6 md:px-12 lg:px-20">
+                <div className="max-w-7xl mx-auto text-center">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#071322] tracking-tight mb-8">
+                        For All Your Charging Needs
+                    </h2>
+                    <p className="text-red-500 text-lg">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="mt-4 inline-block bg-[#166030] hover:bg-[#114b24] text-white font-bold text-sm px-8 py-3.5 rounded-full transition-all duration-200"
+                    >
+                        Retry
+                    </button>
                 </div>
             </section>
         );
@@ -224,18 +256,17 @@ export default function ChargingNeedsSection() {
                     <div className="inline-flex bg-[#edf2f7] rounded-full border border-gray-300 relative p-0.5 flex-wrap justify-center">
                         {categories.slice(0, 4).map((category, index) => {
                             const isActive = activeTab === category;
+                            const totalCategories = categories.slice(0, 4).length;
                             const isFirst = index === 0;
-                            const isLast = index === categories.slice(0, 4).length - 1;
+                            const isLast = index === totalCategories - 1;
 
                             let borderRadius = 'rounded-full';
                             if (isActive) {
-                                if (isFirst) {
+                                if (isFirst && totalCategories > 1) {
                                     borderRadius = 'rounded-l-full rounded-r-none';
-                                } else if (isLast) {
+                                } else if (isLast && totalCategories > 1) {
                                     borderRadius = 'rounded-r-full rounded-l-none';
                                 }
-                            } else {
-                                borderRadius = 'rounded-full';
                             }
 
                             return (
@@ -243,8 +274,8 @@ export default function ChargingNeedsSection() {
                                     key={category}
                                     onClick={() => setActiveTab(category)}
                                     className={`relative px-7 py-2.5 text-xs sm:text-sm font-bold tracking-wider transition-all duration-300 ease-in-out ${borderRadius} ${isActive
-                                        ? 'bg-[#071322] text-white shadow-md scale-[1.02]'
-                                        : 'bg-transparent text-gray-500 hover:text-[#071322] hover:bg-white/30'
+                                            ? 'bg-[#071322] text-white shadow-md scale-[1.02]'
+                                            : 'bg-transparent text-gray-500 hover:text-[#071322] hover:bg-white/30'
                                         }`}
                                 >
                                     {getCategoryLabel(category)}
@@ -277,9 +308,7 @@ export default function ChargingNeedsSection() {
                                     <h3 className="text-lg font-bold text-[#071322] tracking-tight line-clamp-1">
                                         {product.name}
                                     </h3>
-                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-                                        {product.shortDescription || 'High-quality EV charging solution.'}
-                                    </p>
+                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
                                     {product.specs && product.specs.length > 0 && (
                                         <div className="flex flex-wrap gap-1 justify-center mt-2">
                                             {product.specs.slice(0, 2).map((spec, idx) => (

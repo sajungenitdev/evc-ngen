@@ -198,9 +198,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
                                 {service.title}
                             </h1>
                         </div>
-                        <p className="text-gray-600 text-sm leading-relaxed">
-                            {service.details || service.description}
-                        </p>
+                        <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: service.details  }} />
 
                         <div className="flex flex-wrap gap-4 text-sm">
                             {service.price && (

@@ -1,7 +1,3 @@
-// utils/imageHelper.ts
-
-// utils/imageHelper.ts
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export const getImageUrl = (imagePath: string): string | null => {

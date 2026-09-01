@@ -163,9 +163,7 @@ export default function TrainingDetailPage({ params }: PageProps) {
                                 {training.badge}
                             </div>
                         )}
-                        <p className="text-gray-600 text-sm leading-relaxed">
-                            {training.details || training.description}
-                        </p>
+                        <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: training.details }} />
 
                         <div className="flex flex-wrap gap-4 text-sm">
                             {training.duration && (

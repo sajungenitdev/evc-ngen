@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 interface GalleryUploadProps {
     value: string[];
     onChange: (value: string[]) => void;
+    onFilesChange?: (files: File[]) => void;  // ✅ NEW: Pass files to parent
     label?: string;
     className?: string;
     maxImages?: number;
@@ -16,12 +17,14 @@ interface GalleryUploadProps {
 export default function GalleryUpload({
     value = [],
     onChange,
+    onFilesChange,
     label = 'Gallery Images',
     className = '',
     maxImages = 10,
     maxSize = 5,
 }: GalleryUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +41,8 @@ export default function GalleryUpload({
         }
 
         setIsUploading(true);
-        const validImages: string[] = [];
+        const validFiles: File[] = [];
+        const validPreviews: string[] = [];
 
         try {
             for (const file of Array.from(files)) {
@@ -53,20 +57,27 @@ export default function GalleryUpload({
                     continue;
                 }
 
-                // Convert to base64
-                const reader = new FileReader();
-                const result = await new Promise<string>((resolve) => {
-                    reader.onloadend = () => resolve(reader.result as string);
-                    reader.readAsDataURL(file);
-                });
-                validImages.push(result);
+                validFiles.push(file);
+
+                // Create preview URL
+                const previewUrl = URL.createObjectURL(file);
+                validPreviews.push(previewUrl);
             }
 
-            if (validImages.length > 0) {
-                // Update parent state with new images
-                const updatedGallery = [...value, ...validImages];
+            if (validFiles.length > 0) {
+                // Store files for upload
+                setSelectedFiles([...selectedFiles, ...validFiles]);
+
+                // Update parent with preview URLs for display
+                const updatedGallery = [...value, ...validPreviews];
                 onChange(updatedGallery);
-                toast.success(`${validImages.length} image(s) added to gallery`);
+
+                // ✅ Pass files to parent for FormData upload
+                if (onFilesChange) {
+                    onFilesChange([...selectedFiles, ...validFiles]);
+                }
+
+                toast.success(`${validFiles.length} image(s) added to gallery`);
             }
         } catch (error) {
             console.error('Gallery upload error:', error);
@@ -81,8 +92,18 @@ export default function GalleryUpload({
     };
 
     const removeImage = (index: number) => {
+        // Remove from previews
         const newGallery = value.filter((_, i) => i !== index);
         onChange(newGallery);
+
+        // Remove from files
+        const newFiles = selectedFiles.filter((_, i) => i !== index);
+        setSelectedFiles(newFiles);
+
+        // Update parent files
+        if (onFilesChange) {
+            onFilesChange(newFiles);
+        }
     };
 
     return (
