@@ -308,7 +308,7 @@ export default function ChargingNeedsSection() {
                                     <h3 className="text-lg font-bold text-[#071322] tracking-tight line-clamp-1">
                                         {product.name}
                                     </h3>
-                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
+                                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3" dangerouslySetInnerHTML={{ __html: product.shortDescription }}/>
                                     {product.specs && product.specs.length > 0 && (
                                         <div className="flex flex-wrap gap-1 justify-center mt-2">
                                             {product.specs.slice(0, 2).map((spec, idx) => (
