@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { 
-    Loader2, 
-    Save, 
-    RefreshCw, 
-    Eye, 
+import {
+    Loader2,
+    Save,
+    RefreshCw,
+    Eye,
     EyeOff,
     Plus,
     Trash2,
@@ -18,9 +18,10 @@ import {
     ImageIcon
 } from 'lucide-react';
 import { foundationAPI, FoundationData, FoundationItem } from '@/lib/api/foundation';
+import { getImageUrl } from '@/utils/imageHelper';
 
 // ============================================================================
-// Image Upload Component
+// Image Upload Component with ImgBB Support
 // ============================================================================
 
 interface ImageUploadProps {
@@ -40,11 +41,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [preview, setPreview] = useState<string>('');
+    const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
         if (currentImage) {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
-            setPreview(currentImage.startsWith('http') ? currentImage : `${baseUrl}${currentImage}`);
+            // ✅ Use getImageUrl helper for ImgBB support
+            const fullUrl = getImageUrl(currentImage);
+            setPreview(fullUrl || '');
+            setHasError(false);
         } else {
             setPreview('');
         }
@@ -68,13 +72,23 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         const reader = new FileReader();
         reader.onloadend = () => {
             setPreview(reader.result as string);
+            setHasError(false);
         };
         reader.readAsDataURL(file);
 
         await onUpload(file);
-        
+
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
+        }
+    };
+
+    const handleImageError = () => {
+        setHasError(true);
+        // Try to load from backup URL if available
+        if (currentImage && !currentImage.startsWith('http')) {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+            setPreview(`${baseUrl}${currentImage}`);
         }
     };
 
@@ -86,11 +100,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <div className="flex items-center gap-4">
                 {/* Image Preview */}
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
-                    {preview ? (
+                    {preview && !hasError ? (
                         <img
                             src={preview}
                             alt={itemTitle}
                             className="w-full h-full object-cover"
+                            onError={handleImageError}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400">
@@ -118,9 +133,192 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                         className="inline-flex items-center gap-2 px-4 py-2 border-2 border-dashed border-slate-300 hover:border-[#1b7936] hover:bg-[#1b7936]/5 rounded-xl text-xs font-semibold text-slate-700 cursor-pointer transition"
                     >
                         <Upload className="w-3.5 h-3.5" />
-                        {preview ? 'Change Image' : 'Upload Image'}
+                        {preview && !hasError ? 'Change Image' : 'Upload Image'}
                     </label>
                     <p className="text-[10px] text-slate-400 mt-1">JPEG, PNG, WebP (Max 5MB)</p>
+                    {currentImage && currentImage.includes('i.ibb.co') && (
+                        <p className="text-[10px] text-emerald-600 mt-0.5">✅ Hosted on ImgBB</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ============================================================================
+// Foundation Item Card Component
+// ============================================================================
+
+interface FoundationItemCardProps {
+    item: FoundationItem;
+    index: number;
+    totalItems: number;
+    onUpdate: (index: number, field: keyof FoundationItem, value: any) => void;
+    onRemove: (index: number) => void;
+    onMove: (index: number, direction: 'up' | 'down') => void;
+    onImageUpload: (index: number, file: File) => Promise<void>;
+    isUploading: boolean;
+}
+
+const FoundationItemCard: React.FC<FoundationItemCardProps> = ({
+    item,
+    index,
+    totalItems,
+    onUpdate,
+    onRemove,
+    onMove,
+    onImageUpload,
+    isUploading
+}) => {
+    // ✅ Get full image URL for preview
+    const imageUrl = item.imageUrl ? getImageUrl(item.imageUrl) : null;
+
+    return (
+        <div className="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-900">Item #{index + 1}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                        {item.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    {/* ✅ Show ImgBB badge if image is hosted on ImgBB */}
+                    {item.imageUrl && item.imageUrl.includes('i.ibb.co') && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            ☁️ ImgBB
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => onMove(index, 'up')}
+                        disabled={index === 0}
+                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                    >
+                        <MoveUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        onClick={() => onMove(index, 'down')}
+                        disabled={index === totalItems - 1}
+                        className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
+                    >
+                        <MoveDown className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        onClick={() => onRemove(index)}
+                        className="p-1 text-slate-400 hover:text-rose-600 transition"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* ✅ Image Upload with proper preview */}
+            <ImageUpload
+                label="Item Image"
+                currentImage={item.imageUrl || ''}
+                onUpload={(file) => onImageUpload(index, file)}
+                isUploading={isUploading}
+                itemTitle={item.title || `Item ${index + 1}`}
+            />
+
+            {/* ✅ Live preview of the item card */}
+            {imageUrl && (
+                <div className="mt-2 p-3 bg-white rounded-xl border border-slate-200">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Live Preview</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
+                            <img
+                                src={imageUrl}
+                                alt={item.title || 'Preview'}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                {item.title || 'Untitled'}
+                            </p>
+                            <p className="text-xs text-slate-500 truncate">
+                                {item.description || 'No description'}
+                            </p>
+                        </div>
+                        <div
+                            className="w-8 h-8 rounded-lg shrink-0 border border-slate-200"
+                            style={{ backgroundColor: item.bgClass || '#0c1f38' }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Title <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) => onUpdate(index, 'title', e.target.value)}
+                        placeholder="e.g., Values"
+                        className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Image Alt Text
+                    </label>
+                    <input
+                        type="text"
+                        value={item.imageAlt || ''}
+                        onChange={(e) => onUpdate(index, 'imageAlt', e.target.value)}
+                        placeholder="e.g., Values - EVNGEN core principles"
+                        className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Description <span className="text-rose-500">*</span>
+                    </label>
+                    <textarea
+                        value={item.description}
+                        onChange={(e) => onUpdate(index, 'description', e.target.value)}
+                        rows={2}
+                        placeholder="Enter the description..."
+                        className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition resize-none"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Background Color
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="color"
+                            value={item.bgClass || '#0c1f38'}
+                            onChange={(e) => onUpdate(index, 'bgClass', e.target.value)}
+                            className="w-10 h-9 rounded-lg border border-slate-200 cursor-pointer"
+                        />
+                        <input
+                            type="text"
+                            value={item.bgClass || ''}
+                            onChange={(e) => onUpdate(index, 'bgClass', e.target.value)}
+                            className="flex-1 px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition font-mono"
+                            placeholder="#0c1f38"
+                        />
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                    <input
+                        type="checkbox"
+                        checked={item.isActive}
+                        onChange={(e) => onUpdate(index, 'isActive', e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-[#1b7936] focus:ring-[#1b7936]"
+                    />
+                    <label className="text-xs font-semibold text-slate-700 cursor-pointer">
+                        Active
+                    </label>
                 </div>
             </div>
         </div>
@@ -277,14 +475,26 @@ export default function FoundationAdminPage() {
         }
 
         setUploadingIndex(index);
-        const toastId = toast.loading('Uploading image...');
+        const toastId = toast.loading('Uploading image to ImgBB...');
 
         try {
             const response = await foundationAPI.uploadImage(foundationData._id, index, file);
-            
+
             if (response.success && response.data) {
-                setFoundationData(response.data);
-                toast.success('Image uploaded successfully!', { id: toastId });
+                // ✅ Update the specific item's imageUrl with the uploaded image URL
+                const newItems = [...foundationData.items];
+                if (response.data.items && response.data.items[index]) {
+                    const uploadedItem = response.data.items[index];
+                    newItems[index] = {
+                        ...newItems[index],
+                        imageUrl: uploadedItem.imageUrl || newItems[index]?.imageUrl || ''
+                    };
+                }
+                setFoundationData({
+                    ...response.data,
+                    items: newItems
+                });
+                toast.success('Image uploaded to ImgBB successfully!', { id: toastId });
             } else {
                 toast.error(response.message || 'Failed to upload image', { id: toastId });
             }
@@ -302,10 +512,10 @@ export default function FoundationAdminPage() {
 
     const handleSave = async () => {
         if (!foundationData) return;
-        
+
         setIsSaving(true);
         const toastId = toast.loading(isNew ? 'Creating foundation...' : 'Saving foundation...');
-        
+
         try {
             let response;
             if (isNew || !foundationData._id) {
@@ -314,7 +524,7 @@ export default function FoundationAdminPage() {
             } else {
                 response = await foundationAPI.update(foundationData._id, foundationData);
             }
-            
+
             if (response.success) {
                 toast.success(isNew ? 'Foundation created successfully!' : 'Foundation updated successfully!', { id: toastId });
                 setIsNew(false);
@@ -443,21 +653,19 @@ export default function FoundationAdminPage() {
             <div className="flex border-b border-slate-200 bg-white rounded-t-2xl px-6 pt-4">
                 <button
                     onClick={() => setActiveTab('content')}
-                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${
-                        activeTab === 'content'
+                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'content'
                             ? 'border-[#1b7936] text-[#1b7936]'
                             : 'border-transparent text-slate-500 hover:text-slate-700'
-                    }`}
+                        }`}
                 >
                     Content
                 </button>
                 <button
                     onClick={() => setActiveTab('items')}
-                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${
-                        activeTab === 'items'
+                    className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'items'
                             ? 'border-[#1b7936] text-[#1b7936]'
                             : 'border-transparent text-slate-500 hover:text-slate-700'
-                    }`}
+                        }`}
                 >
                     Foundation Items ({foundationData.items?.length || 0})
                 </button>
@@ -553,122 +761,22 @@ export default function FoundationAdminPage() {
 
                         {foundationData.items?.length === 0 ? (
                             <div className="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-                                <p className="text-xs text-slate-400 font-medium">No items configured. Click &quot;Add Item&quot; to get started.</p>
+                                <p className="text-xs text-slate-400 font-medium">No items configured. Click "Add Item" to get started.</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {foundationData.items.map((item, index) => (
-                                    <div key={index} className="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-bold text-slate-900">Item #{index + 1}</span>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full ${item.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
-                                                    {item.isActive ? 'Active' : 'Inactive'}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => moveItem(index, 'up')}
-                                                    disabled={index === 0}
-                                                    className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
-                                                >
-                                                    <MoveUp className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => moveItem(index, 'down')}
-                                                    disabled={index === foundationData.items.length - 1}
-                                                    className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30"
-                                                >
-                                                    <MoveDown className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => removeItem(index)}
-                                                    className="p-1 text-slate-400 hover:text-rose-600 transition"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Image Upload */}
-                                        <ImageUpload
-                                            label="Item Image"
-                                            currentImage={item.imageUrl || ''}
-                                            onUpload={(file) => handleImageUpload(index, file)}
-                                            isUploading={uploadingIndex === index}
-                                            itemTitle={item.title || `Item ${index + 1}`}
-                                        />
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                                    Title <span className="text-rose-500">*</span>
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={item.title}
-                                                    onChange={(e) => updateItem(index, 'title', e.target.value)}
-                                                    placeholder="e.g., Values"
-                                                    className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                                    Image Alt Text
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={item.imageAlt || ''}
-                                                    onChange={(e) => updateItem(index, 'imageAlt', e.target.value)}
-                                                    placeholder="e.g., Values - EVNGEN core principles"
-                                                    className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition"
-                                                />
-                                            </div>
-                                            <div className="md:col-span-2">
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                                    Description <span className="text-rose-500">*</span>
-                                                </label>
-                                                <textarea
-                                                    value={item.description}
-                                                    onChange={(e) => updateItem(index, 'description', e.target.value)}
-                                                    rows={2}
-                                                    placeholder="Enter the description..."
-                                                    className="w-full px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition resize-none"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                                    Background Color
-                                                </label>
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="color"
-                                                        value={item.bgClass || '#0c1f38'}
-                                                        onChange={(e) => updateItem(index, 'bgClass', e.target.value)}
-                                                        className="w-10 h-9 rounded-lg border border-slate-200 cursor-pointer"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={item.bgClass || ''}
-                                                        onChange={(e) => updateItem(index, 'bgClass', e.target.value)}
-                                                        className="flex-1 px-3 py-1.5 text-sm text-black bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1b7936]/15 focus:border-[#1b7936] transition font-mono"
-                                                        placeholder="#0c1f38"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 pt-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.isActive}
-                                                    onChange={(e) => updateItem(index, 'isActive', e.target.checked)}
-                                                    className="w-4 h-4 rounded border-slate-300 text-[#1b7936] focus:ring-[#1b7936]"
-                                                />
-                                                <label className="text-xs font-semibold text-slate-700 cursor-pointer">
-                                                    Active
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <FoundationItemCard
+                                        key={index}
+                                        item={item}
+                                        index={index}
+                                        totalItems={foundationData.items.length}
+                                        onUpdate={updateItem}
+                                        onRemove={removeItem}
+                                        onMove={moveItem}
+                                        onImageUpload={handleImageUpload}
+                                        isUploading={uploadingIndex === index}
+                                    />
                                 ))}
                             </div>
                         )}
