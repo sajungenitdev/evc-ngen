@@ -22,6 +22,18 @@
     --font-family-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
+/* For modern browsers (Chrome, Edge, Safari) */
+::selection {
+    background-color: #1b7936 !important;
+    color: #ffffff !important;
+}
+
+/* For Firefox */
+::-moz-selection {
+    background-color: #1b7936 !important;
+    color: #ffffff !important;
+}
+
 /* বেস স্টাইল */
 @layer base {
     * {
@@ -173,10 +185,21 @@
     color: #071322;
 }
 
-.rich-text-content h1 { font-size: 1.5rem; }
-.rich-text-content h2 { font-size: 1.25rem; }
-.rich-text-content h3 { font-size: 1.125rem; }
-.rich-text-content h4 { font-size: 1rem; }
+.rich-text-content h1 {
+    font-size: 1.5rem;
+}
+
+.rich-text-content h2 {
+    font-size: 1.25rem;
+}
+
+.rich-text-content h3 {
+    font-size: 1.125rem;
+}
+
+.rich-text-content h4 {
+    font-size: 1rem;
+}
 
 .rich-text-content a {
     color: #1b7936;
