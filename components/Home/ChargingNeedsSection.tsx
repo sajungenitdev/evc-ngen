@@ -64,19 +64,20 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
     useEffect(() => {
         // Reset error state when imageUrl changes
+        const safeImageUrl = imageUrl ?? '';
         setHasError(false);
-        const url = getImageUrl(imageUrl);
+        const url = getImageUrl(safeImageUrl);
         setFullUrl(url);
 
         // Debug logging
         console.log('🖼️ ProductImage Debug:', {
             imageUrl,
             fullUrl: url,
-            isDefault: isDefaultImage(imageUrl)
+            isDefault: isDefaultImage(safeImageUrl)
         });
     }, [imageUrl]);
 
-    const showFallback = !imageUrl || hasError || !fullUrl || isDefaultImage(imageUrl);
+    const showFallback = !imageUrl || hasError || !fullUrl || isDefaultImage(imageUrl ?? '');
 
     if (showFallback) {
         return (
@@ -143,7 +144,9 @@ export default function ChargingNeedsSection() {
 
                     const uniqueCategories = Array.from(
                         new Set(activeProducts.map((p) => p.category))
-                    ).filter((category): category is string => typeof category === 'string' && category);
+                    ).filter((category): category is string => 
+                        typeof category === 'string' && category.length > 0
+                    );
 
                     setCategories(uniqueCategories);
 
