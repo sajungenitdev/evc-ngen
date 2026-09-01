@@ -236,7 +236,7 @@ export function EditTrainingModal({
                             type="text"
                             value={formData.title}
                             onChange={(e) => updateField('title', e.target.value)}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                             placeholder="e.g., Installer Certification"
                             required
                         />
@@ -250,7 +250,7 @@ export function EditTrainingModal({
                         <select
                             value={formData.categoryId}
                             onChange={(e) => updateField('categoryId', e.target.value)}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                             required
                         >
                             <option value="">Select a category...</option>
@@ -276,7 +276,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.badge}
                                 onChange={(e) => updateField('badge', e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="e.g., INSTALLER CERTIFICATION"
                             />
                         </div>
@@ -288,7 +288,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.icon}
                                 onChange={(e) => updateField('icon', e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="e.g., 🛠️"
                                 maxLength={2}
                             />
@@ -304,7 +304,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.duration}
                                 onChange={(e) => updateField('duration', e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="e.g., 2 Days"
                             />
                         </div>
@@ -316,7 +316,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.format}
                                 onChange={(e) => updateField('format', e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="e.g., Hands-on Training"
                             />
                         </div>
@@ -331,7 +331,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.price}
                                 onChange={(e) => updateField('price', e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="e.g., $1,200"
                             />
                         </div>
@@ -343,7 +343,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.schedule}
                                 onChange={(e) => updateField('schedule', e.target.value)}
-                                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="e.g., Monthly - First Week"
                             />
                         </div>
@@ -364,7 +364,7 @@ export function EditTrainingModal({
                                 type="text"
                                 value={formData.color}
                                 onChange={(e) => updateField('color', e.target.value)}
-                                className="flex-1 px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="flex-1 px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="#0c1f38"
                             />
                         </div>
@@ -378,7 +378,7 @@ export function EditTrainingModal({
                             type="text"
                             value={formData.description}
                             onChange={(e) => updateField('description', e.target.value)}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                             placeholder="Short description"
                         />
                     </div>
@@ -391,7 +391,7 @@ export function EditTrainingModal({
                             value={formData.details}
                             onChange={(e) => updateField('details', e.target.value)}
                             rows={3}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all resize-y"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all resize-y"
                             placeholder="Detailed description of the training program..."
                         />
                     </div>
@@ -518,7 +518,7 @@ export function EditTrainingModal({
                             type="text"
                             value={formData.actionText}
                             onChange={(e) => updateField('actionText', e.target.value)}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                             placeholder="e.g., Apply Now →"
                         />
                     </div>
