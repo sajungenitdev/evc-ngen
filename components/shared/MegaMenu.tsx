@@ -1006,6 +1006,20 @@ const AccessoriesMenu: React.FC<{
         return groupedAccessories[type] || [];
     };
 
+    // ✅ Get all accessories flattened, max 9 items
+    const allAccessories = useMemo(() => {
+        const flat: Accessory[] = [];
+        for (const type of sortedTypes) {
+            const items = getAccessoriesByType(type.type);
+            for (const item of items) {
+                if (flat.length < 9) {
+                    flat.push(item);
+                }
+            }
+        }
+        return flat;
+    }, [sortedTypes, getAccessoriesByType]);
+
     if (isLoading) {
         return (
             <div className="bg-white rounded-3xl shadow-2xl p-8 w-210 max-w-[95vw] text-left space-y-6 border border-gray-100">
@@ -1042,72 +1056,56 @@ const AccessoriesMenu: React.FC<{
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 w-210 max-w-[95vw] text-left space-y-6 border border-gray-100">
             <div className="font-bold text-[#1b7936] uppercase tracking-widest">ACCESSORIES</div>
+            
+            {/* ✅ 3 columns, max 9 items */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {sortedTypes.slice(0, 6).map((typeInfo) => {
-                    const typeAccessories = getAccessoriesByType(typeInfo.type);
-                    const displayAccessories = typeAccessories.slice(0, 3);
-                    const hasMore = typeAccessories.length > 3;
+                {allAccessories.map((acc) => {
+                    const slug = getCleanSlug(acc);
+                    const imageUrl = acc.imageUrl ? getImageUrl(acc.imageUrl) : null;
+                    const hasValidImage = imageUrl && !isDefaultImage(acc.imageUrl || '');
+                    const typeInfo = accessoryTypeMap[acc.accessoryType || 'other'] || accessoryTypeMap.other;
 
                     return (
-                        <div key={typeInfo.type} className="space-y-2">
-                            <div className="space-y-2">
-                                {displayAccessories.map((acc) => {
-                                    const slug = getCleanSlug(acc);
-                                    const imageUrl = acc.imageUrl ? getImageUrl(acc.imageUrl) : null;
-                                    const hasValidImage = imageUrl && !isDefaultImage(acc.imageUrl || '');
-
-                                    return (
-                                        <Link
-                                            key={acc._id || acc.id}
-                                            href={`/ev-chargers/${slug}`}
-                                            className="flex items-center gap-3 group p-2 rounded-xl hover:bg-[#f8f9fa] transition-colors min-w-0"
-                                        >
-                                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
-                                                {hasValidImage ? (
-                                                    <img
-                                                        src={imageUrl}
-                                                        alt={acc.name}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            const target = e.target as HTMLImageElement;
-                                                            target.style.display = 'none';
-                                                            const parent = target.parentElement;
-                                                            if (parent) {
-                                                                const fallback = document.createElement('span');
-                                                                fallback.className = 'text-xl';
-                                                                fallback.textContent = typeInfo.icon || '📦';
-                                                                parent.appendChild(fallback);
-                                                            }
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span className="text-xl">{typeInfo.icon || '📦'}</span>
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="text-[#071322] text-[13px] hover:text-[#1b7936] transition-colors leading-tight truncate">
-                                                    {acc.name}
-                                                </div>
-                                                <div className="text-gray-400 text-[10px] leading-relaxed font-normal truncate">
-                                                    {acc.model || typeInfo.label}
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
-                                {hasMore && (
-                                    <Link
-                                        href={`/accessories?type=${typeInfo.type}`}
-                                        className="text-xs text-[#1b7936] hover:underline font-medium block pl-2"
-                                    >
-                                        +{typeAccessories.length - 3} more...
-                                    </Link>
+                        <Link
+                            key={acc._id || acc.id}
+                            href={`/ev-chargers/${slug}`}
+                            className="flex items-center gap-3 group p-2.5 rounded-xl hover:bg-[#f8f9fa] transition-colors w-full min-w-0"
+                        >
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                                {hasValidImage ? (
+                                    <img
+                                        src={imageUrl}
+                                        alt={acc.name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const parent = target.parentElement;
+                                            if (parent) {
+                                                const fallback = document.createElement('span');
+                                                fallback.className = 'text-xl';
+                                                fallback.textContent = typeInfo.icon || '📦';
+                                                parent.appendChild(fallback);
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <span className="text-xl">{typeInfo.icon || '📦'}</span>
                                 )}
                             </div>
-                        </div>
+                            <div className="min-w-0 flex-1 overflow-hidden">
+                                <div className="text-[#071322] text-[13px] font-medium hover:text-[#1b7936] transition-colors leading-tight truncate">
+                                    {acc.name}
+                                </div>
+                                <div className="text-gray-400 text-[10px] leading-relaxed truncate">
+                                    {acc.model || typeInfo.label}
+                                </div>
+                            </div>
+                        </Link>
                     );
                 })}
             </div>
+
             <div className="pt-4 border-t border-gray-200">
                 <Link href="/ev-chargers?category=accessories" className="font-bold text-[#1b7936] hover:underline">
                     View All Accessories →
@@ -1345,8 +1343,8 @@ const IndustriesMenu: React.FC<{
                             key={industry._id || industry.id}
                             href={encodedLink}
                             className={`group p-3.5 rounded-2xl border transition-all flex items-start gap-3 min-w-0 ${isActive
-                                    ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'
-                                    : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
+                                ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'
+                                : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
                                 }`}
                         >
                             <div className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 text-base shadow-xs ${isActive ? 'bg-[#1b7936] text-white' : 'bg-[#e8f5e9]'
@@ -1365,8 +1363,8 @@ const IndustriesMenu: React.FC<{
                             </div>
                             <div className="min-w-0 flex-1">
                                 <h4 className={`font-bold sm:text-[14px] transition-colors truncate ${isActive
-                                        ? 'text-[#1b7936]'
-                                        : 'text-[#071322] group-hover:text-[#1b7936]'
+                                    ? 'text-[#1b7936]'
+                                    : 'text-[#071322] group-hover:text-[#1b7936]'
                                     }`} title={industry.label}>
                                     {industry.label}
                                 </h4>
