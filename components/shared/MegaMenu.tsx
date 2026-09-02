@@ -1030,7 +1030,7 @@ const AccessoriesMenu: React.FC<{
                 <div className="font-bold text-[#1b7936] uppercase tracking-widest">ACCESSORIES</div>
                 <div className="text-center py-8 text-gray-500 text-sm">No accessories available.</div>
                 <div className="pt-4 border-t border-gray-200">
-                    <Link href="/accessories" className="font-bold text-[#1b7936] hover:underline">
+                    <Link href="/ev-chargers?category=accessories" className="font-bold text-[#1b7936] hover:underline">
                         View All Accessories →
                     </Link>
                 </div>
