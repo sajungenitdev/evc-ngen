@@ -1108,7 +1108,7 @@ const AccessoriesMenu: React.FC<{
                 })}
             </div>
             <div className="pt-4 border-t border-gray-200">
-                <Link href="/accessories" className="font-bold text-[#1b7936] hover:underline">
+                <Link href="/ev-chargers?category=accessories" className="font-bold text-[#1b7936] hover:underline">
                     View All Accessories →
                 </Link>
             </div>

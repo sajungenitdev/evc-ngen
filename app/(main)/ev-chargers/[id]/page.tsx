@@ -485,15 +485,15 @@ export default function ProductDetailPage({ params }: PageProps) {
                             {/* Right: Details */}
                             <div className="space-y-6">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 bg-[#e8f5e9] text-[#1b7936] border border-[#1b7936]/20 text-xs font-extrabold uppercase px-3 py-1 rounded-full">
+                                    {/* <span className="inline-flex items-center gap-1.5 bg-[#e8f5e9] text-[#1b7936] border border-[#1b7936]/20 text-xs font-extrabold uppercase px-3 py-1 rounded-full">
                                         <Package className="w-3.5 h-3.5" /> Accessory
-                                    </span>
-                                    <span className="inline-flex items-center gap-1.5 bg-[#f0f0f0] text-[#071322] text-xs font-extrabold uppercase px-3 py-1 rounded-full">
+                                    </span> */}
+                                    <span className="inline-flex items-center gap-1.5 pe-0  text-[#1b7936] text-xs font-extrabold uppercase px-3 py-1 rounded-full">
                                         {getAccessoryTypeLabel(accessory.accessoryType)}
                                     </span>
                                     {brand && (
-                                        <span className="inline-flex items-center gap-1.5 bg-[#f0f0f0] text-[#071322] text-xs font-extrabold uppercase px-3 py-1 rounded-full">
-                                            {brand.icon} {brand.name}
+                                        <span className="inline-flex items-center gap-1.5 ps-0  text-[#1b7936] text-xs font-extrabold uppercase px-3 py-1 rounded-full">
+                                            -{brand.icon} {brand.name}
                                         </span>
                                     )}
                                 </div>
@@ -501,9 +501,9 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 <h1 className="text-3xl sm:text-4xl font-extrabold text-[#071322] tracking-tight">
                                     {accessory.name}
                                 </h1>
-                                <p className="text-sm text-gray-400 font-bold">Model: {accessory.model}</p>
+                                <p className="text-sm text-gray-400 font-normal">Model: {accessory.model}</p>
 
-                                <div className="flex items-center gap-3">
+                                {/* <div className="flex items-center gap-3">
                                     <div className="flex items-center">
                                         {[...Array(5)].map((_, i) => (
                                             <Star
@@ -516,7 +516,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                         ))}
                                     </div>
                                     <span className="text-sm font-bold text-[#071322]">{accessory.rating || 0}</span>
-                                </div>
+                                </div> */}
 
                                 {accessory.price > 0 && (
                                     <div className="flex items-center gap-3">
