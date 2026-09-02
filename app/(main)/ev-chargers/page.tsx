@@ -585,7 +585,7 @@ function EVChargersContent() {
                         )}
                     </p>
 
-                    <div className="flex items-center gap-3">
+                    {/* <div className="flex items-center gap-3">
                         <span className="text-xs text-gray-500 font-semibold hidden sm:inline">Sort by:</span>
                         <select
                             value={sortBy}
@@ -598,7 +598,7 @@ function EVChargersContent() {
                             <option value="name">Alphabetical (A-Z)</option>
                             <option value="rating">Top Rated</option>
                         </select>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Products Grid */}
@@ -644,7 +644,7 @@ function EVChargersContent() {
                                     className="bg-white border border-gray-200/100 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
                                 >
                                     {/* Item Thumbnail */}
-                                    <Link href={`/ev-chargers/${cleanSlug}`} className="block relative w-full h-52 overflow-hidden bg-[#f8f9fa]">
+                                    <Link href={`/ev-chargers/${cleanSlug}`} className="block relative w-full h-70 overflow-hidden bg-[#f8f9fa]">
                                         <ProductImage
                                             src={item.imageUrl}
                                             alt={item.name}
@@ -670,7 +670,7 @@ function EVChargersContent() {
 
                                     {/* Item Details */}
                                     <div className="p-5 space-y-3">
-                                        <div className="flex items-center gap-1">
+                                        {/* <div className="flex items-center gap-1">
                                             {[...Array(5)].map((_, i) => (
                                                 <Star
                                                     key={i}
@@ -683,7 +683,7 @@ function EVChargersContent() {
                                             <span className="text-[11px] text-gray-400 font-semibold ml-1">
                                                 {rating > 0 ? rating.toFixed(1) : 'N/A'}
                                             </span>
-                                        </div>
+                                        </div> */}
 
                                         <Link href={`/ev-chargers/${cleanSlug}`}>
                                             <h3 className="text-base font-extrabold text-[#071322] group-hover:text-[#1b7936] transition-colors line-clamp-2">
@@ -707,7 +707,7 @@ function EVChargersContent() {
                                         {/* Action Button */}
                                         <Link
                                             href={`/ev-chargers/${cleanSlug}`}
-                                            className="block w-full text-center bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm py-3 rounded-xl transition-all"
+                                            className="block w-full text-center bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm py-3 rounded-md transition-all"
                                         >
                                             Send Inquiry Now
                                         </Link>
@@ -729,18 +729,18 @@ function EVChargersContent() {
                 )}
 
                 {/* View All Categories */}
-                <div className="mt-12 text-center">
+                {/* <div className="mt-12 text-center">
                     <Link
                         href="/categories"
                         className="inline-flex items-center gap-2 text-[#1b7936] font-semibold hover:underline"
                     >
                         Browse All Categories <ArrowRight className="w-4 h-4" />
                     </Link>
-                </div>
+                </div> */}
             </div>
 
             {/* Bottom CTA */}
-            <section className="bg-[#f8f9fa] py-16 px-6 md:px-12 border-t border-gray-200">
+            <section className="bg-[#f8f9fa] py-16 mt-10 px-6 md:px-12 border-t border-gray-200">
                 <div className="max-w-4xl mx-auto text-center space-y-4">
                     <h2 className="text-2xl sm:text-3xl font-extrabold text-[#071322]">
                         Need Help Choosing the Right Charger?
