@@ -15,6 +15,8 @@ import {
     RotateCw,
     FolderOpen,
     Hash,
+    PowerOff,
+    Power,
 } from 'lucide-react';
 import { CreateTrainingCategoryModal } from '@/components/Admin/training-category/CreateTrainingCategoryModal';
 import { EditTrainingCategoryModal } from '@/components/Admin/training-category/EditTrainingCategoryModal';
@@ -339,7 +341,7 @@ export default function TrainingCategoryManagementPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 lg:p-8 space-y-6 container mx-auto">
             {/* ----------------------------------------------------------------- */}
             {/* Page Header */}
             {/* ----------------------------------------------------------------- */}
@@ -548,8 +550,8 @@ export default function TrainingCategoryManagementPage() {
                                         <td className="px-6 py-3.5 whitespace-nowrap">
                                             <span
                                                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${category.isActive
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                        : 'bg-slate-100 text-slate-500 border-slate-200'
                                                     }`}
                                             >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${category.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
@@ -579,12 +581,12 @@ export default function TrainingCategoryManagementPage() {
                                                 <button
                                                     onClick={() => handleToggleStatus(category)}
                                                     className={`p-1.5 rounded-lg transition ${category.isActive
-                                                        ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                                                        ? 'text-emerald-600 hover:text-amber-600 hover:bg-amber-50'
                                                         : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
                                                         }`}
                                                     title={category.isActive ? 'Deactivate' : 'Activate'}
                                                 >
-                                                    <RotateCw className="w-4 h-4" />
+                                                    {category.isActive ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
                                                 </button>
 
                                                 <button

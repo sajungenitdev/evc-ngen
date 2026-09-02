@@ -4,8 +4,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { trainingPrograms } from '@/lib/trainingDb';
 import { getImageUrl, isDefaultImage } from '@/utils/imageHelper';
+import { usePathname } from 'next/navigation';
 
 export type MegaMenuType =
     | 'products'
@@ -226,6 +226,18 @@ const createSlug = (text?: string): string =>
         .replace(/^-+/, '')
         .replace(/-+$/, '') || 'item';
 
+const generateCleanSlug = (text: string): string => {
+    if (!text) return 'solution';
+    return text
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+};
+
 // ============================================================================
 // Accessory Type Mapping
 // ============================================================================
@@ -283,7 +295,7 @@ const useMegaMenuData = (type: MegaMenuType) => {
         if (type === 'accessories') return !memoryCache.data.accessories;
         if (type === 'solutions') return !memoryCache.data.solutions;
         if (type === 'industries') return !memoryCache.data.industries;
-        if (type === 'training') return !memoryCache.data.training; // ✅ Add this
+        if (type === 'training') return !memoryCache.data.training;
         return false;
     });
 
@@ -432,8 +444,8 @@ const useMegaMenuData = (type: MegaMenuType) => {
                     if (isMountedRef.current) setIsLoading(false);
                 }
             }
-            // Inside the syncData function, add this after the solutions block
-            // ✅ Industries - Fetch from API
+
+            // Industries
             if (type === 'industries') {
                 const hasValidCache = isCacheValid('industries');
                 if (!force && hasValidCache) return;
@@ -465,8 +477,7 @@ const useMegaMenuData = (type: MegaMenuType) => {
                 }
             }
 
-            // Inside syncData function, add this after industries block
-            // ✅ Training - Fetch from API
+            // Training
             if (type === 'training') {
                 const hasValidCache = isCacheValid('training');
                 if (!force && hasValidCache) return;
@@ -498,7 +509,7 @@ const useMegaMenuData = (type: MegaMenuType) => {
                 }
             }
 
-            // ✅ Solutions - Fetch from API with proper data mapping
+            // Solutions
             if (type === 'solutions') {
                 const hasValidCache = isCacheValid('solutions');
                 if (!force && hasValidCache) return;
@@ -511,9 +522,7 @@ const useMegaMenuData = (type: MegaMenuType) => {
                         const json = await res.json();
                         const solutions = extractDataArray<Solution>(json).filter((s) => s.isActive !== false);
 
-                        // ✅ Map solutions and ensure clean slugs
                         return solutions.map((s) => {
-                            // Generate clean slug
                             const cleanSlug = s.id && !s.id.includes(' ')
                                 ? s.id.toLowerCase().replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-')
                                 : generateCleanSlug(s.label);
@@ -522,11 +531,9 @@ const useMegaMenuData = (type: MegaMenuType) => {
                                 ...s,
                                 icon: '📋',
                                 desc: s.desc || s.subtitle || '',
-                                // ✅ Ensure link uses clean slug
                                 link: s.link && !s.link.includes(' ')
                                     ? s.link
                                     : `/solutions/${cleanSlug}`,
-                                // ✅ Store clean slug for reference
                                 _slug: cleanSlug,
                             };
                         });
@@ -602,7 +609,6 @@ const useMegaMenuData = (type: MegaMenuType) => {
             .slice(0, 3);
     }, [categories, products, type]);
 
-    // Group accessories by type
     const groupedAccessories = useMemo(() => {
         if (type !== 'accessories') return {};
         if (accessories.length > 0) {
@@ -611,7 +617,6 @@ const useMegaMenuData = (type: MegaMenuType) => {
         return {};
     }, [accessories, type]);
 
-    // Get unique accessory types with counts
     const accessoryTypeSummary = useMemo(() => {
         if (type !== 'accessories') return [];
 
@@ -647,7 +652,7 @@ const useMegaMenuData = (type: MegaMenuType) => {
         categories,
         accessories,
         solutions,
-        industries,  // ✅ Add this - it's currently missing
+        industries,
         training,
         isLoading,
         activeProductCategories,
@@ -794,32 +799,35 @@ const ProductsMenu: React.FC<{
     );
 };
 
-// components/shared/MegaMenu.tsx - Complete SolutionsMenu
-
-// ✅ Helper to generate clean slug
-const generateCleanSlug = (text: string): string => {
-    if (!text) return 'solution';
-    return text
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '');
-};
-
 // ----------------------------------------------------------------------------
-// ✅ Solutions Menu - Dynamic from API with proper links
+// Solutions Menu
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// ✅ Solutions Menu - Dynamic from API with proper links
+// Solutions Menu - FIXED with Active States
 // ----------------------------------------------------------------------------
 const SolutionsMenu: React.FC<{
     solutions: Solution[];
     isLoading: boolean;
 }> = ({ solutions, isLoading }) => {
     const displaySolutions = solutions.slice(0, 6);
+    const pathname = usePathname(); // ✅ Add this import
+
+    // Helper to check if a solution is active
+    const isSolutionActive = (solution: Solution) => {
+        const cleanSlug = solution.label
+            ? solution.label
+                .toLowerCase()
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '')
+            : 'solution';
+
+        const link = `/solutions/${cleanSlug}`;
+        return pathname === link || pathname.startsWith(`${link}/`);
+    };
 
     if (isLoading) {
         return (
@@ -858,10 +866,12 @@ const SolutionsMenu: React.FC<{
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 w-205 max-w-[95vw] text-left space-y-6 border border-gray-100">
+            {/* SOLUTIONS Header */}
             <div className="font-bold text-[#1b7936] uppercase tracking-widest">SOLUTIONS</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {displaySolutions.map((solution, idx) => {
-                    // ✅ Generate clean slug from label (always use label as source of truth)
+
+            {/* Solutions Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {displaySolutions.map((solution) => {
                     const cleanSlug = solution.label
                         ? solution.label
                             .toLowerCase()
@@ -873,23 +883,22 @@ const SolutionsMenu: React.FC<{
                             .replace(/-+$/, '')
                         : 'solution';
 
-                    // ✅ Use clean slug for link
                     const link = `/solutions/${cleanSlug}`;
-
-                    // ✅ Get full image URL
                     const imageUrl = solution.imageUrl ? getImageUrl(solution.imageUrl) : null;
                     const hasValidImage = imageUrl && !isDefaultImage(solution.imageUrl);
+                    const isActive = isSolutionActive(solution);
 
                     return (
                         <Link
                             key={solution.id || solution._id}
                             href={link}
-                            className={`group p-4 rounded-2xl border transition-all flex items-center gap-3.5 min-w-0 ${idx === 0
-                                ? 'bg-[#f8f9fa] border-gray-200/80 shadow-xs'
-                                : 'bg-white border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
+                            className={`group p-4 rounded-2xl border transition-all flex items-center gap-3.5 min-w-0 ${isActive
+                                ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'  // ✅ Active state
+                                : 'bg-white border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'  // ✅ Normal state
                                 }`}
                         >
-                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                            <div className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 text-base shadow-xs ${isActive ? 'bg-[#1b7936] text-white' : 'bg-[#e8f5e9]'
+                                }`}>
                                 {hasValidImage ? (
                                     <img
                                         src={imageUrl}
@@ -908,21 +917,27 @@ const SolutionsMenu: React.FC<{
                                         }}
                                     />
                                 ) : (
-                                    <span className="text-xl">📋</span>
+                                    <span className="text-xl">{isActive ? '✓' : '📋'}</span>
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate">
+                                <h4 className={`font-bold sm:text-[14px] transition-colors truncate ${isActive ? 'text-[#1b7936]' : 'text-[#071322] group-hover:text-[#1b7936]'
+                                    }`}>
                                     {solution.label}
                                 </h4>
                                 <p className="text-gray-500 text-[11px] leading-snug mt-0.5 truncate">
                                     {solution.desc || solution.subtitle}
                                 </p>
                             </div>
+                            {isActive && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#1b7936] flex-shrink-0" />
+                            )}
                         </Link>
                     );
                 })}
             </div>
+
+            {/* Cases Section */}
             <div className="bg-[#f8f9fa] rounded-2xl p-6 border border-gray-200/80 space-y-4">
                 <div className="font-bold text-[#1b7936] uppercase tracking-widest">CASES</div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 text-xs">
@@ -944,6 +959,8 @@ const SolutionsMenu: React.FC<{
                     </div>
                 </div>
             </div>
+
+            {/* View All Link */}
             <div className="pt-4 border-t border-gray-200">
                 <Link href="/solutions" className="font-bold text-[#1b7936] hover:underline">
                     View All Solutions →
@@ -954,7 +971,7 @@ const SolutionsMenu: React.FC<{
 };
 
 // ----------------------------------------------------------------------------
-// Accessories Menu - WITH IMAGE SUPPORT
+// Accessories Menu
 // ----------------------------------------------------------------------------
 const AccessoriesMenu: React.FC<{
     accessories: Accessory[];
@@ -1035,9 +1052,8 @@ const AccessoriesMenu: React.FC<{
                             <div className="space-y-2">
                                 {displayAccessories.map((acc) => {
                                     const slug = getCleanSlug(acc);
-                                    // ✅ Get image URL with fallback
                                     const imageUrl = acc.imageUrl ? getImageUrl(acc.imageUrl) : null;
-                                   const hasValidImage = imageUrl && !isDefaultImage(imageUrl || '');
+                                    const hasValidImage = imageUrl && !isDefaultImage(acc.imageUrl || '');
 
                                     return (
                                         <Link
@@ -1101,16 +1117,25 @@ const AccessoriesMenu: React.FC<{
 };
 
 // ----------------------------------------------------------------------------
-// Brands Menu
+// Brands Menu - FIXED with Active States
 // ----------------------------------------------------------------------------
 const BrandsMenu: React.FC<{
     brands: Brand[];
     isLoading: boolean;
 }> = ({ brands, isLoading }) => {
     const displayBrands = brands.slice(0, 4);
+    const pathname = usePathname();
+
+    // Helper to check if a brand is active
+    const isBrandActive = (brand: Brand) => {
+        const brandSlug = brand.slug || brand.id || brand._id;
+        const link = `/brands/${brandSlug}`;
+        return pathname === link || pathname.startsWith(`${link}/`);
+    };
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-6 w-90 max-w-[95vw] text-left space-y-6 border border-gray-100">
+            {/* BRANDS Header */}
             <div className="font-bold text-[#1b7936] uppercase tracking-widest mb-2">BRANDS</div>
 
             {isLoading ? (
@@ -1127,32 +1152,58 @@ const BrandsMenu: React.FC<{
                 </div>
             ) : displayBrands.length > 0 ? (
                 <div className="grid grid-cols-1 gap-2 mb-2">
-                    {displayBrands.map((brand) => (
-                        <Link
-                            key={brand._id || brand.id}
-                            href={`/brands/${brand.slug || brand.id || brand._id}`}
-                            className="group p-2 rounded-2xl border border-transparent hover:bg-[#f8f9fa] hover:border-gray-200 transition-all flex items-center gap-4"
-                        >
-                            <div className="w-12 h-12 rounded-xl bg-[#e8f5e9] flex items-center justify-center shrink-0 text-xl shadow-xs">
-                                {brand.icon || '⚡'}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h4 className="text-[#071322] font-bold text-[14px] mb-1 truncate group-hover:text-[#1b7936] transition-colors block">
-                                    {brand.name}
-                                </h4>
-                                <p className="text-gray-500 text-[12px] leading-snug line-clamp-1">
-                                    {brand.description || `${brand.name} - EV charging solutions`}
-                                </p>
-                            </div>
-                        </Link>
-                    ))}
+                    {displayBrands.map((brand) => {
+                        const isActive = isBrandActive(brand);
+                        const brandSlug = brand.slug || brand.id || brand._id;
+
+                        return (
+                            <Link
+                                key={brand._id || brand.id}
+                                href={`/brands/${brandSlug}`}
+                                className={`group p-2 rounded-2xl border transition-all flex items-center gap-4 ${isActive
+                                        ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'  // ✅ Active state
+                                        : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'  // ✅ Normal state
+                                    }`}
+                            >
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-xl shadow-xs ${isActive ? 'bg-[#1b7936] text-white' : 'bg-[#e8f5e9]'
+                                    }`}>
+                                    {brand.icon || '⚡'}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className={`text-[14px] mb-1 truncate transition-colors ${isActive
+                                            ? 'text-[#1b7936] font-bold'
+                                            : 'text-[#071322] font-bold group-hover:text-[#1b7936]'
+                                        }`}>
+                                        {brand.name}
+                                        {isActive && (
+                                            <span className="ml-1.5 text-[10px] text-[#1b7936]">●</span>
+                                        )}
+                                    </h4>
+                                    <p className={`text-[12px] leading-snug line-clamp-1 ${isActive ? 'text-[#1b7936]/80' : 'text-gray-500'
+                                        }`}>
+                                        {brand.description || `${brand.name} - EV charging solutions`}
+                                    </p>
+                                </div>
+                                {isActive && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1b7936] flex-shrink-0" />
+                                )}
+                            </Link>
+                        );
+                    })}
                 </div>
             ) : (
                 <div className="text-center py-8 text-gray-500 text-sm">No brands available.</div>
             )}
 
+            {/* View All Link */}
             <div className="pt-2">
-                <Link href="/brands" className="font-medium text-xs text-[#1b7936] hover:underline">
+                <Link
+                    href="/brands"
+                    className={`font-medium text-xs transition-colors ${pathname === '/brands'
+                            ? 'text-[#1b7936] font-bold'
+                            : 'text-[#1b7936] hover:underline'
+                        }`}
+                >
                     View All Brands →
                 </Link>
             </div>
@@ -1221,7 +1272,7 @@ const ServicesMenu: React.FC<{
 };
 
 // ----------------------------------------------------------------------------
-// ✅ Industries Menu - Dynamic from API
+// Industries Menu
 // ----------------------------------------------------------------------------
 const IndustriesMenu: React.FC<{
     industries: Industry[];
@@ -1267,10 +1318,7 @@ const IndustriesMenu: React.FC<{
             <div className="font-bold text-[#1b7936] uppercase tracking-widest">INDUSTRIES</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {displayIndustries.map((industry) => {
-                    // Get icon from industry or use default
                     const icon = industry.icon || '🏢';
-
-                    // Get full image URL for icon if available
                     const imageUrl = industry.imageUrl ? getImageUrl(industry.imageUrl) : null;
                     const hasValidImage = imageUrl && !isDefaultImage(industry.imageUrl);
 
@@ -1324,7 +1372,7 @@ const IndustriesMenu: React.FC<{
 };
 
 // ----------------------------------------------------------------------------
-// ✅ Training Menu - Dynamic from API
+// Training Menu
 // ----------------------------------------------------------------------------
 const TrainingMenu: React.FC<{
     training: Training[];
@@ -1432,7 +1480,7 @@ export default function MegaMenu({ type }: MegaMenuProps) {
         products,
         categories,
         accessories,
-        industries,  // ✅ Add this - it's missing
+        industries,
         training,
         solutions,
         isLoading
@@ -1450,9 +1498,9 @@ export default function MegaMenu({ type }: MegaMenuProps) {
         case 'services':
             return <ServicesMenu services={services} isLoading={isLoading} />;
         case 'industries':
-            return <IndustriesMenu industries={industries} isLoading={isLoading} />;  // ✅ Update this
+            return <IndustriesMenu industries={industries} isLoading={isLoading} />;
         case 'training':
-            return <TrainingMenu training={training} isLoading={isLoading} />; // ✅ Update this
+            return <TrainingMenu training={training} isLoading={isLoading} />;
         default:
             return null;
     }
