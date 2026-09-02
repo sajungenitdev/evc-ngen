@@ -16,7 +16,7 @@ interface TextEditorProps {
     required?: boolean;
     error?: string;
     debounceDelay?: number;
-    cleanOutput?: boolean; // New prop to control cleaning
+    cleanOutput?: boolean;
 }
 
 // Helper function to clean editor content
@@ -24,19 +24,14 @@ const cleanEditorContent = (html: string): string => {
     if (!html) return '';
     
     let cleaned = html
-        // Fix nested p tags
         .replace(/<p><p>/g, '<p>')
         .replace(/<\/p><\/p>/g, '</p>')
-        // Remove empty p tags
         .replace(/<p>\s*<\/p>/g, '')
         .replace(/<p><\/p>/g, '')
-        // Replace &nbsp; with space
         .replace(/&nbsp;/g, ' ')
-        // Remove extra spaces
         .replace(/\s+/g, ' ')
         .trim();
     
-    // If content is just whitespace or empty
     if (!cleaned || cleaned === '<p></p>' || cleaned === '<p> </p>') {
         return '';
     }
@@ -81,33 +76,60 @@ export default function TextEditor({
     required = false,
     error,
     debounceDelay = 300,
-    cleanOutput = true, // Default to true
+    cleanOutput = true,
 }: TextEditorProps) {
     const [mounted, setMounted] = useState(false);
     const [localValue, setLocalValue] = useState(value);
+    const [isFocused, setIsFocused] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const quillRef = useRef<any>(null);
 
-    // Update local value when prop changes
+    // Update local value when prop changes (only if not focused)
     useEffect(() => {
-        setLocalValue(value);
-    }, [value]);
+        if (!isFocused) {
+            setLocalValue(value);
+        }
+    }, [value, isFocused]);
 
-    // Debounced onChange with cleaning
+    // Debounced onChange with cleaning - ONLY on blur or after delay
     const handleChange = useCallback((val: string) => {
-        // Clean the content if enabled
-        const processed = cleanOutput ? cleanEditorContent(val) : val;
-        setLocalValue(processed);
+        setLocalValue(val);
         
         // Clear existing timeout
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
         
-        // Set new timeout
+        // ✅ Only clean and send on blur or after typing stops
         timeoutRef.current = setTimeout(() => {
-            onChange(processed);
+            const processed = cleanOutput ? cleanEditorContent(val) : val;
+            // Only send if different from current value
+            if (processed !== value) {
+                onChange(processed);
+            }
         }, debounceDelay);
-    }, [onChange, debounceDelay, cleanOutput]);
+    }, [onChange, debounceDelay, cleanOutput, value]);
+
+    // ✅ Handle blur - clean and send final value
+    const handleBlur = useCallback(() => {
+        setIsFocused(false);
+        
+        // Clear any pending timeout
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        
+        // Send the cleaned value on blur
+        const processed = cleanOutput ? cleanEditorContent(localValue) : localValue;
+        if (processed !== value) {
+            onChange(processed);
+        }
+    }, [localValue, cleanOutput, onChange, value]);
+
+    const handleFocus = useCallback(() => {
+        setIsFocused(true);
+    }, []);
 
     // Cleanup timeout on unmount
     useEffect(() => {
@@ -136,6 +158,9 @@ export default function TextEditor({
                     ['link', 'image', 'video'],
                     ['clean'],
                 ],
+            },
+            clipboard: {
+                matchVisual: false,
             },
         }),
         []
@@ -193,9 +218,12 @@ export default function TextEditor({
                 `}
             >
                 <ReactQuill
+                    ref={quillRef}
                     theme="snow"
                     value={localValue}
                     onChange={handleChange}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
                     modules={modules}
                     formats={formats}
                     placeholder={placeholder}
@@ -264,7 +292,7 @@ export default function TextEditor({
                     color: #6366f1 !important;
                 }
                 
-                /* ✅ Fix for editor content display */
+                /* Fix for editor content display */
                 .ql-editor p {
                     margin-bottom: 0.5rem;
                     line-height: 1.6;
