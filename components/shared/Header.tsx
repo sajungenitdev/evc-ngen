@@ -75,7 +75,7 @@ export default function Header() {
             key: 'products',
             label: 'Products',
             href: '/ev-chargers',
-            paths: ['/ev-chargers', '/products', '/accessories']
+            paths: ['/ev-chargers', '/products', '/ev-chargers?category=accessories']
         },
         {
             key: 'brands',
@@ -99,7 +99,7 @@ export default function Header() {
             key: 'accessories',
             label: 'Accessories',
             href: '/ev-chargers?category=accessories',
-            paths: ['/accessories', '/ev-chargers']
+            paths: ['/ev-chargers?category=accessories', '/ev-chargers']
         },
         {
             key: 'training',

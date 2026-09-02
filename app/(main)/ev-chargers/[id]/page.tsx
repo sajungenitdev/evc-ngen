@@ -433,7 +433,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                 <PageHeader
                     breadcrumbs={[
                         { label: 'Home', link: '/' },
-                        { label: 'Accessories', link: '/accessories' },
+                        { label: 'Accessories', link: '/ev-chargers?category=accessories' },
                         { label: accessory.name }
                     ]}
                     imageUrl={accessory.imageUrl || '/images/help/evchargers-2048px-4445-2x1-1.webp'}
@@ -443,17 +443,6 @@ export default function ProductDetailPage({ params }: PageProps) {
 
                 <section className="py-8 px-4 md:px-8 lg:px-16">
                     <div className="max-w-7xl mx-auto">
-                        {/* Back Button */}
-                        <div className="mb-6">
-                            <Link
-                                href="/accessories"
-                                className="inline-flex items-center gap-2 text-[#1b7936] hover:underline font-medium"
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                                Back to Accessories
-                            </Link>
-                        </div>
-
                         {/* Main Content */}
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             {/* Left: Image */}
