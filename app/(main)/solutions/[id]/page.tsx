@@ -264,7 +264,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                         <h3 className="text-3xl sm:text-4xl font-extrabold text-[#071322] tracking-tight leading-tight">
                                             {solution.section1.tabs[activeTab].title}
                                         </h3>
-                                        <p className="text-gray-600 text-sm sm:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: solution.section1.tabs[activeTab].description }} />
+                                        <div className="text-gray-600 text-sm sm:text-base leading-relaxed wrap-break-word  max-w-full" dangerouslySetInnerHTML={{ __html: solution.section1.tabs[activeTab].description }} />
                                         <div className="flex flex-wrap gap-8 pt-2">
                                             {solution.section1.tabs[activeTab].links && solution.section1.tabs[activeTab].links.map((lnk, linkIdx) => (
                                                 <Link
@@ -277,11 +277,11 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="lg:col-span-6 relative h-90 sm:h-100 rounded-xl overflow-hidden bg-[#f8f9fa]">
+                                    <div className="lg:col-span-6 relative h-90 sm:h-100 rounded-xl overflow-hidden ">
                                         <SolutionImage
                                             src={solution.section1.tabs[activeTab].imageUrl}
                                             alt={solution.section1.tabs[activeTab].title}
-                                            className="w-full h-full object-cover transition-opacity duration-500"
+                                            className="w-full h-full object-scale-down transition-opacity duration-500"
                                             fallback="📋"
                                         />
                                     </div>
@@ -349,7 +349,7 @@ export default function SolutionDetailPage({ params }: PageProps) {
                                                     {card.title}
                                                 </h4>
                                             </div>
-                                            <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: card.description }} /> 
+                                            <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: card.description }} />
                                         </div>
                                         <div>
                                             <Link
