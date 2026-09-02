@@ -404,7 +404,7 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
                     </label>
                 )}
             </div>
-            <p className="text-[11px] text-slate-400">Supported formats: JPEG, PNG, WEBP (up to {maxSize}MB each)</p>
+            <p className="text-[11px] text-slate-400">Supported formats: JPEG, PNG, WEBP (up to {maxSize}MB each) Dimensions: (620px x 550px)</p>
         </div>
     );
 };
@@ -416,14 +416,14 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
 const buildCategoryHierarchy = (categories: Category[]): Category[] => {
     // Get all main categories (level 0)
     const mainCategories = categories.filter(c => (c.level || 0) === 0 && c.isActive !== false);
-    
+
     // Get all sub-categories (level > 0)
     const subCategories = categories.filter(c => (c.level || 0) > 0 && c.isActive !== false);
-    
+
     // Build hierarchy
     return mainCategories.map(main => {
-        const children = subCategories.filter(sub => 
-            sub.parentId === main.id || 
+        const children = subCategories.filter(sub =>
+            sub.parentId === main.id ||
             sub.parentId === main._id ||
             sub.parentId === main.id?.toString() ||
             sub.parentId === main._id?.toString()
@@ -690,488 +690,501 @@ export default function AccessoryFormModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-200">
-                {/* Modal Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-                    <div>
-                        <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                            {title.includes('Edit') ? 'Update accessory information and technical specs' : 'Create a hardware accessory profile linked to compatible charging hardware'}
-                        </p>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        disabled={isSubmitting || isProcessing}
-                        className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
-                        aria-label="Close modal"
-                    >
-                        ✕
-                    </button>
-                </div>
+            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col">
 
-                {/* Modal Form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* General Information */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="sm:col-span-2">
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Accessory Name <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => updateField('name', e.target.value)}
-                                required
-                                placeholder="e.g. Type 2 High-Duty Fast Charging Cable"
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
-                            />
-                        </div>
-
+                {/* Sticky Header - Fixed at top */}
+                <div className="sticky top-0 z-10 bg-white rounded-t-3xl px-6 sm:px-8 pt-6 pb-4 border-b border-slate-100 shrink-0">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Model Number <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.model}
-                                onChange={(e) => updateField('model', e.target.value)}
-                                required
-                                placeholder="e.g. CBL-T2-7M"
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
-                            />
+                            <h2 className="text-xl font-bold tracking-tight text-slate-900">{title}</h2>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                {title.includes('Edit') ? 'Update accessory information and technical specs' : 'Create a hardware accessory profile linked to compatible charging hardware'}
+                            </p>
                         </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Brand Partner <span className="text-rose-500">*</span>
-                            </label>
-                            <select
-                                value={formData.brand}
-                                onChange={(e) => updateField('brand', e.target.value)}
-                                required
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
-                            >
-                                <option value="">Select brand...</option>
-                                {activeBrands.map((brand) => (
-                                    <option key={brand.id || brand._id} value={brand.id || brand._id}>
-                                        {brand.icon} {brand.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* UPDATED: Category Dropdown with Sub-categories */}
-                        <div className="sm:col-span-2">
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Category Group <span className="text-rose-500">*</span>
-                                <span className="text-[10px] font-normal text-slate-400 ml-2">
-                                    (Includes sub-categories)
-                                </span>
-                            </label>
-                            <select
-                                value={formData.category}
-                                onChange={(e) => {
-                                    const categoryId = e.target.value;
-                                    const found = allActiveCategories.find((c) => (c.id || c._id) === categoryId);
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        category: categoryId,
-                                        categoryLabel: found?.name || '',
-                                    }));
-                                }}
-                                required
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
-                            >
-                                <option value="">Select category...</option>
-                                {categoryHierarchy.map((mainCategory) => (
-                                    <optgroup 
-                                        key={mainCategory.id || mainCategory._id} 
-                                        label={`${mainCategory.icon || '📂'} ${mainCategory.name}`}
-                                    >
-                                        <option value={mainCategory.id || mainCategory._id}>
-                                            ─ {mainCategory.icon || '📂'} {mainCategory.name}
-                                        </option>
-                                        {mainCategory.subcategories && mainCategory.subcategories.length > 0 && (
-                                            mainCategory.subcategories.map((sub) => (
-                                                <option 
-                                                    key={sub.id || sub._id} 
-                                                    value={sub.id || sub._id}
-                                                    className="pl-4"
-                                                >
-                                                    &nbsp;&nbsp;└─ {sub.icon || '📁'} {sub.name}
-                                                </option>
-                                            ))
-                                        )}
-                                    </optgroup>
-                                ))}
-                                {/* Show any sub-categories not attached to a main category */}
-                                {allActiveCategories
-                                    .filter(c => (c.level || 0) > 0 && !categoryHierarchy.some(main => 
-                                        main.subcategories?.some(sub => (sub.id || sub._id) === (c.id || c._id))
-                                    ))
-                                    .map((subCategory) => (
-                                        <option key={subCategory.id || subCategory._id} value={subCategory.id || subCategory._id}>
-                                            &nbsp;&nbsp;└─ {subCategory.icon || '📁'} {subCategory.name}
-                                        </option>
-                                    ))
-                                }
-                            </select>
-                            <p className="text-[11px] text-slate-400 mt-1">Main categories shown with their sub-categories indented</p>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Accessory Type <span className="text-rose-500">*</span>
-                            </label>
-                            <select
-                                value={formData.accessoryType}
-                                onChange={(e) => updateField('accessoryType', e.target.value)}
-                                required
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
-                            >
-                                <option value="">Select type...</option>
-                                {accessoryTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>
-                                        {type.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Price (USD) <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={formData.price}
-                                onChange={(e) => updateField('price', parseFloat(e.target.value) || 0)}
-                                required
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 font-mono transition"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Stock Count
-                            </label>
-                            <input
-                                type="number"
-                                value={formData.stock}
-                                onChange={(e) => updateField('stock', parseInt(e.target.value, 10) || 0)}
-                                min="0"
-                                placeholder="0"
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 font-mono transition"
-                            />
-                        </div>
-
-                        {/* UPDATED: Parent Product Dropdown - Only Active Products */}
-                        <div className="sm:col-span-2">
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Target Compatible Product <span className="text-rose-500">*</span>
-                                <span className="text-[10px] font-normal text-slate-400 ml-2">
-                                    (Only active products shown)
-                                </span>
-                            </label>
-                            <select
-                                value={formData.parentProductId}
-                                onChange={(e) => {
-                                    const parentId = e.target.value;
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        parentProductId: parentId,
-                                        compatibleWith: parentId ? [parentId] : [],
-                                    }));
-                                }}
-                                required
-                                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
-                            >
-                                <option value="">Select compatible charger...</option>
-                                {activeProducts.length > 0 ? (
-                                    activeProducts.map((product) => (
-                                        <option 
-                                            key={product.id || product._id} 
-                                            value={product.id || product._id}
-                                            className="py-1"
-                                        >
-                                            ✅ {product.name} ({product.model})
-                                        </option>
-                                    ))
-                                ) : (
-                                    <option value="" disabled className="text-amber-600">
-                                        ⚠️ No active products available. Please create a product first.
-                                    </option>
-                                )}
-                            </select>
-                            {formData.parentProductId && activeProducts.length > 0 && (
-                                <p className="text-[11px] text-emerald-600 font-medium mt-1">
-                                    ✓ Compatible with selected product
-                                </p>
-                            )}
-                            {activeProducts.length === 0 && (
-                                <p className="text-[11px] text-amber-600 font-medium mt-1">
-                                    ⚠️ No active products available. Please create and activate a product first.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Media Section */}
-                    <div className="border-t border-slate-100 pt-5 space-y-5">
-                        <div>
-                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Product Media</h3>
-
-                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                                Primary Image <span className="text-rose-500">*</span>
-                            </label>
-                            <div className="flex items-center gap-4">
-                                {imagePreview ? (
-                                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shrink-0 shadow-xs">
-                                        <img
-                                            src={imagePreview}
-                                            alt="Accessory preview"
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={removeCoverImage}
-                                            className="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-rose-700 transition shadow-xs z-10"
-                                            title="Remove image"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 bg-slate-50/60 shrink-0">
-                                        <span className="text-2xl">📷</span>
-                                    </div>
-                                )}
-
-                                <div className="flex-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isProcessing || isSubmitting}
-                                        className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition disabled:opacity-50"
-                                    >
-                                        {imagePreview ? 'Change Primary Image' : 'Select Cover Image'}
-                                    </button>
-                                    <p className="text-[11px] text-slate-400 mt-1">JPEG, PNG, WEBP (Max 5MB)</p>
-                                    {mainImageFile && (
-                                        <p className="text-xs text-emerald-600 font-medium mt-1">
-                                            ✓ {mainImageFile.name} ({(mainImageFile.size / 1024).toFixed(1)} KB)
-                                        </p>
-                                    )}
-                                </div>
-
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    className="hidden"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Gallery Upload */}
-                        <GalleryUpload
-                            value={formData.galleryImages}
-                            onChange={(images) => updateField('galleryImages', images)}
-                            onFilesChange={setGalleryFiles}
-                            maxImages={10}
-                            maxSize={5}
-                        />
-                    </div>
-
-                    {/* Description Section */}
-                    <div className="border-t border-slate-100 pt-5 space-y-4">
-                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Descriptions & Content</h3>
-
-                        <TextEditor
-                            label="Short Overview"
-                            required
-                            value={formData.shortDescription || ''}
-                            onChange={(val) => updateField('shortDescription', val)}
-                            placeholder="Brief summary of the accessory..."
-                            minHeight={120}
-                        />
-
-                        <TextEditor
-                            label="Comprehensive Details"
-                            value={formData.description || ''}
-                            onChange={(val) => updateField('description', val)}
-                            placeholder="Detailed technical overview and product compatibility notes..."
-                            minHeight={180}
-                        />
-                    </div>
-
-                    {/* Specifications & Features */}
-                    <div className="border-t border-slate-100 pt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <TextArrayInput
-                            label="Key Specifications"
-                            value={formData.specs}
-                            onChange={(specs) => updateField('specs', specs)}
-                            placeholder="e.g. 32A Current Capacity"
-                        />
-
-                        <TextArrayInput
-                            label="Features & Benefits"
-                            value={formData.features}
-                            onChange={(features) => updateField('features', features)}
-                            placeholder="e.g. Weatherproof Ergonomic Grip"
-                        />
-                    </div>
-
-                    {/* Technical Engineering Details */}
-                    <div className="border-t border-slate-100 pt-5 space-y-3">
-                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                            Engineering & Hardware Specifications
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    Power Rating
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.powerOutput || ''}
-                                    onChange={(e) => updateTechnicalDetails('powerOutput', e.target.value)}
-                                    placeholder="e.g. 22 kW"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    Input Voltage
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.inputVoltage || ''}
-                                    onChange={(e) => updateTechnicalDetails('inputVoltage', e.target.value)}
-                                    placeholder="e.g. 400V AC"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    Connector Standard
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.connectorType || ''}
-                                    onChange={(e) => updateTechnicalDetails('connectorType', e.target.value)}
-                                    placeholder="e.g. CCS2 / Type 2"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    IP / Enclosure Rating
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.enclosureRating || ''}
-                                    onChange={(e) => updateTechnicalDetails('enclosureRating', e.target.value)}
-                                    placeholder="e.g. IP66"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    Dimensions
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.dimensions || ''}
-                                    onChange={(e) => updateTechnicalDetails('dimensions', e.target.value)}
-                                    placeholder="e.g. 5m Cable Length"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    Weight
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.weight || ''}
-                                    onChange={(e) => updateTechnicalDetails('weight', e.target.value)}
-                                    placeholder="e.g. 3.2 kg"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                    Warranty Term
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.technicalDetails?.warranty || ''}
-                                    onChange={(e) => updateTechnicalDetails('warranty', e.target.value)}
-                                    placeholder="e.g. 3 Years Limited"
-                                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Active Status Check */}
-                    <div className="flex items-center gap-2 pt-1">
-                        <input
-                            type="checkbox"
-                            id="accessory-active"
-                            checked={formData.isActive}
-                            onChange={(e) => updateField('isActive', e.target.checked)}
-                            className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300"
-                        />
-                        <label htmlFor="accessory-active" className="text-xs font-semibold text-slate-700 cursor-pointer">
-                            Set as active listing in hardware catalog
-                        </label>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 pt-5 border-t border-slate-100">
                         <button
-                            type="button"
                             onClick={onClose}
                             disabled={isSubmitting || isProcessing}
-                            className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition disabled:opacity-50"
+                            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
+                            aria-label="Close modal"
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting || isProcessing}
-                            className="flex-1 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                            {isSubmitting || isProcessing ? (
-                                <>
-                                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        />
-                                    </svg>
-                                    <span>Saving...</span>
-                                </>
-                            ) : (
-                                submitLabel
-                            )}
+                            ✕
                         </button>
                     </div>
-                </form>
+                </div>
+                <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6">
+                    {/* Modal Form */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* General Information */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Accessory Name <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => updateField('name', e.target.value)}
+                                    required
+                                    placeholder="e.g. Type 2 High-Duty Fast Charging Cable"
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Model Number <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.model}
+                                    onChange={(e) => updateField('model', e.target.value)}
+                                    required
+                                    placeholder="e.g. CBL-T2-7M"
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Brand Partner <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.brand}
+                                    onChange={(e) => updateField('brand', e.target.value)}
+                                    required
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
+                                >
+                                    <option value="">Select brand...</option>
+                                    {activeBrands.map((brand) => (
+                                        <option key={brand.id || brand._id} value={brand.id || brand._id}>
+                                            {brand.icon} {brand.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* UPDATED: Category Dropdown with Sub-categories */}
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Category Group <span className="text-rose-500">*</span>
+                                    <span className="text-[10px] font-normal text-slate-400 ml-2">
+                                        (Includes sub-categories)
+                                    </span>
+                                </label>
+                                <select
+                                    value={formData.category}
+                                    onChange={(e) => {
+                                        const categoryId = e.target.value;
+                                        const found = allActiveCategories.find((c) => (c.id || c._id) === categoryId);
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            category: categoryId,
+                                            categoryLabel: found?.name || '',
+                                        }));
+                                    }}
+                                    required
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
+                                >
+                                    <option value="">Select category...</option>
+                                    {categoryHierarchy.map((mainCategory) => (
+                                        <optgroup
+                                            key={mainCategory.id || mainCategory._id}
+                                            label={`${mainCategory.icon || '📂'} ${mainCategory.name}`}
+                                        >
+                                            <option value={mainCategory.id || mainCategory._id}>
+                                                ─ {mainCategory.icon || '📂'} {mainCategory.name}
+                                            </option>
+                                            {mainCategory.subcategories && mainCategory.subcategories.length > 0 && (
+                                                mainCategory.subcategories.map((sub) => (
+                                                    <option
+                                                        key={sub.id || sub._id}
+                                                        value={sub.id || sub._id}
+                                                        className="pl-4"
+                                                    >
+                                                        &nbsp;&nbsp;└─ {sub.icon || '📁'} {sub.name}
+                                                    </option>
+                                                ))
+                                            )}
+                                        </optgroup>
+                                    ))}
+                                    {/* Show any sub-categories not attached to a main category */}
+                                    {allActiveCategories
+                                        .filter(c => (c.level || 0) > 0 && !categoryHierarchy.some(main =>
+                                            main.subcategories?.some(sub => (sub.id || sub._id) === (c.id || c._id))
+                                        ))
+                                        .map((subCategory) => (
+                                            <option key={subCategory.id || subCategory._id} value={subCategory.id || subCategory._id}>
+                                                &nbsp;&nbsp;└─ {subCategory.icon || '📁'} {subCategory.name}
+                                            </option>
+                                        ))
+                                    }
+                                </select>
+                                <p className="text-[11px] text-slate-400 mt-1">Main categories shown with their sub-categories indented</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Accessory Type <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.accessoryType}
+                                    onChange={(e) => updateField('accessoryType', e.target.value)}
+                                    required
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
+                                >
+                                    <option value="">Select type...</option>
+                                    {accessoryTypes.map((type) => (
+                                        <option key={type.value} value={type.value}>
+                                            {type.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Price (USD) <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.price}
+                                    onChange={(e) => updateField('price', parseFloat(e.target.value) || 0)}
+                                    required
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 font-mono transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Stock Count
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.stock}
+                                    onChange={(e) => updateField('stock', parseInt(e.target.value, 10) || 0)}
+                                    min="0"
+                                    placeholder="0"
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 font-mono transition"
+                                />
+                            </div>
+
+                            {/* UPDATED: Parent Product Dropdown - Only Active Products */}
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Target Compatible Product <span className="text-rose-500">*</span>
+                                    <span className="text-[10px] font-normal text-slate-400 ml-2">
+                                        (Only active products shown)
+                                    </span>
+                                </label>
+                                <select
+                                    value={formData.parentProductId}
+                                    onChange={(e) => {
+                                        const parentId = e.target.value;
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            parentProductId: parentId,
+                                            compatibleWith: parentId ? [parentId] : [],
+                                        }));
+                                    }}
+                                    required
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
+                                >
+                                    <option value="">Select compatible charger...</option>
+                                    {activeProducts.length > 0 ? (
+                                        activeProducts.map((product) => (
+                                            <option
+                                                key={product.id || product._id}
+                                                value={product.id || product._id}
+                                                className="py-1"
+                                            >
+                                                ✅ {product.name} ({product.model})
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="" disabled className="text-amber-600">
+                                            ⚠️ No active products available. Please create a product first.
+                                        </option>
+                                    )}
+                                </select>
+                                {formData.parentProductId && activeProducts.length > 0 && (
+                                    <p className="text-[11px] text-emerald-600 font-medium mt-1">
+                                        ✓ Compatible with selected product
+                                    </p>
+                                )}
+                                {activeProducts.length === 0 && (
+                                    <p className="text-[11px] text-amber-600 font-medium mt-1">
+                                        ⚠️ No active products available. Please create and activate a product first.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Media Section */}
+                        <div className="border-t border-slate-100 pt-5 space-y-5">
+                            <div>
+                                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Product Media</h3>
+
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Primary Image <span className="text-rose-500">*</span>
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    {imagePreview ? (
+                                        <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shrink-0 shadow-xs">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Accessory preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={removeCoverImage}
+                                                className="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-rose-700 transition shadow-xs z-10"
+                                                title="Remove image"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 bg-slate-50/60 shrink-0">
+                                            <span className="text-2xl">📷</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            disabled={isProcessing || isSubmitting}
+                                            className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition disabled:opacity-50"
+                                        >
+                                            {imagePreview ? 'Change Primary Image' : 'Select Cover Image'}
+                                        </button>
+                                        <p className="text-[11px] text-slate-400 mt-1">JPEG, PNG, WEBP (Max 5MB). Dimensions: (620px x 550px)</p>
+                                        {mainImageFile && (
+                                            <p className="text-xs text-emerald-600 font-medium mt-1">
+                                                ✓ {mainImageFile.name} ({(mainImageFile.size / 1024).toFixed(1)} KB)
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Gallery Upload */}
+                            <GalleryUpload
+                                value={formData.galleryImages}
+                                onChange={(images) => updateField('galleryImages', images)}
+                                onFilesChange={setGalleryFiles}
+                                maxImages={10}
+                                maxSize={5}
+                            />
+                        </div>
+
+                        {/* Description Section */}
+                        <div className="border-t border-slate-100 pt-5 space-y-4">
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Descriptions & Content</h3>
+
+                            <TextEditor
+                                label="Short Overview"
+                                required
+                                value={formData.shortDescription || ''}
+                                onChange={(val) => updateField('shortDescription', val)}
+                                placeholder="Brief summary of the accessory..."
+                                minHeight={120}
+                            />
+
+                            <TextEditor
+                                label="Comprehensive Details"
+                                value={formData.description || ''}
+                                onChange={(val) => updateField('description', val)}
+                                placeholder="Detailed technical overview and product compatibility notes..."
+                                minHeight={180}
+                            />
+                        </div>
+
+                        {/* Specifications & Features */}
+                        <div className="border-t border-slate-100 pt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <TextArrayInput
+                                label="Key Specifications"
+                                value={formData.specs}
+                                onChange={(specs) => updateField('specs', specs)}
+                                placeholder="e.g. 32A Current Capacity"
+                            />
+
+                            <TextArrayInput
+                                label="Features & Benefits"
+                                value={formData.features}
+                                onChange={(features) => updateField('features', features)}
+                                placeholder="e.g. Weatherproof Ergonomic Grip"
+                            />
+                        </div>
+
+                        {/* Technical Engineering Details */}
+                        <div className="border-t border-slate-100 pt-5 space-y-3">
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                Engineering & Hardware Specifications
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        Power Rating
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.powerOutput || ''}
+                                        onChange={(e) => updateTechnicalDetails('powerOutput', e.target.value)}
+                                        placeholder="e.g. 22 kW"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        Input Voltage
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.inputVoltage || ''}
+                                        onChange={(e) => updateTechnicalDetails('inputVoltage', e.target.value)}
+                                        placeholder="e.g. 400V AC"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        Connector Standard
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.connectorType || ''}
+                                        onChange={(e) => updateTechnicalDetails('connectorType', e.target.value)}
+                                        placeholder="e.g. CCS2 / Type 2"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        IP / Enclosure Rating
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.enclosureRating || ''}
+                                        onChange={(e) => updateTechnicalDetails('enclosureRating', e.target.value)}
+                                        placeholder="e.g. IP66"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        Dimensions
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.dimensions || ''}
+                                        onChange={(e) => updateTechnicalDetails('dimensions', e.target.value)}
+                                        placeholder="e.g. 5m Cable Length"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        Weight
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.weight || ''}
+                                        onChange={(e) => updateTechnicalDetails('weight', e.target.value)}
+                                        placeholder="e.g. 3.2 kg"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                        Warranty Term
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.technicalDetails?.warranty || ''}
+                                        onChange={(e) => updateTechnicalDetails('warranty', e.target.value)}
+                                        placeholder="e.g. 3 Years Limited"
+                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Active Status Toggle */}
+                        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-semibold text-slate-700">
+                                    Catalog Status
+                                </span>
+                                <span className={`text-xs font-medium ${formData.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                    {formData.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+
+                            {/* Toggle Switch */}
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.isActive}
+                                    onChange={(e) => updateField('isActive', e.target.checked)}
+                                    className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-slate-900/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
+                            </label>
+                        </div>
+
+                        {/* Action Buttons - Right Aligned */}
+                        <div className="flex gap-3 pt-5 border-t border-slate-100 justify-end">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                disabled={isSubmitting || isProcessing}
+                                className="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || isProcessing}
+                                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold shadow-xs transition disabled:opacity-50 flex items-center justify-center gap-2 min-w-[140px]"
+                            >
+                                {isSubmitting || isProcessing ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            />
+                                        </svg>
+                                        <span>Saving...</span>
+                                    </>
+                                ) : (
+                                    submitLabel
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
