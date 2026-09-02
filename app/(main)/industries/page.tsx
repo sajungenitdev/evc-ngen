@@ -85,6 +85,20 @@ export default function IndustriesPage() {
         return getImageUrl(imageUrl);
     };
 
+    // ✅ Helper to encode the industry ID for URL
+    const getEncodedLink = (industry: Industry) => {
+        const id = industry.id || industry.slug || industry._id;
+        // Encode special characters for URL
+        const encodedId = encodeURIComponent(id);
+        return `/industries/${encodedId}`;
+    };
+
+    // ✅ Helper to get clean display label
+    const getDisplayLabel = (label: string) => {
+        if (!label) return 'Unnamed Industry';
+        return label;
+    };
+
     return (
         <div className="bg-white min-h-screen">
             <PageHeader
@@ -129,11 +143,13 @@ export default function IndustriesPage() {
                                 const icon = getIndustryIcon(industry);
                                 const imageUrl = getIndustryImageUrl(industry.imageUrl);
                                 const hasValidImage = imageUrl && !isDefaultImage(industry.imageUrl);
+                                const encodedLink = getEncodedLink(industry);
+                                const displayLabel = getDisplayLabel(industry.label);
 
                                 return (
                                     <Link
                                         key={industry._id || industry.id}
-                                        href={`/industries/${industry.id || industry.slug}`}
+                                        href={encodedLink}
                                         className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                                     >
                                         {/* Image */}
@@ -141,7 +157,7 @@ export default function IndustriesPage() {
                                             {hasValidImage ? (
                                                 <img
                                                     src={imageUrl}
-                                                    alt={industry.label || 'Industry'}
+                                                    alt={displayLabel}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                     onError={(e) => {
                                                         const target = e.target as HTMLImageElement;
@@ -160,7 +176,7 @@ export default function IndustriesPage() {
                                                     {icon}
                                                 </div>
                                             )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-ev-dark-blue/60 to-transparent"></div>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C]/60 to-transparent"></div>
                                             <div className="absolute bottom-4 left-4 text-white text-3xl">
                                                 {icon}
                                             </div>
@@ -168,10 +184,10 @@ export default function IndustriesPage() {
 
                                         {/* Content */}
                                         <div className="p-5">
-                                            <h3 className="text-lg font-extrabold text-ev-dark-green group-hover:text-[#1b7936] transition-colors">
-                                                {industry.label || 'Unnamed Industry'}
+                                            <h3 className="text-lg font-extrabold text-[#0B192C] group-hover:text-[#1b7936] transition-colors">
+                                                {displayLabel}
                                             </h3>
-                                            <p className="text-sm font-semibold text-[#071322] mt-1 leading-relaxed">
+                                            <p className="text-sm font-semibold text-[#0B192C] mt-1 leading-relaxed">
                                                 {industry.subtitle || industry.title || ''}
                                             </p>
                                             <p className="text-gray-500 text-xs mt-2 leading-relaxed line-clamp-2">
@@ -200,7 +216,7 @@ export default function IndustriesPage() {
                 )}
 
                 {/* CTA */}
-                <div className="mt-20 bg-gradient-to-br from-ev-dark-blue to-ev-dark-green rounded-3xl p-12 text-center text-white">
+                <div className="mt-20 bg-gradient-to-br from-[#0B192C] to-[#1b7936] rounded-3xl p-12 text-center text-white">
                     <h2 className="text-3xl font-extrabold mb-4">
                         Don't See Your Industry?
                     </h2>
@@ -209,7 +225,7 @@ export default function IndustriesPage() {
                     </p>
                     <Link
                         href="/contact"
-                        className="bg-white text-ev-dark-blue hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors inline-block"
+                        className="bg-white text-[#0B192C] hover:bg-gray-100 font-bold px-8 py-3.5 rounded-xl transition-colors inline-block"
                     >
                         Contact Our Team
                     </Link>

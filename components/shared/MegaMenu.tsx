@@ -1343,7 +1343,7 @@ const IndustriesMenu: React.FC<{
                     return (
                         <Link
                             key={industry._id || industry.id}
-                            href={encodedLink}  // ✅ Use encoded link
+                            href={encodedLink} 
                             className={`group p-3.5 rounded-2xl border transition-all flex items-start gap-3 min-w-0 ${isActive
                                     ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'
                                     : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'

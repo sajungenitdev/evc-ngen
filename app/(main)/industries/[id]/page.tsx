@@ -51,10 +51,21 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 
 export default function IndustryDetailPage({ params }: PageProps) {
     const { id } = use(params);
+    
+    // ✅ Decode the URL parameter first
+    const decodedId = decodeURIComponent(id);
+    
     const [industry, setIndustry] = useState<Industry | null>(null);
     const [relatedIndustries, setRelatedIndustries] = useState<Industry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // ✅ Helper to encode the industry ID for URL
+    const getEncodedLink = (industry: Industry) => {
+        const id = industry.id || industry.slug || industry._id;
+        const encodedId = encodeURIComponent(id);
+        return `/industries/${encodedId}`;
+    };
 
     // Fetch industry data
     useEffect(() => {
@@ -62,8 +73,10 @@ export default function IndustryDetailPage({ params }: PageProps) {
             setIsLoading(true);
             setError(null);
             try {
-                // Fetch industry by ID
-                const res = await fetch(`${API_BASE_URL}/industries/${id}`);
+                // ✅ Use the decoded ID for the API call
+                // Also encode it again to be safe for the API
+                const encodedId = encodeURIComponent(decodedId);
+                const res = await fetch(`${API_BASE_URL}/industries/${encodedId}`);
                 const data = await res.json();
 
                 if (data.success) {
@@ -79,7 +92,7 @@ export default function IndustryDetailPage({ params }: PageProps) {
 
                 if (relatedData.success) {
                     const filtered = relatedData.data.filter(
-                        (i: Industry) => i.id !== id && i.id !== data.data?.id
+                        (i: Industry) => i.id !== decodedId && i.id !== data.data?.id
                     );
                     setRelatedIndustries(filtered.slice(0, 3));
                 }
@@ -92,8 +105,10 @@ export default function IndustryDetailPage({ params }: PageProps) {
             }
         };
 
-        fetchIndustryData();
-    }, [id]);
+        if (decodedId) {
+            fetchIndustryData();
+        }
+    }, [decodedId]);
 
     // Show loading state
     if (isLoading) {
@@ -107,18 +122,31 @@ export default function IndustryDetailPage({ params }: PageProps) {
         );
     }
 
-    // Show not found - FIXED
+    // Show not found
     if (!industry || error) {
         return (
-            <div className="bg-white min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-6xl mb-4">🔌</div>
-                    <h1 className="text-2xl font-bold text-[#071322] mb-2">Industry Not Found</h1>
-                    <p className="text-gray-500 text-sm">{error || 'The industry you are looking for does not exist.'}</p>
+            <div className="bg-white min-h-screen">
+                <PageHeader
+                    breadcrumbs={[
+                        { label: 'Home', link: '/' },
+                        { label: 'Industries', link: '/industries' },
+                        { label: 'Not Found' }
+                    ]}
+                    imageUrl="/images/help/industries-hero.jpg"
+                    title="Industry Not Found"
+                    description="The industry you're looking for doesn't exist."
+                />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+                    <div className="text-6xl mb-6">🔍</div>
+                    <h1 className="text-3xl font-extrabold text-[#071322] mb-4">Industry Not Found</h1>
+                    <p className="text-gray-500 text-sm max-w-md mx-auto mb-8">
+                        {error || 'The industry you are looking for does not exist.'}
+                    </p>
                     <Link
                         href="/industries"
-                        className="mt-6 inline-block bg-[#1b7936] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#155f2b] transition-colors"
+                        className="inline-flex items-center gap-2 bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold px-6 py-3 rounded-xl transition-colors"
                     >
+                        <ArrowLeft className="w-4 h-4" />
                         View All Industries
                     </Link>
                 </div>
@@ -136,6 +164,18 @@ export default function IndustryDetailPage({ params }: PageProps) {
         if (!imageUrl) return '/images/industries/default.jpg';
         const url = getImageUrl(imageUrl);
         return url || '/images/industries/default.jpg';
+    };
+
+    // Clean HTML content for display
+    const cleanHtmlContent = (html: string) => {
+        if (!html) return '';
+        return html
+            .replace(/<p><p>/g, '<p>')
+            .replace(/<\/p><\/p>/g, '</p>')
+            .replace(/<p>\s*<\/p>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
     };
 
     const icon = getIndustryIcon(industry);
@@ -170,8 +210,10 @@ export default function IndustryDetailPage({ params }: PageProps) {
                             {industry.subtitle || industry.title}
                         </h2>
                         <div
-                            className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: industry.overview }}
+                            className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none break-words"
+                            dangerouslySetInnerHTML={{ 
+                                __html: cleanHtmlContent(industry.overview) 
+                            }}
                         />
                         <div className="flex flex-wrap gap-3 pt-2">
                             <Link
@@ -313,8 +355,10 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                         {industry.caseStudy.title}
                                     </h4>
                                     <div
-                                        className="text-gray-600 text-sm "
-                                        dangerouslySetInnerHTML={{ __html: industry.caseStudy.description }}
+                                        className="text-gray-600 text-sm leading-relaxed break-words max-w-full overflow-hidden"
+                                        dangerouslySetInnerHTML={{ 
+                                            __html: cleanHtmlContent(industry.caseStudy.description) 
+                                        }}
                                     />
                                     {industry.caseStudy.link && (
                                         <Link
@@ -375,18 +419,25 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                 return (
                                     <Link
                                         key={related._id || related.id}
-                                        href={`/industries/${related.id || related.slug}`}
+                                        href={getEncodedLink(related)}
                                         className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
                                     >
                                         <div className="relative h-40 bg-[#f8f9fa]">
                                             {related.imageUrl && !isDefaultImage(related.imageUrl) ? (
-                                                <Image
+                                                <img
                                                     src={getIndustryImageUrl(related.imageUrl) || ''}
                                                     alt={related.label}
-                                                    fill
-                                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                                    onError={() => {
-                                                        // Image error handled by Image component fallback
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    onError={(e) => {
+                                                        const target = e.target as HTMLImageElement;
+                                                        target.style.display = 'none';
+                                                        const parent = target.parentElement;
+                                                        if (parent) {
+                                                            const fallback = document.createElement('div');
+                                                            fallback.className = 'w-full h-full flex items-center justify-center text-4xl bg-[#f8f9fa]';
+                                                            fallback.textContent = relatedIcon;
+                                                            parent.appendChild(fallback);
+                                                        }
                                                     }}
                                                 />
                                             ) : (
