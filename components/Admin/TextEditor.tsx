@@ -23,7 +23,7 @@ interface TextEditorProps {
 const cleanEditorContent = (html: string): string => {
     if (!html) return '';
     
-    let cleaned = html
+    const cleaned = html
         .replace(/<p><p>/g, '<p>')
         .replace(/<\/p><\/p>/g, '</p>')
         .replace(/<p>\s*<\/p>/g, '')
@@ -82,7 +82,6 @@ export default function TextEditor({
     const [localValue, setLocalValue] = useState(value);
     const [isFocused, setIsFocused] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const quillRef = useRef<any>(null);
 
     // Update local value when prop changes (only if not focused)
     useEffect(() => {
@@ -218,7 +217,6 @@ export default function TextEditor({
                 `}
             >
                 <ReactQuill
-                    ref={quillRef}
                     theme="snow"
                     value={localValue}
                     onChange={handleChange}
