@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { getImageUrl, isDefaultImage } from '@/utils/imageHelper';
 import { usePathname } from 'next/navigation';
+import { Dot } from 'lucide-react';
 
 export type MegaMenuType =
     | 'products'
@@ -1273,7 +1274,6 @@ const ServicesMenu: React.FC<{
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // Industries Menu - FIXED with proper URL encoding
-// ----------------------------------------------------------------------------
 const IndustriesMenu: React.FC<{
     industries: Industry[];
     isLoading: boolean;
@@ -1284,14 +1284,14 @@ const IndustriesMenu: React.FC<{
     // Helper to check if an industry is active
     const isIndustryActive = (industry: Industry) => {
         const id = industry.id || industry.slug || industry._id;
-        const link = `/industries/${id}`;
+        const encodedId = encodeURIComponent(id);
+        const link = `/industries/${encodedId}`;
         return pathname === link || pathname.startsWith(`${link}/`);
     };
 
     // Helper to encode the industry ID for URL
     const getEncodedLink = (industry: Industry) => {
         const id = industry.id || industry.slug || industry._id;
-        // Encode special characters for URL
         const encodedId = encodeURIComponent(id);
         return `/industries/${encodedId}`;
     };
@@ -1334,16 +1334,16 @@ const IndustriesMenu: React.FC<{
             <div className="font-bold text-[#1b7936] uppercase tracking-widest">INDUSTRIES</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {displayIndustries.map((industry) => {
-                    const icon = industry.icon || '🏢';
                     const imageUrl = industry.imageUrl ? getImageUrl(industry.imageUrl) : null;
                     const hasValidImage = imageUrl && !isDefaultImage(industry.imageUrl);
                     const isActive = isIndustryActive(industry);
                     const encodedLink = getEncodedLink(industry);
+                    const [hasError, setHasError] = useState(false);
 
                     return (
                         <Link
                             key={industry._id || industry.id}
-                            href={encodedLink} 
+                            href={encodedLink}
                             className={`group p-3.5 rounded-2xl border transition-all flex items-start gap-3 min-w-0 ${isActive
                                     ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'
                                     : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
@@ -1351,25 +1351,16 @@ const IndustriesMenu: React.FC<{
                         >
                             <div className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 text-base shadow-xs ${isActive ? 'bg-[#1b7936] text-white' : 'bg-[#e8f5e9]'
                                 }`}>
-                                {hasValidImage ? (
+                                {hasValidImage && !hasError ? (
                                     <img
                                         src={imageUrl}
                                         alt={industry.label}
                                         className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.style.display = 'none';
-                                            const parent = target.parentElement;
-                                            if (parent) {
-                                                const fallback = document.createElement('span');
-                                                fallback.className = 'text-xl';
-                                                fallback.textContent = icon;
-                                                parent.appendChild(fallback);
-                                            }
-                                        }}
+                                        onError={() => setHasError(true)}
                                     />
                                 ) : (
-                                    <span className="text-xl">{icon}</span>
+                                    // ✅ Show dot when no image
+                                    <span className="w-2 h-2 rounded-full bg-current" />
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
