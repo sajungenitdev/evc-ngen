@@ -1161,8 +1161,8 @@ const BrandsMenu: React.FC<{
                                 key={brand._id || brand.id}
                                 href={`/brands/${brandSlug}`}
                                 className={`group p-2 rounded-2xl border transition-all flex items-center gap-4 ${isActive
-                                        ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'  // ✅ Active state
-                                        : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'  // ✅ Normal state
+                                    ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'  // ✅ Active state
+                                    : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'  // ✅ Normal state
                                     }`}
                             >
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-xl shadow-xs ${isActive ? 'bg-[#1b7936] text-white' : 'bg-[#e8f5e9]'
@@ -1171,8 +1171,8 @@ const BrandsMenu: React.FC<{
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className={`text-[14px] mb-1 truncate transition-colors ${isActive
-                                            ? 'text-[#1b7936] font-bold'
-                                            : 'text-[#071322] font-bold group-hover:text-[#1b7936]'
+                                        ? 'text-[#1b7936] font-bold'
+                                        : 'text-[#071322] font-bold group-hover:text-[#1b7936]'
                                         }`}>
                                         {brand.name}
                                     </h4>
@@ -1197,8 +1197,8 @@ const BrandsMenu: React.FC<{
                 <Link
                     href="/brands"
                     className={`font-medium text-xs transition-colors ${pathname === '/brands'
-                            ? 'text-[#1b7936] font-bold'
-                            : 'text-[#1b7936] hover:underline'
+                        ? 'text-[#1b7936] font-bold'
+                        : 'text-[#1b7936] hover:underline'
                         }`}
                 >
                     View All Brands →
@@ -1271,11 +1271,30 @@ const ServicesMenu: React.FC<{
 // ----------------------------------------------------------------------------
 // Industries Menu
 // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// Industries Menu - FIXED with proper URL encoding
+// ----------------------------------------------------------------------------
 const IndustriesMenu: React.FC<{
     industries: Industry[];
     isLoading: boolean;
 }> = ({ industries, isLoading }) => {
     const displayIndustries = industries.slice(0, 6);
+    const pathname = usePathname();
+
+    // Helper to check if an industry is active
+    const isIndustryActive = (industry: Industry) => {
+        const id = industry.id || industry.slug || industry._id;
+        const link = `/industries/${id}`;
+        return pathname === link || pathname.startsWith(`${link}/`);
+    };
+
+    // Helper to encode the industry ID for URL
+    const getEncodedLink = (industry: Industry) => {
+        const id = industry.id || industry.slug || industry._id;
+        // Encode special characters for URL
+        const encodedId = encodeURIComponent(id);
+        return `/industries/${encodedId}`;
+    };
 
     if (isLoading) {
         return (
@@ -1318,14 +1337,20 @@ const IndustriesMenu: React.FC<{
                     const icon = industry.icon || '🏢';
                     const imageUrl = industry.imageUrl ? getImageUrl(industry.imageUrl) : null;
                     const hasValidImage = imageUrl && !isDefaultImage(industry.imageUrl);
+                    const isActive = isIndustryActive(industry);
+                    const encodedLink = getEncodedLink(industry);
 
                     return (
                         <Link
                             key={industry._id || industry.id}
-                            href={`/industries/${industry.id || industry.slug}`}
-                            className="group p-3.5 rounded-2xl border border-transparent hover:bg-[#f8f9fa] hover:border-gray-200 transition-all flex items-start gap-3 min-w-0"
+                            href={encodedLink}  // ✅ Use encoded link
+                            className={`group p-3.5 rounded-2xl border transition-all flex items-start gap-3 min-w-0 ${isActive
+                                    ? 'bg-[#e8f5e9] border-[#1b7936]/30 shadow-sm'
+                                    : 'border-transparent hover:bg-[#f8f9fa] hover:border-gray-200'
+                                }`}
                         >
-                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#e8f5e9] flex items-center justify-center shrink-0 text-base shadow-xs">
+                            <div className={`w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 text-base shadow-xs ${isActive ? 'bg-[#1b7936] text-white' : 'bg-[#e8f5e9]'
+                                }`}>
                                 {hasValidImage ? (
                                     <img
                                         src={imageUrl}
@@ -1348,19 +1373,30 @@ const IndustriesMenu: React.FC<{
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <h4 className="text-[#071322] font-bold sm:text-[14px] group-hover:text-[#1b7936] transition-colors truncate" title={industry.label}>
+                                <h4 className={`font-bold sm:text-[14px] transition-colors truncate ${isActive
+                                        ? 'text-[#1b7936]'
+                                        : 'text-[#071322] group-hover:text-[#1b7936]'
+                                    }`} title={industry.label}>
                                     {industry.label}
                                 </h4>
-                                <p className="text-gray-500 text-[11px] leading-snug mt-0.5 truncate" title={industry.desc}>
+                                <p className={`text-[11px] leading-snug mt-0.5 truncate ${isActive ? 'text-[#1b7936]/80' : 'text-gray-500'
+                                    }`} title={industry.desc}>
                                     {industry.desc || industry.subtitle || `${industry.label} solutions`}
                                 </p>
                             </div>
+                            {isActive && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#1b7936] flex-shrink-0" />
+                            )}
                         </Link>
                     );
                 })}
             </div>
             <div className="pt-4 border-t border-gray-200">
-                <Link href="/industries" className="font-bold text-[#1b7936] hover:underline">
+                <Link
+                    href="/industries"
+                    className={`font-bold transition-colors ${pathname === '/industries' ? 'text-[#1b7936]' : 'text-[#1b7936] hover:underline'
+                        }`}
+                >
                     View All Industries →
                 </Link>
             </div>
