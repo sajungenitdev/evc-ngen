@@ -66,6 +66,8 @@ export interface Category {
     icon?: string;
     isActive: boolean;
     level?: number;
+    parentId?: string | null;
+    subcategories?: Category[];
 }
 
 interface AccessoryFormModalProps {
@@ -408,6 +410,32 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
 };
 
 // ============================================
+// HELPER: Build Category Hierarchy with Sub-categories
+// ============================================
+
+const buildCategoryHierarchy = (categories: Category[]): Category[] => {
+    // Get all main categories (level 0)
+    const mainCategories = categories.filter(c => (c.level || 0) === 0 && c.isActive !== false);
+    
+    // Get all sub-categories (level > 0)
+    const subCategories = categories.filter(c => (c.level || 0) > 0 && c.isActive !== false);
+    
+    // Build hierarchy
+    return mainCategories.map(main => {
+        const children = subCategories.filter(sub => 
+            sub.parentId === main.id || 
+            sub.parentId === main._id ||
+            sub.parentId === main.id?.toString() ||
+            sub.parentId === main._id?.toString()
+        );
+        return {
+            ...main,
+            subcategories: children,
+        };
+    });
+};
+
+// ============================================
 // MAIN MODAL COMPONENT
 // ============================================
 
@@ -473,16 +501,24 @@ export default function AccessoryFormModal({
         };
     }, [imagePreview]);
 
-    // Active Catalogs
+    // Active Catalogs - Only show active products and categories
     const activeProducts = useMemo(() => {
-        return products.filter((p) => p.isActive !== false && p.name?.trim());
+        return products
+            .filter((p) => p.isActive !== false && p.name?.trim())
+            .sort((a, b) => a.name.localeCompare(b.name));
     }, [products]);
 
     const activeBrands = useMemo(() => {
         return brands.filter((b) => b.isActive !== false);
     }, [brands]);
 
-    const activeCategories = useMemo(() => {
+    // Build category hierarchy with sub-categories
+    const categoryHierarchy = useMemo(() => {
+        return buildCategoryHierarchy(categories);
+    }, [categories]);
+
+    // Get all active categories (including sub-categories) for the flat list
+    const allActiveCategories = useMemo(() => {
         return categories.filter((c) => c.isActive !== false);
     }, [categories]);
 
@@ -557,6 +593,15 @@ export default function AccessoryFormModal({
                 return;
             }
 
+            // Validate that selected product is active
+            const selectedProduct = products.find(
+                p => p._id === formData.parentProductId || p.id === formData.parentProductId
+            );
+            if (selectedProduct && !selectedProduct.isActive) {
+                toast.error('Cannot assign accessory to an inactive product. Please select an active product.');
+                return;
+            }
+
             setIsProcessing(true);
 
             try {
@@ -618,7 +663,7 @@ export default function AccessoryFormModal({
                 setIsProcessing(false);
             }
         },
-        [formData, mainImageFile, galleryFiles, initialData, onSubmit, isSubmitting]
+        [formData, mainImageFile, galleryFiles, initialData, onSubmit, isSubmitting, products]
     );
 
     const updateField = useCallback(
@@ -715,15 +760,19 @@ export default function AccessoryFormModal({
                             </select>
                         </div>
 
-                        <div>
+                        {/* UPDATED: Category Dropdown with Sub-categories */}
+                        <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                 Category Group <span className="text-rose-500">*</span>
+                                <span className="text-[10px] font-normal text-slate-400 ml-2">
+                                    (Includes sub-categories)
+                                </span>
                             </label>
                             <select
                                 value={formData.category}
                                 onChange={(e) => {
                                     const categoryId = e.target.value;
-                                    const found = activeCategories.find((c) => (c.id || c._id) === categoryId);
+                                    const found = allActiveCategories.find((c) => (c.id || c._id) === categoryId);
                                     setFormData((prev) => ({
                                         ...prev,
                                         category: categoryId,
@@ -734,12 +783,40 @@ export default function AccessoryFormModal({
                                 className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                             >
                                 <option value="">Select category...</option>
-                                {activeCategories.map((cat) => (
-                                    <option key={cat.id || cat._id} value={cat.id || cat._id}>
-                                        {cat.icon} {cat.name}
-                                    </option>
+                                {categoryHierarchy.map((mainCategory) => (
+                                    <optgroup 
+                                        key={mainCategory.id || mainCategory._id} 
+                                        label={`${mainCategory.icon || '📂'} ${mainCategory.name}`}
+                                    >
+                                        <option value={mainCategory.id || mainCategory._id}>
+                                            ─ {mainCategory.icon || '📂'} {mainCategory.name}
+                                        </option>
+                                        {mainCategory.subcategories && mainCategory.subcategories.length > 0 && (
+                                            mainCategory.subcategories.map((sub) => (
+                                                <option 
+                                                    key={sub.id || sub._id} 
+                                                    value={sub.id || sub._id}
+                                                    className="pl-4"
+                                                >
+                                                    &nbsp;&nbsp;└─ {sub.icon || '📁'} {sub.name}
+                                                </option>
+                                            ))
+                                        )}
+                                    </optgroup>
                                 ))}
+                                {/* Show any sub-categories not attached to a main category */}
+                                {allActiveCategories
+                                    .filter(c => (c.level || 0) > 0 && !categoryHierarchy.some(main => 
+                                        main.subcategories?.some(sub => (sub.id || sub._id) === (c.id || c._id))
+                                    ))
+                                    .map((subCategory) => (
+                                        <option key={subCategory.id || subCategory._id} value={subCategory.id || subCategory._id}>
+                                            &nbsp;&nbsp;└─ {subCategory.icon || '📁'} {subCategory.name}
+                                        </option>
+                                    ))
+                                }
                             </select>
+                            <p className="text-[11px] text-slate-400 mt-1">Main categories shown with their sub-categories indented</p>
                         </div>
 
                         <div>
@@ -791,9 +868,13 @@ export default function AccessoryFormModal({
                             />
                         </div>
 
-                        <div>
+                        {/* UPDATED: Parent Product Dropdown - Only Active Products */}
+                        <div className="sm:col-span-2">
                             <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                 Target Compatible Product <span className="text-rose-500">*</span>
+                                <span className="text-[10px] font-normal text-slate-400 ml-2">
+                                    (Only active products shown)
+                                </span>
                             </label>
                             <select
                                 value={formData.parentProductId}
@@ -809,12 +890,32 @@ export default function AccessoryFormModal({
                                 className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                             >
                                 <option value="">Select compatible charger...</option>
-                                {activeProducts.map((product) => (
-                                    <option key={product.id || product._id} value={product.id || product._id}>
-                                        {product.name} ({product.model})
+                                {activeProducts.length > 0 ? (
+                                    activeProducts.map((product) => (
+                                        <option 
+                                            key={product.id || product._id} 
+                                            value={product.id || product._id}
+                                            className="py-1"
+                                        >
+                                            ✅ {product.name} ({product.model})
+                                        </option>
+                                    ))
+                                ) : (
+                                    <option value="" disabled className="text-amber-600">
+                                        ⚠️ No active products available. Please create a product first.
                                     </option>
-                                ))}
+                                )}
                             </select>
+                            {formData.parentProductId && activeProducts.length > 0 && (
+                                <p className="text-[11px] text-emerald-600 font-medium mt-1">
+                                    ✓ Compatible with selected product
+                                </p>
+                            )}
+                            {activeProducts.length === 0 && (
+                                <p className="text-[11px] text-amber-600 font-medium mt-1">
+                                    ⚠️ No active products available. Please create and activate a product first.
+                                </p>
+                            )}
                         </div>
                     </div>
 

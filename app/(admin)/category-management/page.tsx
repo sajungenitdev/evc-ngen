@@ -2,8 +2,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { AlertTriangle, Check, Power, PowerOff, X } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 // -----------------------------------------------------------------------------
 // 1. Data Contracts & Interfaces
@@ -21,6 +23,7 @@ export interface Category {
   level?: number;
   order?: number;
   isActive: boolean;
+  isActiveByParent?: boolean;
   productCount?: number;
   subcategoryCount?: number;
   subcategories?: Category[];
@@ -324,34 +327,156 @@ export default function CategoriesPage() {
     }
   };
 
+  // app/(admin)/categories/page.tsx
+
   const handleToggleStatus = async (category: Category) => {
     if (!token) return;
     const targetStatus = !category.isActive;
 
-    // Optimistic update
-    setCategories((prev) =>
-      prev.map((c) =>
-        c._id === category._id || (c.id && c.id === category.id)
-          ? { ...c, isActive: targetStatus }
-          : c
-      )
-    );
+    // Check if category has children
+    const hasChildren = (category.subcategoryCount || 0) > 0 ||
+      (category.subcategories && category.subcategories.length > 0);
+
+    // Show custom toast confirmation if deactivating with children
+    if (!targetStatus && hasChildren) {
+      const confirmDeactivate = await new Promise<boolean>((resolve) => {
+        toast.custom(
+          (t) => (
+            <div
+              className={`${t.visible ? 'animate-enter' : 'animate-leave'
+                } max-w-md w-full bg-white shadow-2xl rounded-2xl border border-slate-200 pointer-events-auto overflow-hidden`}
+            >
+              <div className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                      <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Deactivate Category?
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      This category has <span className="font-semibold text-slate-700">{category.subcategoryCount || 0}</span> subcategory(s).
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      Deactivating <span className="font-semibold text-slate-700">{category.name}</span> will also deactivate ALL its child categories.
+                    </p>
+                    <p className="text-xs font-medium text-amber-600 mt-2">
+                      ⚠️ This action cannot be undone.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      toast.dismiss(t.id);
+                      resolve(false);
+                    }}
+                    className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-5 pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => {
+                      toast.dismiss(t.id);
+                      resolve(false);
+                    }}
+                    className="flex-1 px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      toast.dismiss(t.id);
+                      resolve(true);
+                    }}
+                    className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    Deactivate All
+                  </button>
+                </div>
+              </div>
+            </div>
+          ),
+          {
+            duration: Infinity,
+            position: 'top-center',
+          }
+        );
+      });
+
+      if (!confirmDeactivate) return;
+    }
+
+    // Check if trying to activate but parent is inactive
+    if (targetStatus && category.parentId) {
+      try {
+        const parent = await apiCall<{ isActive?: boolean; isActiveByParent?: boolean }>(`/categories/${category.parentId}`);
+        if (parent.success && parent.data) {
+          const parentEffectiveStatus = Boolean(parent.data.isActive) && Boolean(parent.data.isActiveByParent);
+          if (!parentEffectiveStatus) {
+            toast.error(`Cannot activate "${category.name}" because parent category is inactive`);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error checking parent status:', error);
+      }
+    }
+
+    // Optimistic update - update both categories and tree
+    const previousCategories = [...categories];
+    const previousTree = [...categoryTree];
+
+    const updateCategoryStatus = (cats: Category[], targetId: string, status: boolean): Category[] => {
+      return cats.map(cat => {
+        if (cat._id === targetId || cat.id === targetId) {
+          return { ...cat, isActive: status };
+        }
+        if (cat.subcategories && cat.subcategories.length > 0) {
+          return {
+            ...cat,
+            subcategories: updateCategoryStatus(cat.subcategories, targetId, status)
+          };
+        }
+        return cat;
+      });
+    };
+
+    // Apply optimistic update
+    setCategories(prev => updateCategoryStatus(prev, category.id || category._id, targetStatus));
+    setCategoryTree(prev => updateCategoryStatus(prev, category.id || category._id, targetStatus));
 
     try {
       const categoryId = category.id || category._id;
-      const response = await apiCall(`/categories/${categoryId}/toggle`, {
+      const response = await apiCall<{ category?: { childrenUpdated?: number } }>(`/categories/${categoryId}/toggle`, {
         method: 'PUT',
       });
 
       if (response.success) {
-        toast.success(`Category ${targetStatus ? 'activated' : 'deactivated'}`);
-      } else {
+        const childrenUpdated = response.data?.category?.childrenUpdated ?? 0;
+        const message = childrenUpdated > 0
+          ? `Category ${targetStatus ? 'activated' : 'deactivated'} with ${childrenUpdated} subcategories`
+          : `Category ${targetStatus ? 'activated' : 'deactivated'} successfully`;
+
+        toast.success(message);
+        // Refresh to get the latest data
         await fetchCategories(true);
+      } else {
+        // Rollback on failure
+        setCategories(previousCategories);
+        setCategoryTree(previousTree);
         toast.error(response.message || 'Failed to update status');
       }
-    } catch {
-      await fetchCategories(true);
-      toast.error('Failed to update status');
+    } catch (error) {
+      // Rollback on error
+      setCategories(previousCategories);
+      setCategoryTree(previousTree);
+      const message = error instanceof Error ? error.message : 'Failed to update status';
+      toast.error(message);
     }
   };
 
@@ -419,11 +544,10 @@ export default function CategoriesPage() {
             {/* Level Badge */}
             <td className="px-6 py-3.5 whitespace-nowrap">
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                  (category.level ?? 0) === 0
-                    ? 'bg-indigo-50 text-indigo-700 border-indigo-200/70'
-                    : 'bg-sky-50 text-sky-700 border-sky-200/70'
-                }`}
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${(category.level ?? 0) === 0
+                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200/70'
+                  : 'bg-sky-50 text-sky-700 border-sky-200/70'
+                  }`}
               >
                 {(category.level ?? 0) === 0 ? 'Root' : `Level ${category.level}`}
               </span>
@@ -442,19 +566,28 @@ export default function CategoriesPage() {
                 {prodCount}
               </span>
             </td>
-
-            {/* Status */}
             <td className="px-6 py-3.5 whitespace-nowrap">
-              <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                  category.isActive
+              <div className="flex flex-col gap-1">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${(category.isActive && category.isActiveByParent !== false)
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     : 'bg-slate-100 text-slate-500 border-slate-200'
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${category.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                {category.isActive ? 'Active' : 'Inactive'}
-              </span>
+                    }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${(category.isActive && category.isActiveByParent !== false)
+                    ? 'bg-emerald-500'
+                    : 'bg-slate-400'
+                    }`} />
+                  {(category.isActive && category.isActiveByParent !== false) ? 'Active' : 'Inactive'}
+                </span>
+
+                {/* Show parent inactive indicator */}
+                {category.isActiveByParent === false && (
+                  <span className="text-[10px] text-amber-600 font-medium">
+                    ⚠️ Parent inactive
+                  </span>
+                )}
+              </div>
             </td>
 
             {/* Actions */}
@@ -480,19 +613,19 @@ export default function CategoriesPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                   </svg>
                 </button>
-
                 <button
                   onClick={() => handleToggleStatus(category)}
-                  className={`p-1.5 rounded-lg transition ${
-                    category.isActive
-                      ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
-                      : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
-                  }`}
+                  className={`p-1.5 rounded-lg transition ${category.isActive
+                    ? 'text-emerald-600 hover:text-amber-600 hover:bg-amber-50'
+                    : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
+                    }`}
                   title={category.isActive ? 'Deactivate Category' : 'Activate Category'}
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
-                  </svg>
+                  {category.isActive ? (
+                    <Power className="w-4 h-4" />
+                  ) : (
+                    <PowerOff className="w-4 h-4" />
+                  )}
                 </button>
 
                 <button
@@ -1067,8 +1200,8 @@ export default function CategoriesPage() {
                   <span className="font-semibold text-slate-800 block mt-1 truncate">
                     {selectedCategory.parentId || selectedCategory.parent
                       ? categories.find(
-                          (c) => (c.id || c._id) === (selectedCategory.parentId || selectedCategory.parent)
-                        )?.name || 'Linked Subcategory'
+                        (c) => (c.id || c._id) === (selectedCategory.parentId || selectedCategory.parent)
+                      )?.name || 'Linked Subcategory'
                       : 'Root Main Category'}
                   </span>
                 </div>
@@ -1076,11 +1209,10 @@ export default function CategoriesPage() {
                 <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/60">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border mt-1 ${
-                      selectedCategory.isActive
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-slate-100 text-slate-500 border-slate-200'
-                    }`}
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border mt-1 ${selectedCategory.isActive
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                      }`}
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${selectedCategory.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                     {selectedCategory.isActive ? 'Active' : 'Inactive'}
@@ -1186,11 +1318,10 @@ export default function CategoriesPage() {
                   (selectedCategory.subcategoryCount ?? 0) > 0 ||
                   (selectedCategory.productCount ?? 0) > 0
                 }
-                className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition ${
-                  (selectedCategory.subcategoryCount ?? 0) > 0 || (selectedCategory.productCount ?? 0) > 0
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'bg-rose-600 hover:bg-rose-700 text-white'
-                }`}
+                className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition ${(selectedCategory.subcategoryCount ?? 0) > 0 || (selectedCategory.productCount ?? 0) > 0
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  : 'bg-rose-600 hover:bg-rose-700 text-white'
+                  }`}
               >
                 {isSubmitting ? 'Deleting...' : 'Delete'}
               </button>

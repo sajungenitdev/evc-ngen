@@ -4,6 +4,19 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { 
+    Power, 
+    PowerOff, 
+    Eye, 
+    Edit, 
+    Trash2, 
+    Plus, 
+    Search, 
+    RefreshCw,
+    AlertTriangle,
+    X,
+    Check
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import CreateProductModal from '@/components/Admin/CreateProductModal';
 import EditProductModal, { type ProductFormData } from '@/components/Admin/EditProductModal';
@@ -75,10 +88,120 @@ interface ApiResponse<T> {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // ============================================================================
-// Product Thumbnail Component - UPDATED
+// Show Confirmation Toast
 // ============================================================================
+
+const showConfirmation = (options: {
+    title: string;
+    message: string;
+    subMessage?: string;
+    warning?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    type?: 'warning' | 'danger' | 'info';
+}): Promise<boolean> => {
+    return new Promise((resolve) => {
+        const {
+            title,
+            message,
+            subMessage,
+            warning,
+            confirmLabel = 'Continue',
+            cancelLabel = 'Cancel',
+            type = 'warning',
+        } = options;
+
+        const colors = {
+            warning: {
+                bg: 'bg-amber-100',
+                text: 'text-amber-600',
+                button: 'bg-amber-600 hover:bg-amber-700',
+                border: 'border-amber-200',
+            },
+            danger: {
+                bg: 'bg-rose-100',
+                text: 'text-rose-600',
+                button: 'bg-rose-600 hover:bg-rose-700',
+                border: 'border-rose-200',
+            },
+            info: {
+                bg: 'bg-blue-100',
+                text: 'text-blue-600',
+                button: 'bg-blue-600 hover:bg-blue-700',
+                border: 'border-blue-200',
+            },
+        };
+
+        const color = colors[type];
+
+        toast.custom(
+            (t) => (
+                <div
+                    className={`${
+                        t.visible ? 'animate-enter' : 'animate-leave'
+                    } max-w-md w-full bg-white shadow-2xl rounded-2xl border border-slate-200 pointer-events-auto overflow-hidden`}
+                >
+                    <div className="p-6">
+                        <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0">
+                                <div className={`w-10 h-10 rounded-full ${color.bg} flex items-center justify-center`}>
+                                    <AlertTriangle className={`w-5 h-5 ${color.text}`} />
+                                </div>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+                                <p className="text-xs text-slate-500 mt-1 leading-relaxed">{message}</p>
+                                {subMessage && (
+                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">{subMessage}</p>
+                                )}
+                                {warning && (
+                                    <p className="text-xs font-medium text-amber-600 mt-2">{warning}</p>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                    resolve(false);
+                                }}
+                                className="flex-shrink-0 text-slate-400 hover:text-slate-600 transition"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="flex gap-2 mt-5 pt-4 border-t border-slate-100">
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                    resolve(false);
+                                }}
+                                className="flex-1 px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition"
+                            >
+                                {cancelLabel}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    toast.dismiss(t.id);
+                                    resolve(true);
+                                }}
+                                className={`flex-1 px-4 py-2 text-white rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${color.button}`}
+                            >
+                                <Check className="w-4 h-4" />
+                                {confirmLabel}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ),
+            {
+                duration: Infinity,
+                position: 'top-center',
+            }
+        );
+    });
+};
+
 // ============================================================================
-// Product Thumbnail Component - UPDATED
+// Product Thumbnail Component
 // ============================================================================
 
 interface ProductThumbnailProps {
@@ -98,7 +221,6 @@ const ProductThumbnail: React.FC<ProductThumbnailProps> = ({
         if (!imageUrl || imageUrl.trim() === '') return null;
         const trimmed = imageUrl.trim();
 
-        // ✅ If it's a data URL (base64), return it as is (don't prepend server URL)
         if (trimmed.startsWith('data:image')) {
             return trimmed;
         }
@@ -319,7 +441,6 @@ export default function ProductsPage() {
             const productId = selectedProduct.id || selectedProduct._id;
             const formData = new FormData();
 
-            // ✅ Basic fields
             formData.append('name', data.name);
             formData.append('model', data.model);
             formData.append('brand', data.brand);
@@ -332,12 +453,10 @@ export default function ProductsPage() {
             formData.append('shortDescription', data.shortDescription || '');
             formData.append('description', data.description || '');
 
-            // ✅ Arrays as JSON strings
             formData.append('specs', JSON.stringify(data.specs || []));
             formData.append('features', JSON.stringify(data.features || []));
             formData.append('galleryImages', JSON.stringify(data.galleryImages || []));
 
-            // ✅ technicalDetails as JSON string
             formData.append('technicalDetails', JSON.stringify({
                 powerOutput: data.technicalDetails.powerOutput.trim(),
                 inputVoltage: data.technicalDetails.inputVoltage.trim(),
@@ -348,15 +467,11 @@ export default function ProductsPage() {
                 weight: data.technicalDetails.weight.trim(),
             }));
 
-            // ✅ FIX: Handle image upload properly
             if (data.imageUrl) {
-                // Check if it's a base64 data URL (newly uploaded image)
                 if (data.imageUrl.startsWith('data:image')) {
-                    // Convert base64 to File
                     const file = dataURLtoFile(data.imageUrl, 'product-image.jpg');
-                    formData.append('image', file);  // Send as 'image' field
+                    formData.append('image', file);
                 } else {
-                    // It's already a path/URL, send as is
                     formData.append('imageUrl', data.imageUrl);
                 }
             }
@@ -390,7 +505,6 @@ export default function ProductsPage() {
         }
     };
 
-    // ✅ Helper function to convert base64 to File
     function dataURLtoFile(dataURL: string, filename: string): File {
         const arr = dataURL.split(',');
         const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/jpeg';
@@ -410,7 +524,6 @@ export default function ProductsPage() {
         const toastId = toast.loading(`Deleting ${selectedProduct.name}...`);
         const previousProducts = [...products];
 
-        // Optimistic UI state update
         setProducts((prev) =>
             prev.filter((p) => p._id !== selectedProduct._id && p.id !== selectedProduct.id)
         );
@@ -439,10 +552,30 @@ export default function ProductsPage() {
         }
     };
 
+    // ============================================================================
+    // UPDATED: handleToggleStatus with Lucide icons and custom confirmation
+    // ============================================================================
+
     const handleToggleStatus = async (product: Product) => {
         if (!token) return;
 
         const targetStatus = !product.isActive;
+
+        // Show custom confirmation if deactivating
+        if (!targetStatus) {
+            const hasAccessories = false; // You can check for accessories if needed
+            const confirmDeactivate = await showConfirmation({
+                title: 'Deactivate Product?',
+                message: `You are about to deactivate "${product.name}".`,
+                subMessage: hasAccessories ? 'This product has accessories that will also be deactivated.' : undefined,
+                warning: '⚠️ This will remove the product from the public catalog.',
+                confirmLabel: 'Deactivate',
+                cancelLabel: 'Cancel',
+                type: 'warning',
+            });
+
+            if (!confirmDeactivate) return;
+        }
 
         // Optimistic UI update
         setProducts((prev) =>
@@ -460,7 +593,8 @@ export default function ProductsPage() {
             });
 
             if (response.success) {
-                toast.success(`Product ${targetStatus ? 'activated' : 'deactivated'}`);
+                toast.success(`Product ${targetStatus ? 'activated' : 'deactivated'} successfully`);
+                await fetchInitialData();
             } else {
                 // Rollback
                 setProducts((prev) =>
@@ -485,9 +619,9 @@ export default function ProductsPage() {
         }
     };
 
-    // ============================================
+    // ============================================================================
     // Helper Functions
-    // ============================================
+    // ============================================================================
 
     const formatPrice = (price: number): string => {
         return new Intl.NumberFormat('en-US', {
@@ -521,9 +655,7 @@ export default function ProductsPage() {
                         href="/brands-management"
                         className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition"
                     >
-                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
+                        <Plus className="w-4 h-4 text-slate-400" />
                         <span>Brands</span>
                     </Link>
 
@@ -531,9 +663,7 @@ export default function ProductsPage() {
                         href="/category-management"
                         className="inline-flex items-center justify-center gap-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition"
                     >
-                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
+                        <Plus className="w-4 h-4 text-slate-400" />
                         <span>Categories</span>
                     </Link>
 
@@ -541,9 +671,7 @@ export default function ProductsPage() {
                         onClick={() => setIsCreateModalOpen(true)}
                         className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs hover:shadow"
                     >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
+                        <Plus className="w-4 h-4" />
                         <span>Add Product</span>
                     </button>
                 </div>
@@ -596,9 +724,7 @@ export default function ProductsPage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
                 <div className="relative flex-1">
                     <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
+                        <Search className="w-4 h-4" />
                     </span>
                     <input
                         type="text"
@@ -653,9 +779,7 @@ export default function ProductsPage() {
                         className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-slate-600 transition"
                         title="Refresh inventory"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
+                        <RefreshCw className="w-5 h-5" />
                     </button>
                 </div>
             </div>
@@ -718,7 +842,6 @@ export default function ProductsPage() {
                                                     <ProductThumbnail
                                                         imageUrl={product.imageUrl}
                                                         name={product.name}
-                                                        // ✅ Add a key that changes when image updates
                                                         key={`${product._id || product.id}-${product.imageUrl}`}
                                                     />
                                                 </div>
@@ -773,7 +896,7 @@ export default function ProductsPage() {
                                             </span>
                                         </td>
 
-                                        {/* Actions */}
+                                        {/* Actions - UPDATED with Lucide Icons */}
                                         <td className="px-6 py-3.5 whitespace-nowrap text-right">
                                             <div className="flex items-center justify-end gap-1">
                                                 <button
@@ -784,10 +907,7 @@ export default function ProductsPage() {
                                                     className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition"
                                                     title="View Details"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
+                                                    <Eye className="w-4 h-4" />
                                                 </button>
 
                                                 <button
@@ -798,22 +918,22 @@ export default function ProductsPage() {
                                                     className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
                                                     title="Edit Product"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                                    </svg>
+                                                    <Edit className="w-4 h-4" />
                                                 </button>
 
                                                 <button
                                                     onClick={() => handleToggleStatus(product)}
                                                     className={`p-1.5 rounded-lg transition ${product.isActive
-                                                        ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                                                        ? 'text-emerald-600 hover:text-amber-600 hover:bg-amber-50'
                                                         : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
                                                         }`}
                                                     title={product.isActive ? 'Deactivate Product' : 'Activate Product'}
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9" />
-                                                    </svg>
+                                                    {product.isActive ? (
+                                                        <Power className="w-4 h-4" />
+                                                    ) : (
+                                                        <PowerOff className="w-4 h-4" />
+                                                    )}
                                                 </button>
 
                                                 <button
@@ -824,9 +944,7 @@ export default function ProductsPage() {
                                                     className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
                                                     title="Delete Product"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                                    </svg>
+                                                    <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
@@ -881,7 +999,7 @@ export default function ProductsPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
                     <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl border border-slate-200 text-center">
                         <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex items-center justify-center mx-auto mb-4 font-bold text-lg">
-                            ⚠️
+                            <AlertTriangle className="w-6 h-6" />
                         </div>
                         <h3 className="text-lg font-bold text-slate-900">Delete Product</h3>
                         <p className="text-xs text-slate-500 mt-2 mb-4 leading-relaxed">

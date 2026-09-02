@@ -77,12 +77,12 @@ const fetchWithAuth = async (endpoint: string, token: string) => {
             },
             cache: 'no-store'
         });
-        
+
         if (!response.ok) {
             // Return empty data instead of throwing
             return { success: false, data: [], message: 'Not found' };
         }
-        
+
         return response.json();
     } catch (error) {
         console.error(`Error fetching ${endpoint}:`, error);
@@ -95,10 +95,10 @@ const fetchWithAuth = async (endpoint: string, token: string) => {
 // ============================================================================
 
 // Line Chart Component
-const LineChart = ({ title, data, labels, height = 250 }: { 
-    title: string; 
-    data: number[]; 
-    labels: string[]; 
+const LineChart = ({ title, data, labels, height = 250 }: {
+    title: string;
+    data: number[];
+    labels: string[];
     height?: number;
 }) => {
     const chartData = {
@@ -502,12 +502,15 @@ export default function DashboardPage() {
     }, []);
 
     // Fetch all dashboard data
+    // app/(admin)/dashboard/page.tsx
+
+    // Update the fetchDashboardData function - CHANGE THIS SECTION
     const fetchDashboardData = useCallback(async () => {
         if (!token || dataFetched) return;
 
         setLoading(true);
         try {
-            // Fetch only available endpoints
+            // ✅ FIXED: Use /auth/users instead of /users
             const endpoints = [
                 { key: 'products', url: '/products?limit=1000' },
                 { key: 'accessories', url: '/accessories?limit=1000' },
@@ -515,6 +518,7 @@ export default function DashboardPage() {
                 { key: 'training', url: '/training?limit=1000' },
                 { key: 'industries', url: '/industries?limit=1000' },
                 { key: 'solutions', url: '/solutions?limit=1000' },
+                { key: 'users', url: '/auth/users?limit=1000' }, // ✅ CHANGED from '/users' to '/auth/users'
                 { key: 'contacts', url: '/contacts?limit=1000' },
                 { key: 'surveys', url: '/surveys?limit=1000' },
             ];
@@ -540,9 +544,10 @@ export default function DashboardPage() {
 
             // Process results
             results.forEach(({ key, data }) => {
+                // ✅ Handle the response structure from /auth/users
                 if (data.success && Array.isArray(data.data)) {
                     newStats[key as keyof DashboardStats] = data.data.length;
-                    
+
                     // Generate activities from real data
                     if (key === 'contacts' && data.data.length > 0) {
                         const recent = data.data.slice(0, 2);
@@ -552,7 +557,7 @@ export default function DashboardPage() {
                                 title: 'New Contact Message',
                                 description: `From: ${item.name || item.email}`,
                                 time: new Date(item.createdAt).toLocaleDateString(),
-                                status: 'info',
+                                status: 'info' as const,
                                 icon: MessageSquare,
                             }]);
                         });
@@ -565,7 +570,7 @@ export default function DashboardPage() {
                                 title: 'New Site Survey Request',
                                 description: `For: ${item.location || item.address || 'Site'}`,
                                 time: new Date(item.createdAt).toLocaleDateString(),
-                                status: 'warning',
+                                status: 'warning' as const,
                                 icon: MapPin,
                             }]);
                         });
@@ -574,13 +579,13 @@ export default function DashboardPage() {
             });
 
             setStats(newStats);
-            
+
             // Generate chart data with the new stats
             generateChartData(newStats);
-            
+
             // Sort activities by time
             setRecentActivities(prev => {
-                const sorted = prev.sort((a, b) => 
+                const sorted = prev.sort((a, b) =>
                     new Date(b.time).getTime() - new Date(a.time).getTime()
                 );
                 return sorted.slice(0, 10);
@@ -649,21 +654,20 @@ export default function DashboardPage() {
                     >
                         <RefreshCw className="w-4 h-4" />
                     </button>
-                    <div className="flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-xl">
+                    {/* <div className="flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-xl">
                         {(['24h', '7d', '30d'] as const).map((t) => (
                             <button
                                 key={t}
                                 onClick={() => setTimeframe(t)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                                    timeframe === t
-                                        ? 'bg-[#0B192C] text-white shadow-xs'
-                                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                                }`}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${timeframe === t
+                                    ? 'bg-[#0B192C] text-white shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                                    }`}
                             >
                                 {t}
                             </button>
                         ))}
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -835,7 +839,7 @@ export default function DashboardPage() {
                     <h2 className="text-base font-bold text-[#0B192C] mb-4">Quick Actions</h2>
                     <div className="space-y-3">
                         <Link
-                            href="/admin/products/add"
+                            href="/product-management"
                             className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group"
                         >
                             <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -845,7 +849,7 @@ export default function DashboardPage() {
                         </Link>
 
                         <Link
-                            href="/admin/users/add"
+                            href="/users-managements"
                             className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group"
                         >
                             <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -855,7 +859,7 @@ export default function DashboardPage() {
                         </Link>
 
                         <Link
-                            href="/admin/surveys"
+                            href="/survey-management"
                             className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group"
                         >
                             <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -865,17 +869,7 @@ export default function DashboardPage() {
                         </Link>
 
                         <Link
-                            href="/admin/reports"
-                            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group"
-                        >
-                            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <BarChart3 className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-bold text-[#0B192C]">Generate Reports</span>
-                        </Link>
-
-                        <Link
-                            href="/admin/contacts"
+                            href="/contacts-management"
                             className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors group"
                         >
                             <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
