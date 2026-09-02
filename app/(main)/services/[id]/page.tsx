@@ -244,7 +244,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
             <section className="max-w-7xl mx-auto py-12 pb-24 px-4 sm:px-6 lg:px-8">
 
                 {/* Overview */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 items-center">
                     <div className="space-y-6">
                         <div className={`${service.color} inline-block text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full`}>
                             {service.badge}
@@ -288,7 +288,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
                         </div>
                     </div>
 
-                    <div className="relative h-[300px] lg:h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
+                    <div className="relative h-[300px] lg:h-[400px] rounded-md overflow-hidden shadow-2xl bg-[#f8f9fa]">
                         {service.imageUrl && !service.imageUrl.startsWith('data:') ? (
                             <Image
                                 src={service.imageUrl}
@@ -402,7 +402,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
                                     <Link
                                         key={related._id || related.id}
                                         href={relatedLink}
-                                        className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
+                                        className="group bg-white border border-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
                                     >
                                         <div className={`${related.color || 'bg-[#0c1f38]'} p-4 flex items-center gap-3`}>
                                             <span className="text-2xl">{related.icon || '📋'}</span>
