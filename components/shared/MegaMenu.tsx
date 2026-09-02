@@ -1175,9 +1175,6 @@ const BrandsMenu: React.FC<{
                                             : 'text-[#071322] font-bold group-hover:text-[#1b7936]'
                                         }`}>
                                         {brand.name}
-                                        {isActive && (
-                                            <span className="ml-1.5 text-[10px] text-[#1b7936]">●</span>
-                                        )}
                                     </h4>
                                     <p className={`text-[12px] leading-snug line-clamp-1 ${isActive ? 'text-[#1b7936]/80' : 'text-gray-500'
                                         }`}>
