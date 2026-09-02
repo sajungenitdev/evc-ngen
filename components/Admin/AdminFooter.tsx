@@ -34,34 +34,6 @@ export default function AdminFooter({ className = '' }: AdminFooterProps) {
                     <span className="text-slate-600">|</span>
                     <span>v2.0.0</span>
                 </div>
-
-                {/* Right Section: Links */}
-                <div className="flex items-center gap-4">
-                    <Link
-                        href="/"
-                        className="hover:text-slate-200 transition-colors"
-                    >
-                        Home
-                    </Link>
-                    <Link
-                        href="/dashboard"
-                        className="hover:text-slate-200 transition-colors"
-                    >
-                        Dashboard
-                    </Link>
-                    <Link
-                        href="/settings"
-                        className="hover:text-slate-200 transition-colors"
-                    >
-                        Settings
-                    </Link>
-                    <a
-                        href="mailto:support@evngen.com"
-                        className="hover:text-slate-200 transition-colors"
-                    >
-                        Support
-                    </a>
-                </div>
             </div>
         </footer>
     );
