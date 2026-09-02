@@ -91,7 +91,7 @@ export function CreateTrainingCategoryModal({
                             type="text"
                             value={formData.name}
                             onChange={(e) => updateField('name', e.target.value)}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                             placeholder="e.g., Certification"
                             required
                         />
@@ -109,7 +109,7 @@ export function CreateTrainingCategoryModal({
                             value={formData.description}
                             onChange={(e) => updateField('description', e.target.value)}
                             rows={3}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all resize-y"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all resize-y"
                             placeholder="Brief description of this category..."
                         />
                     </div>
@@ -161,7 +161,7 @@ export function CreateTrainingCategoryModal({
                                 type="text"
                                 value={formData.color}
                                 onChange={(e) => updateField('color', e.target.value)}
-                                className="flex-1 px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                                className="flex-1 px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                                 placeholder="#1b7936"
                             />
                         </div>
@@ -176,7 +176,7 @@ export function CreateTrainingCategoryModal({
                             type="number"
                             value={formData.order}
                             onChange={(e) => updateField('order', parseInt(e.target.value) || 0)}
-                            className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
+                            className="w-full px-3.5 py-2.5 text-black text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]/10 focus:border-[#0B192C] transition-all"
                             placeholder="0"
                             min="0"
                         />

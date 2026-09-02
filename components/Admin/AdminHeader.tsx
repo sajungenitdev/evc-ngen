@@ -76,9 +76,9 @@ export default function AdminHeader({
                 </button>
 
                 <nav aria-label="Breadcrumbs" className="flex items-center gap-2 text-sm min-w-0">
-                    <span className="text-slate-500 font-medium hidden sm:inline hover:text-slate-400 transition-colors">
-                        Command Center
-                    </span>
+                    <Link href="/dashboard"><span className="text-slate-500 font-medium hidden sm:inline hover:text-slate-400 transition-colors">
+                        Dashboard
+                    </span></Link>
                     <span className="text-slate-700 hidden sm:inline select-none">/</span>
                     <span className="font-semibold text-slate-100 tracking-tight truncate">
                         {pageTitle}

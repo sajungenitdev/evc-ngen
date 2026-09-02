@@ -189,7 +189,7 @@ export const menuItems: MenuItem[] = [
     {
         id: 'settings',
         name: 'Settings & CMS',
-        href: '/settings',
+        href: '#',
         icon: '⚙️',
         subItems: [
             {
