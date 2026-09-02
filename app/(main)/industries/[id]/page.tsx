@@ -51,10 +51,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 
 export default function IndustryDetailPage({ params }: PageProps) {
     const { id } = use(params);
-    
+
     // ✅ Decode the URL parameter first
     const decodedId = decodeURIComponent(id);
-    
+
     const [industry, setIndustry] = useState<Industry | null>(null);
     const [relatedIndustries, setRelatedIndustries] = useState<Industry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -211,8 +211,8 @@ export default function IndustryDetailPage({ params }: PageProps) {
                         </h2>
                         <div
                             className="text-gray-600 text-sm leading-relaxed prose prose-sm max-w-none break-words"
-                            dangerouslySetInnerHTML={{ 
-                                __html: cleanHtmlContent(industry.overview) 
+                            dangerouslySetInnerHTML={{
+                                __html: cleanHtmlContent(industry.overview)
                             }}
                         />
                         <div className="flex flex-wrap gap-3 pt-2">
@@ -233,28 +233,22 @@ export default function IndustryDetailPage({ params }: PageProps) {
 
                     {/* Image */}
                     <div className="relative h-[300px] lg:h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[#f8f9fa]">
-                        {industry.imageUrl && !isDefaultImage(industry.imageUrl) ? (
-                            <img
-                                src={getIndustryImageUrl(industry.imageUrl) || ''}
-                                alt={industry.label}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    const parent = target.parentElement;
-                                    if (parent) {
-                                        const fallback = document.createElement('div');
-                                        fallback.className = 'w-full h-full flex items-center justify-center text-7xl bg-[#f8f9fa]';
-                                        fallback.textContent = icon;
-                                        parent.appendChild(fallback);
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-7xl bg-[#f8f9fa]">
-                                {icon}
-                            </div>
-                        )}
+                        <img
+                            src={getIndustryImageUrl(industry.imageUrl) || ''}
+                            alt={industry.label}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                    const fallback = document.createElement('div');
+                                    fallback.className = 'w-full h-full flex items-center justify-center text-7xl bg-[#f8f9fa]';
+                                    fallback.textContent = icon;
+                                    parent.appendChild(fallback);
+                                }
+                            }}
+                        />
                     </div>
                 </div>
 
@@ -356,8 +350,8 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                     </h4>
                                     <div
                                         className="text-gray-600 text-sm leading-relaxed break-words max-w-full overflow-hidden"
-                                        dangerouslySetInnerHTML={{ 
-                                            __html: cleanHtmlContent(industry.caseStudy.description) 
+                                        dangerouslySetInnerHTML={{
+                                            __html: cleanHtmlContent(industry.caseStudy.description)
                                         }}
                                     />
                                     {industry.caseStudy.link && (

@@ -153,12 +153,12 @@ export default function IndustriesPage() {
                                         className="group bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                                     >
                                         {/* Image */}
-                                        <div className="relative h-48 overflow-hidden bg-[#f8f9fa]">
+                                        <div className="relative h-53 overflow-hidden bg-[#f8f9fa]">
                                             {hasValidImage ? (
                                                 <img
                                                     src={imageUrl}
                                                     alt={displayLabel}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                                                     onError={(e) => {
                                                         const target = e.target as HTMLImageElement;
                                                         target.style.display = 'none';
@@ -177,9 +177,9 @@ export default function IndustriesPage() {
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C]/60 to-transparent"></div>
-                                            <div className="absolute bottom-4 left-4 text-white text-3xl">
+                                            {/* <div className="absolute bottom-4 left-4 text-white text-3xl">
                                                 {icon}
-                                            </div>
+                                            </div> */}
                                         </div>
 
                                         {/* Content */}
