@@ -312,7 +312,10 @@ export default function IndustryDetailPage({ params }: PageProps) {
                                     <h4 className="text-xl font-extrabold text-[#071322]">
                                         {industry.caseStudy.title}
                                     </h4>
-                                    <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: industry.caseStudy.description }} /> 
+                                    <div
+                                        className="text-gray-600 text-sm "
+                                        dangerouslySetInnerHTML={{ __html: industry.caseStudy.description }}
+                                    />
                                     {industry.caseStudy.link && (
                                         <Link
                                             href={industry.caseStudy.link}

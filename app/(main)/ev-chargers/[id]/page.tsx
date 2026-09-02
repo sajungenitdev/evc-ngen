@@ -527,7 +527,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 )}
 
                                 {accessory.shortDescription && (
-                                    <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: accessory.shortDescription }} />
+                                    <div className="text-gray-600 text-sm sm:text-base leading-relaxed wrap-break-word  max-w-full" dangerouslySetInnerHTML={{ __html: accessory.shortDescription }} />
                                 )}
 
                                 {accessory.parentProductDetails && (

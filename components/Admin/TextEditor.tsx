@@ -15,8 +15,34 @@ interface TextEditorProps {
     label?: string;
     required?: boolean;
     error?: string;
-    debounceDelay?: number; // ✅ New prop for debounce
+    debounceDelay?: number;
+    cleanOutput?: boolean; // New prop to control cleaning
 }
+
+// Helper function to clean editor content
+const cleanEditorContent = (html: string): string => {
+    if (!html) return '';
+    
+    let cleaned = html
+        // Fix nested p tags
+        .replace(/<p><p>/g, '<p>')
+        .replace(/<\/p><\/p>/g, '</p>')
+        // Remove empty p tags
+        .replace(/<p>\s*<\/p>/g, '')
+        .replace(/<p><\/p>/g, '')
+        // Replace &nbsp; with space
+        .replace(/&nbsp;/g, ' ')
+        // Remove extra spaces
+        .replace(/\s+/g, ' ')
+        .trim();
+    
+    // If content is just whitespace or empty
+    if (!cleaned || cleaned === '<p></p>' || cleaned === '<p> </p>') {
+        return '';
+    }
+    
+    return cleaned;
+};
 
 // Dynamically import ReactQuill to prevent SSR window issues
 const ReactQuill = dynamic(
@@ -54,7 +80,8 @@ export default function TextEditor({
     label,
     required = false,
     error,
-    debounceDelay = 300, // ✅ Default 300ms debounce
+    debounceDelay = 300,
+    cleanOutput = true, // Default to true
 }: TextEditorProps) {
     const [mounted, setMounted] = useState(false);
     const [localValue, setLocalValue] = useState(value);
@@ -65,9 +92,11 @@ export default function TextEditor({
         setLocalValue(value);
     }, [value]);
 
-    // Debounced onChange
+    // Debounced onChange with cleaning
     const handleChange = useCallback((val: string) => {
-        setLocalValue(val);
+        // Clean the content if enabled
+        const processed = cleanOutput ? cleanEditorContent(val) : val;
+        setLocalValue(processed);
         
         // Clear existing timeout
         if (timeoutRef.current) {
@@ -76,9 +105,9 @@ export default function TextEditor({
         
         // Set new timeout
         timeoutRef.current = setTimeout(() => {
-            onChange(val);
+            onChange(processed);
         }, debounceDelay);
-    }, [onChange, debounceDelay]);
+    }, [onChange, debounceDelay, cleanOutput]);
 
     // Cleanup timeout on unmount
     useEffect(() => {
@@ -93,7 +122,7 @@ export default function TextEditor({
         setMounted(true);
     }, []);
 
-    // Memoize modules to prevent Quill re-initialization and cursor jumping on input
+    // Memoize modules to prevent Quill re-initialization
     const modules = useMemo(
         () => ({
             toolbar: {
@@ -233,6 +262,52 @@ export default function TextEditor({
                 .quill-custom-wrapper .ql-snow button:hover,
                 .quill-custom-wrapper .ql-snow button.ql-active {
                     color: #6366f1 !important;
+                }
+                
+                /* ✅ Fix for editor content display */
+                .ql-editor p {
+                    margin-bottom: 0.5rem;
+                    line-height: 1.6;
+                }
+                .ql-editor p:last-child {
+                    margin-bottom: 0;
+                }
+                .ql-editor strong, .ql-editor b {
+                    font-weight: 600;
+                }
+                .ql-editor em, .ql-editor i {
+                    font-style: italic;
+                }
+                .ql-editor ul, .ql-editor ol {
+                    padding-left: 1.5rem;
+                    margin-bottom: 0.5rem;
+                }
+                .ql-editor li {
+                    margin-bottom: 0.25rem;
+                }
+                .ql-editor blockquote {
+                    border-left: 4px solid #1b7936;
+                    padding-left: 1rem;
+                    margin: 0.5rem 0;
+                    color: #64748b;
+                }
+                .ql-editor img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 0.5rem;
+                    margin: 0.5rem 0;
+                }
+                .ql-editor table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 0.5rem 0;
+                }
+                .ql-editor th, .ql-editor td {
+                    border: 1px solid #d1d5db;
+                    padding: 0.5rem 0.75rem;
+                }
+                .ql-editor th {
+                    background-color: #f8fafc;
                 }
             `}</style>
         </div>
