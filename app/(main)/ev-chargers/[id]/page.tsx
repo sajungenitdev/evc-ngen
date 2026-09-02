@@ -719,14 +719,14 @@ export default function ProductDetailPage({ params }: PageProps) {
                         {/* Right: Product Info */}
                         <div className="space-y-6">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1.5 bg-[#e8f5e9] text-[#1b7936] border border-[#1b7936]/20 text-xs font-extrabold uppercase px-3 py-1 rounded-full">
+                                {/* <span className="inline-flex items-center gap-1.5 bg-[#e8f5e9] text-[#1b7936] border border-[#1b7936]/20 text-xs font-extrabold uppercase px-3 py-1 rounded-full">
                                     <ShieldCheck className="w-3.5 h-3.5" /> Certified
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 bg-[#f0f0f0] text-[#071322] text-xs font-extrabold uppercase px-3 py-1 rounded-full">
+                                </span> */}
+                                <span className="inline-flex items-center gap-1.5  text-emerald-600 text-sm  uppercase py-1 rounded-full">
                                     {product.categoryLabel || product.category}
                                 </span>
                                 {brand && (
-                                    <span className="inline-flex items-center gap-1.5 bg-[#f0f0f0] text-[#071322] text-xs font-extrabold uppercase px-3 py-1 rounded-full">
+                                    <span className="inline-flex items-center gap-1.5  text-emerald-600 text-sm  uppercase px-3 ps-0 py-1 rounded-full">
                                         {brand.icon} {brand.name}
                                     </span>
                                 )}
@@ -735,9 +735,9 @@ export default function ProductDetailPage({ params }: PageProps) {
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#071322] tracking-tight">
                                 {product.name}
                             </h1>
-                            <p className="text-sm text-gray-400 font-bold">Model: {product.model}</p>
+                            <p className="text-sm text-gray-400 ">Model: {product.model}</p>
 
-                            <div className="flex items-center gap-3">
+                            {/* <div className="flex items-center gap-3">
                                 <div className="flex items-center">
                                     {[...Array(5)].map((_, i) => (
                                         <Star
@@ -751,9 +751,9 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 </div>
                                 <span className="text-sm font-bold text-[#071322]">{product.rating || 0}</span>
                                 <span className="text-sm text-gray-400">(24 reviews)</span>
-                            </div>
+                            </div> */}
 
-                            {product.price > 0 && (
+                            {/* {product.price > 0 && (
                                 <div className="flex items-center gap-3">
                                     <span className="text-3xl font-extrabold text-[#071322]">
                                         ${product.price}
@@ -763,12 +763,29 @@ export default function ProductDetailPage({ params }: PageProps) {
                                         Save 20%
                                     </span>
                                 </div>
-                            )}
+                            )} */}
 
                             {product.shortDescription && (
-                                <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
+                                <p className="text-gray-600 text-sm leading-relaxed overflow-hidden break-words whitespace-normal">
+                                    <span dangerouslySetInnerHTML={{ __html: product.shortDescription }} />
+                                </p>
                             )}
 
+
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                <Link
+                                    href={`/contact?product=${product.model}`}
+                                    className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm px-6 py-3.5 rounded-md shadow-md transition-all"
+                                >
+                                    <MessageSquare className="w-4 h-4" /> Send Inquiry Now
+                                </Link>
+                                <Link
+                                    href="/request-survey"
+                                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-[#f8f9fa] border border-gray-200 hover:bg-gray-200 text-[#071322] font-bold text-sm px-6 py-3.5 rounded-md transition-all"
+                                >
+                                    Request Site Survey
+                                </Link>
+                            </div>
                             {product.specs && product.specs.length > 0 && (
                                 <div className="bg-[#f8f9fa] rounded-2xl p-4 space-y-2">
                                     <h4 className="text-xs font-extrabold text-[#071322] uppercase tracking-wider">
@@ -785,22 +802,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                 </div>
                             )}
 
-                            <div className="flex flex-wrap gap-3 pt-2">
-                                <Link
-                                    href={`/contact?product=${product.model}`}
-                                    className="flex-1 min-w-[200px] inline-flex items-center justify-center gap-2 bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold text-sm px-6 py-3.5 rounded-xl shadow-md transition-all"
-                                >
-                                    <MessageSquare className="w-4 h-4" /> Send Inquiry Now
-                                </Link>
-                                <Link
-                                    href="/request-survey"
-                                    className="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 bg-[#f8f9fa] border border-gray-200 hover:bg-gray-200 text-[#071322] font-bold text-sm px-6 py-3.5 rounded-xl transition-all"
-                                >
-                                    Request Site Survey
-                                </Link>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-3 pt-2">
+                            {/* <div className="grid grid-cols-3 gap-3 pt-2">
                                 <div className="bg-[#f8f9fa] rounded-xl p-3 text-center">
                                     <Truck className="w-5 h-5 text-[#1b7936] mx-auto mb-1" />
                                     <p className="text-[10px] font-bold text-gray-500 uppercase">Free Shipping</p>
@@ -813,7 +815,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                     <Award className="w-5 h-5 text-[#1b7936] mx-auto mb-1" />
                                     <p className="text-[10px] font-bold text-gray-500 uppercase">2 Year Warranty</p>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className="border-t border-gray-200 pt-6">
                                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-3">
