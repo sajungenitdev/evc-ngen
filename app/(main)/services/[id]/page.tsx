@@ -3,7 +3,7 @@
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { use } from 'react';
 import Image from 'next/image';
 import PageHeader from '@/components/pagesComps/PageHeader';
@@ -15,7 +15,8 @@ import {
     Mail,
     Phone,
     MessageSquare,
-    ArrowRight
+    ArrowRight,
+    Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -62,8 +63,10 @@ export default function ServiceDetailPage({ params }: PageProps) {
     const { id } = use(params);
     const decodedId = decodeURIComponent(id);
     const [service, setService] = useState<Service | null>(null);
+    const [allServices, setAllServices] = useState<Service[]>([]);
     const [categories, setCategories] = useState<ServiceCategory[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [notFoundError, setNotFoundError] = useState(false);
 
     // ============================================
     // Fetch Categories
@@ -81,34 +84,93 @@ export default function ServiceDetailPage({ params }: PageProps) {
     };
 
     // ============================================
-    // Fetch Service
+    // Create Slug Helper
+    // ============================================
+    const createSlug = (text: string) => {
+        return text
+            .toString()
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .replace(/^-+/, '')
+            .replace(/-+$/, '');
+    };
+
+    // ============================================
+    // Fetch Service - IMPROVED
+    // ============================================
+
+    const fetchService = useCallback(async () => {
+        setIsLoading(true);
+        setNotFoundError(false);
+
+        try {
+            // Try direct lookup first
+            const encodedId = encodeURIComponent(decodedId);
+            const response = await fetch(`${API_BASE_URL}/services/${encodedId}`);
+            const data = await response.json();
+
+            if (data.success && data.data) {
+                setService(data.data);
+                setIsLoading(false);
+                return;
+            }
+
+            // If direct lookup fails, try all services
+            const allServicesResponse = await fetch(`${API_BASE_URL}/services?limit=1000`);
+            const allServicesData = await allServicesResponse.json();
+
+            if (allServicesData.success && Array.isArray(allServicesData.data)) {
+                const servicesList = allServicesData.data;
+                setAllServices(servicesList);
+
+                // Try to find by matching id or title
+                let found = servicesList.find((s: Service) => {
+                    // Check if the URL slug matches the service id (with or without timestamp)
+                    const serviceId = s.id || '';
+                    const cleanServiceId = serviceId.replace(/-\d+$/, '');
+                    const cleanUrlId = decodedId.replace(/-\d+$/, '');
+
+                    return serviceId === decodedId ||
+                        cleanServiceId === cleanUrlId ||
+                        s.title.toLowerCase() === decodedId.replace(/-/g, ' ').toLowerCase() ||
+                        s.title.toLowerCase().replace(/\s+/g, '-') === decodedId;
+                });
+
+                if (found) {
+                    setService(found);
+                    setIsLoading(false);
+                    return;
+                }
+
+                setNotFoundError(true);
+                setIsLoading(false);
+                toast.error('Service not found');
+                return;
+            }
+
+            setNotFoundError(true);
+            setIsLoading(false);
+
+        } catch (error: any) {
+            console.error('Fetch error:', error);
+            setNotFoundError(true);
+            setIsLoading(false);
+            toast.error(error.message || 'Failed to load service');
+        }
+    }, [decodedId]);
+
+    // ============================================
+    // Initial Fetch
     // ============================================
     useEffect(() => {
-        const fetchService = async () => {
-            setIsLoading(true);
-            try {
-                const encodedId = encodeURIComponent(decodedId);
-                const response = await fetch(`${API_BASE_URL}/services/${encodedId}`);
-                const data = await response.json();
-
-                if (data.success) {
-                    setService(data.data);
-                } else {
-                    toast.error(data.message || 'Service not found');
-                }
-            } catch (error: any) {
-                console.error('Fetch error:', error);
-                toast.error(error.message || 'Failed to load service');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
         if (decodedId) {
             fetchService();
             fetchCategories();
         }
-    }, [decodedId]);
+    }, [decodedId, fetchService]);
 
     // ============================================
     // Helper Functions
@@ -128,44 +190,39 @@ export default function ServiceDetailPage({ params }: PageProps) {
         return found?.color || 'bg-gray-100 text-gray-700 border-gray-200';
     };
 
-    // Helper to create clean slug
-    const createSlug = (text: string) => {
-        return text
-            .toString()
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, '-')
-            .replace(/[^\w\-]+/g, '')
-            .replace(/\-\-+/g, '-')
-            .replace(/^-+/, '')
-            .replace(/-+$/, '');
-    };
-
     // ============================================
     // Loading State
     // ============================================
     if (isLoading) {
         return (
-            <div className="bg-white min-h-screen">
-                <div className="max-w-7xl mx-auto py-12 pb-24">
-                    <div className="animate-pulse">
-                        <div className="h-6 bg-slate-200 rounded w-32 mb-8"></div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
-                            <div className="space-y-6">
-                                <div className="h-12 bg-slate-200 rounded w-3/4"></div>
-                                <div className="h-6 bg-slate-200 rounded w-24"></div>
-                                <div className="h-32 bg-slate-200 rounded"></div>
-                            </div>
-                            <div className="h-[400px] bg-slate-200 rounded-3xl"></div>
-                        </div>
-                    </div>
+            <div className="bg-white min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-[#1b7936] animate-spin mx-auto" />
+                    <p className="text-gray-500 text-sm mt-4">Loading service details...</p>
                 </div>
             </div>
         );
     }
 
-    if (!service) {
-        notFound();
+    if (!service || notFoundError) {
+        return (
+            <div className="bg-white min-h-screen">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+                    <div className="text-6xl mb-6">🔍</div>
+                    <h1 className="text-3xl font-extrabold text-[#071322] mb-4">Service Not Found</h1>
+                    <p className="text-gray-500 text-sm max-w-md mx-auto mb-8">
+                        The service you're looking for doesn't exist or has been removed.
+                    </p>
+                    <Link
+                        href="/services"
+                        className="inline-flex items-center gap-2 bg-[#1b7936] hover:bg-[#155f2b] text-white font-bold px-6 py-3 rounded-xl transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to Services
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     // Get related services from the service object
@@ -184,7 +241,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
                 description={service.description}
             />
 
-            <section className="max-w-7xl mx-auto py-12 pb-24">
+            <section className="max-w-7xl mx-auto py-12 pb-24 px-4 sm:px-6 lg:px-8">
 
                 {/* Overview */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
@@ -193,12 +250,11 @@ export default function ServiceDetailPage({ params }: PageProps) {
                             {service.badge}
                         </div>
                         <div className="flex items-center gap-3">
-                            {/* <span className="text-5xl">{service.icon}</span> */}
                             <h1 className="text-3xl sm:text-4xl font-extrabold text-[#071322] tracking-tight">
                                 {service.title}
                             </h1>
                         </div>
-                        <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: service.details  }} />
+                        <p className="text-gray-600 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: service.details }} />
 
                         <div className="flex flex-wrap gap-4 text-sm">
                             {service.price && (
@@ -240,6 +296,17 @@ export default function ServiceDetailPage({ params }: PageProps) {
                                 fill
                                 className="object-cover"
                                 priority
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                        const fallback = document.createElement('div');
+                                        fallback.className = 'w-full h-full flex items-center justify-center text-6xl text-slate-300';
+                                        fallback.textContent = service.icon || '📋';
+                                        parent.appendChild(fallback);
+                                    }
+                                }}
                             />
                         ) : service.imageUrl && service.imageUrl.startsWith('data:') ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -255,16 +322,17 @@ export default function ServiceDetailPage({ params }: PageProps) {
                         )}
                     </div>
                 </div>
-                <div className="mb-10">
-                    {service.richDescription && (
-                        <div className="w-full">
-                            <div
-                                className="rich-text-content text-gray-600 text-sm leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: service.richDescription }}
-                            />
-                        </div>
-                    )}
-                </div>
+
+                {/* Rich Description */}
+                {service.richDescription && (
+                    <div className="mb-10">
+                        <div
+                            className="rich-text-content text-gray-600 text-sm leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: service.richDescription }}
+                        />
+                    </div>
+                )}
+
                 {/* Features */}
                 {service.features && service.features.length > 0 && (
                     <div className="mb-10">
@@ -288,6 +356,7 @@ export default function ServiceDetailPage({ params }: PageProps) {
                         </div>
                     </div>
                 )}
+
                 {/* Process */}
                 {service.process && service.process.length > 0 && (
                     <div className="mb-16 bg-[#f8f9fa] rounded-3xl p-8 border border-gray-200/80">

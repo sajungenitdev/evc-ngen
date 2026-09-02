@@ -299,9 +299,7 @@ export default function ServicesPage() {
                                         {/* Action Link */}
                                         <div>
                                             <Link
-                                                href={service.link && !service.link.includes(' ')
-                                                    ? service.link
-                                                    : `/services/${createSlug(service.id || service.title)}`}
+                                                href={`/services/${service.id}`}  // ✅ Use the actual service id
                                                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1b7936] hover:text-[#145a27] hover:underline transition-all group"
                                             >
                                                 <span>{service.actionText || "Request a Service"}</span>
