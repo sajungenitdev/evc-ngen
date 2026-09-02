@@ -307,26 +307,26 @@ export default function BrandDetailPage({ params }: PageProps) {
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[#3ec06a]/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-                    <Link
+                    {/* <Link
                         href="/brands"
                         className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#3ec06a] hover:text-white transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" /> Back to Brands
-                    </Link>
+                    </Link> */}
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pt-4">
                         <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center text-3xl sm:text-4xl font-extrabold text-[#3ec06a] shadow-xl">
+                            {/* <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center text-3xl sm:text-4xl font-extrabold text-[#3ec06a] shadow-xl">
                                 {brandInfo.icon || <AdIcon className="w-10 h-10 text-[#3ec06a]" />}
-                            </div>
+                            </div> */}
                             <div className="space-y-2">
                                 <span className="bg-[#3ec06a]/20 text-[#3ec06a] border border-[#3ec06a]/30 text-[10px] font-extrabold uppercase px-3 py-1 rounded-full">
                                     Verified Brand Partner
                                 </span>
-                                <h1 className="text-3xl mt-3 sm:text-5xl font-extrabold tracking-tight">
+                                <h1 className="text-3xl mt-6 sm:text-5xl font-extrabold tracking-tight">
                                     {brandInfo.name}
                                 </h1>
-                                <p className="text-white/80 text-sm">{brandInfo.description || `${brandInfo.name} - EV charging solutions`}</p>
+                                <p className="text-white/80 text-sm pt-4">{brandInfo.description || `${brandInfo.name} - EV charging solutions`}</p>
                             </div>
                         </div>
                     </div>

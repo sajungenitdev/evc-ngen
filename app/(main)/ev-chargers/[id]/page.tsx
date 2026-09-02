@@ -962,7 +962,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                             href={`/ev-chargers/${cleanSlug}`}
                                             className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1"
                                         >
-                                            <div className="relative h-48 bg-[#f8f9fa]">
+                                            <div className="relative h-70 bg-[#f8f9fa]">
                                                 <ProductThumbnail
                                                     imageUrl={related.imageUrl}
                                                     name={related.name}
@@ -979,12 +979,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                                                     {related.name}
                                                 </h4>
                                                 <p className="text-xs text-gray-400 mt-1">{related.model}</p>
-                                                <div className="flex items-center justify-between mt-3">
-                                                    <span className="text-sm font-bold text-[#071322]">${related.price || 0}</span>
-                                                    <div className="flex items-center gap-0.5">
-                                                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                                                        <span className="text-xs text-gray-400">{related.rating || 0}</span>
-                                                    </div>
+                                                <div className="flex items-center justify-between mt-3 overflow-hidden">
+                                                    <span className="text-sm text-[#071322] wrap-break-word line-clamp-2 max-w-full">
+                                                        <span dangerouslySetInnerHTML={{ __html: related.shortDescription }} />
+                                                    </span>
                                                 </div>
                                             </div>
                                         </Link>

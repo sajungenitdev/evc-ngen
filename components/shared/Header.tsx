@@ -173,14 +173,14 @@ export default function Header() {
                 <div className="hidden sm:flex gap-2 shrink-0">
                     <Link
                         href="/request-survey"
-                        className="bg-[#1b7936] text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-[#166a2e] transition-all duration-200 hover:scale-105 shadow-lg shadow-[#1b7936]/20"
+                        className="bg-[#1b7936] text-white px-4 py-2.5 rounded-md text-xs font-bold whitespace-nowrap hover:bg-[#166a2e] transition-all duration-200 hover:scale-105 shadow-lg shadow-[#1b7936]/20"
                     >
                         Request Site Survey
                     </Link>
                     <Link
                         href="/contact"
                         className={`
-                            px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200
+                            px-4 py-2.5 rounded-md text-xs font-bold whitespace-nowrap transition-all duration-200
                             ${isActive('/contact', true)
                                 ? 'bg-[#1b7936] text-white shadow-lg shadow-[#1b7936]/20'
                                 : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
