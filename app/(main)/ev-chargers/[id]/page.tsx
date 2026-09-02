@@ -447,11 +447,11 @@ export default function ProductDetailPage({ params }: PageProps) {
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             {/* Left: Image */}
                             <div className="lg:sticky lg:top-24 self-start">
-                                <div className="relative h-[400px] rounded-3xl overflow-hidden bg-[#f8f9fa] shadow-lg">
+                                <div className="relative h-[550px] rounded-md overflow-hidden bg-[#f8f9fa] shadow-lg flex items-center justify-center">
                                     <ProductThumbnail
                                         imageUrl={currentImage}
                                         name={accessory.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-contain"
                                     />
                                     {images.length > 1 && (
                                         <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
@@ -466,7 +466,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                                             <button
                                                 key={idx}
                                                 onClick={() => handleThumbnailClick(idx)}
-                                                className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-[#f8f9fa] cursor-pointer hover:opacity-80 ${selectedImageIndex === idx
+                                                className={`w-20 h-20 rounded-md overflow-hidden border-2 transition-all flex-shrink-0 bg-[#f8f9fa] cursor-pointer hover:opacity-80 ${selectedImageIndex === idx
                                                     ? 'border-[#1b7936] shadow-md'
                                                     : 'border-transparent hover:border-gray-300'
                                                     }`}
@@ -670,11 +670,11 @@ export default function ProductDetailPage({ params }: PageProps) {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                         {/* Left: Image Gallery */}
                         <div className="lg:sticky lg:top-24 self-start">
-                            <div className="relative h-[400px] rounded-3xl overflow-hidden bg-[#f8f9fa] shadow-lg">
+                            <div className="relative h-[550px] rounded-md overflow-hidden bg-[#f8f9fa] shadow-lg flex items-center justify-center">
                                 <ProductThumbnail
                                     imageUrl={currentImage}
                                     name={product.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                 />
                                 {productImages.length > 1 && (
                                     <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full">
