@@ -87,7 +87,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         setHasError(true);
         // Try to load from backup URL if available
         if (currentImage && !currentImage.startsWith('http')) {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
             setPreview(`${baseUrl}${currentImage}`);
         }
     };

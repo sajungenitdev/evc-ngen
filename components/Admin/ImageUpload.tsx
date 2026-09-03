@@ -25,7 +25,7 @@ const getImageUrlHelper = (path: string): string => {
     if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
     }
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
     return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
@@ -52,7 +52,7 @@ export default function ImageUpload({
         if (path.startsWith('http://') || path.startsWith('https://')) {
             return path;
         }
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
         return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
     }, []);
 

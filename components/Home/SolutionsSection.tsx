@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { solutionSectionAPI, SolutionItem, SolutionSectionData } from '@/lib/api/solutionSection';
 import { Loader2 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 const IMAGE_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 // ============================================================================

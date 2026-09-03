@@ -100,7 +100,7 @@ const ModalImage: React.FC<ModalImageProps> = ({
         }
 
         // ✅ Use the base URL without /api
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
 
         // Relative path starting with /uploads
         if (trimmed.startsWith('/uploads')) {

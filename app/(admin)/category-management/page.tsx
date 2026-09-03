@@ -62,7 +62,7 @@ const INITIAL_FORM: CategoryFormData = {
   metaDescription: '',
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 
 // -----------------------------------------------------------------------------
 // 2. Helpers

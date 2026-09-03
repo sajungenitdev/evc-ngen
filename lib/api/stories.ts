@@ -1,5 +1,5 @@
 // lib/api/stories.ts
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 
 // ============================================================================
 // Types
@@ -366,7 +366,7 @@ export const getStoriesImageUrl = (imageUrl: string): string => {
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
         return imageUrl;
     }
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
     return `${baseUrl}${imageUrl}`;
 };
 

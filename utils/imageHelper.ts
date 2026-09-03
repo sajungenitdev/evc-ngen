@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com';
 
 export const getImageUrl = (imagePath: string): string | null => {
     if (!imagePath || imagePath.trim() === '') {

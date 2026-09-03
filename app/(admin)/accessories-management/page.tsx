@@ -102,7 +102,7 @@ interface ApiResponse<T> {
     message?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 
 // ============================================
 // CONSTANTS
@@ -147,7 +147,7 @@ const AccessoryThumbnail: React.FC<AccessoryThumbnailProps> = ({
             return trimmed;
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
 
         if (trimmed.startsWith('/uploads')) {
             return `${baseUrl}${trimmed}`;

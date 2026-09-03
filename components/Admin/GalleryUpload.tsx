@@ -82,10 +82,10 @@ export default function GalleryUpload({
         if (url.startsWith('http://') || url.startsWith('https://')) return url;
         if (url.startsWith('data:image')) return url;
         if (url.startsWith('/uploads')) {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
             return `${baseUrl}${url}`;
         }
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
         return `${baseUrl}/uploads/products/${url}`;
     };
 

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { helpSupportAPI, HelpSupportData } from '@/lib/api/helpSupport';
 import { Loader2 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 const IMAGE_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 // ============================================================================

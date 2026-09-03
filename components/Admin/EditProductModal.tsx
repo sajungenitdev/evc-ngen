@@ -6,26 +6,24 @@ import toast from 'react-hot-toast';
 import TextEditor from './TextEditor';
 
 // -----------------------------------------------------------------------------
-// 1. Types & Data Contracts
+// 1. Types
 // -----------------------------------------------------------------------------
 
 export interface Brand {
     _id: string;
     id: string;
     name: string;
-    description?: string;
     icon?: string;
-    isActive: boolean;
+    isActive?: boolean;
 }
 
 export interface Category {
     _id: string;
     id: string;
     name: string;
-    description?: string;
     icon?: string;
     level: number;
-    isActive: boolean;
+    isActive?: boolean;
     parentId?: string | null;
     subcategories?: Category[];
 }
@@ -46,9 +44,7 @@ export interface Product {
     name: string;
     model: string;
     brand: string;
-    brandDetails?: Brand;
     category: string;
-    categoryDetails?: Category;
     categoryLabel: string;
     imageUrl: string;
     galleryImages: string[];
@@ -61,8 +57,6 @@ export interface Product {
     technicalDetails: TechnicalDetails;
     stock: number;
     isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
 }
 
 export interface ProductFormData {
@@ -123,8 +117,8 @@ const INITIAL_FORM: ProductFormData = {
     isActive: true,
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-const IMAGE_BASE_URL = API_BASE_URL.replace(/\/api$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
+const IMG_BB_API_KEY = 'a4f5c180c07ea3daa980fcfb759c35a7';
 
 // -----------------------------------------------------------------------------
 // 2. ImgBB Upload Helper
@@ -135,7 +129,7 @@ const uploadToImgBB = async (file: File): Promise<string> => {
     formData.append('image', file);
 
     try {
-        const response = await fetch('https://api.imgbb.com/1/upload?key=a4f5c180c07ea3daa980fcfb759c35a7', {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMG_BB_API_KEY}`, {
             method: 'POST',
             body: formData,
         });
@@ -143,9 +137,8 @@ const uploadToImgBB = async (file: File): Promise<string> => {
 
         if (data.success) {
             return data.data.url;
-        } else {
-            throw new Error(data.error?.message || 'Failed to upload to ImgBB');
         }
+        throw new Error(data.error?.message || 'Failed to upload to ImgBB');
     } catch (error) {
         console.error('ImgBB upload error:', error);
         throw error;
@@ -153,343 +146,7 @@ const uploadToImgBB = async (file: File): Promise<string> => {
 };
 
 // -----------------------------------------------------------------------------
-// 3. Gallery Upload Component - FIXED
-// -----------------------------------------------------------------------------
-
-interface GalleryUploadProps {
-    value?: string[];
-    onChange: (images: string[]) => void;
-    onFilesChange?: (files: File[]) => void;
-    maxImages?: number;
-    maxSize?: number;
-}
-
-const GalleryUpload: React.FC<GalleryUploadProps> = ({
-    value = [],
-    onChange,
-    onFilesChange,
-    maxImages = 10,
-    maxSize = 5,
-}) => {
-    const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-    const [localPreviews, setLocalPreviews] = useState<string[]>([]);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // ✅ Helper to clean and get full image URL
-    const getFullImageUrl = (imagePath: string): string => {
-        if (!imagePath) return '';
-
-        let cleanPath = imagePath;
-
-        // If it looks like a JSON string, try to parse it
-        if (cleanPath.startsWith('"') || cleanPath.startsWith('[')) {
-            try {
-                const parsed = JSON.parse(cleanPath);
-                if (typeof parsed === 'string') {
-                    cleanPath = parsed;
-                } else if (Array.isArray(parsed) && parsed.length > 0) {
-                    cleanPath = parsed[0];
-                }
-            } catch {
-                // Keep original if parsing fails
-            }
-        }
-
-        // If it's already a full URL (ImgBB, etc.)
-        if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
-            return cleanPath;
-        }
-        if (cleanPath.startsWith('data:image')) {
-            return cleanPath;
-        }
-        if (cleanPath.startsWith('blob:')) {
-            return cleanPath;
-        }
-        if (cleanPath.startsWith('/uploads')) {
-            return `${IMAGE_BASE_URL}${cleanPath}`;
-        }
-        return `${IMAGE_BASE_URL}/uploads/products/${cleanPath}`;
-    };
-
-    // ✅ FIXED: Properly parse gallery images from value prop
-    const parseGalleryValue = useCallback((val: any): string[] => {
-        if (!val) return [];
-        
-        // If it's already an array, return it
-        if (Array.isArray(val)) {
-            return val.filter(img => img && typeof img === 'string' && img.trim() !== '');
-        }
-
-        // If it's a string, try to parse it
-        if (typeof val === 'string') {
-            try {
-                let parsed: unknown = val;
-                
-                // Handle double-encoded JSON
-                while (typeof parsed === 'string' && (parsed.startsWith('[') || parsed.startsWith('"'))) {
-                    try {
-                        const temp = JSON.parse(parsed);
-                        if (typeof temp === 'string' && (temp.startsWith('[') || temp.startsWith('"'))) {
-                            parsed = temp;
-                            continue;
-                        }
-                        parsed = temp;
-                        break;
-                    } catch {
-                        break;
-                    }
-                }
-
-                if (Array.isArray(parsed)) {
-                    return parsed.filter(img => img && typeof img === 'string' && img.trim() !== '');
-                }
-                if (typeof parsed === 'string' && parsed.trim()) {
-                    return [parsed];
-                }
-            } catch {
-                return [];
-            }
-        }
-
-        return [];
-    }, []);
-
-    // ✅ FIXED: Update previews when value changes
-    useEffect(() => {
-        if (galleryFiles.length > 0) {
-            // When files are selected, show blob URLs
-            const blobUrls = galleryFiles.map((file) => URL.createObjectURL(file));
-            setLocalPreviews(blobUrls);
-            return;
-        }
-
-        // Parse gallery images from value
-        const imageArray = parseGalleryValue(value);
-        const previews = imageArray.map((img) => getFullImageUrl(img));
-        setLocalPreviews(previews);
-    }, [value, galleryFiles, parseGalleryValue]);
-
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length === 0) return;
-
-        const currentCount = parseGalleryValue(value).length;
-        if (files.length + currentCount > maxImages) {
-            toast.error(`Maximum ${maxImages} images allowed`);
-            return;
-        }
-
-        const validFiles: File[] = [];
-        const newPreviews: string[] = [];
-
-        for (const file of files) {
-            if (!file.type.startsWith('image/')) {
-                toast.error(`${file.name} is not a supported image file`);
-                continue;
-            }
-
-            if (file.size > maxSize * 1024 * 1024) {
-                toast.error(`${file.name} exceeds the ${maxSize}MB size limit`);
-                continue;
-            }
-
-            validFiles.push(file);
-            newPreviews.push(URL.createObjectURL(file));
-        }
-
-        if (validFiles.length === 0) return;
-
-        const updatedFiles = [...galleryFiles, ...validFiles];
-        setGalleryFiles(updatedFiles);
-        onFilesChange?.(updatedFiles);
-
-        // Add new previews to existing ones
-        const currentValues = parseGalleryValue(value);
-        onChange([...currentValues, ...validFiles.map((f) => f.name)]);
-
-        toast.success(`Added ${validFiles.length} image(s)`);
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
-
-    const removeImage = (index: number) => {
-        const newFiles = galleryFiles.filter((_, i) => i !== index);
-        setGalleryFiles(newFiles);
-        onFilesChange?.(newFiles);
-
-        // Revoke blob URL if it's a blob
-        if (localPreviews[index]?.startsWith('blob:')) {
-            URL.revokeObjectURL(localPreviews[index]);
-        }
-
-        // Update previews
-        const newPreviews = localPreviews.filter((_, i) => i !== index);
-        setLocalPreviews(newPreviews);
-
-        // Update value
-        const currentValues = parseGalleryValue(value);
-        onChange(currentValues.filter((_, i) => i !== index));
-    };
-
-    useEffect(() => {
-        return () => {
-            localPreviews.forEach((url) => {
-                if (url.startsWith('blob:')) {
-                    URL.revokeObjectURL(url);
-                }
-            });
-        };
-    }, [localPreviews]);
-
-    return (
-        <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Product Gallery
-                </label>
-                <span className="text-xs text-slate-400">
-                    {localPreviews.length} / {maxImages} uploaded
-                </span>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-                {localPreviews.map((img, index) => (
-                    <div
-                        key={index}
-                        className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-xs group"
-                    >
-                        <img
-                            src={img}
-                            alt={`Gallery preview ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                // Show a placeholder icon on error
-                                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f1f5f9"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="24"%3E🖼%3C/text%3E%3C/svg%3E';
-                            }}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-rose-700 transition shadow-xs z-10"
-                            title="Remove image"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                ))}
-
-                {localPreviews.length < maxImages && (
-                    <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 hover:border-slate-400 flex flex-col items-center justify-center cursor-pointer transition bg-slate-50/60 hover:bg-slate-50">
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handleFileSelect}
-                            className="hidden"
-                        />
-                        <span className="text-xl text-slate-400 leading-none mb-0.5">+</span>
-                        <span className="text-[10px] font-semibold text-slate-500">Upload</span>
-                    </label>
-                )}
-            </div>
-            <p className="text-[11px] text-slate-400">Supported formats: JPEG, PNG, WEBP (up to {maxSize}MB each)</p>
-        </div>
-    );
-};
-
-// -----------------------------------------------------------------------------
-// 4. Text Array Input Component
-// -----------------------------------------------------------------------------
-
-const TextArrayInput = ({
-    value = [],
-    onChange,
-    label,
-    placeholder,
-}: {
-    value?: string[];
-    onChange: (value: string[]) => void;
-    label: string;
-    placeholder: string;
-}) => {
-    const [inputValue, setInputValue] = useState('');
-
-    const addItem = useCallback(() => {
-        if (inputValue.trim()) {
-            onChange([...value, inputValue.trim()]);
-            setInputValue('');
-        }
-    }, [inputValue, onChange, value]);
-
-    const removeItem = useCallback(
-        (index: number) => {
-            onChange(value.filter((_, i) => i !== index));
-        },
-        [onChange, value]
-    );
-
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addItem();
-            }
-        },
-        [addItem]
-    );
-
-    return (
-        <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                {label}
-            </label>
-            <div className="flex gap-2">
-                <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
-                    className="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition"
-                />
-                <button
-                    type="button"
-                    onClick={addItem}
-                    className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition shrink-0"
-                >
-                    Add
-                </button>
-            </div>
-            {value.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                    {value.map((item, index) => (
-                        <span
-                            key={index}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium rounded-full"
-                        >
-                            {item}
-                            <button
-                                type="button"
-                                onClick={() => removeItem(index)}
-                                className="text-slate-400 hover:text-rose-600 transition"
-                                aria-label={`Remove ${item}`}
-                            >
-                                ✕
-                            </button>
-                        </span>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-// -----------------------------------------------------------------------------
-// 5. Build Category Hierarchy
+// 3. Build Category Hierarchy
 // -----------------------------------------------------------------------------
 
 const buildCategoryHierarchy = (categories: Category[]): Category[] => {
@@ -498,20 +155,14 @@ const buildCategoryHierarchy = (categories: Category[]): Category[] => {
 
     return mainCategories.map(main => {
         const children = subCategories.filter(sub =>
-            sub.parentId === main.id ||
-            sub.parentId === main._id ||
-            sub.parentId === main.id?.toString() ||
-            sub.parentId === main._id?.toString()
+            sub.parentId === main.id || sub.parentId === main._id
         );
-        return {
-            ...main,
-            subcategories: children,
-        };
+        return { ...main, subcategories: children };
     });
 };
 
 // -----------------------------------------------------------------------------
-// 6. Main Modal Component - ALL HOOKS AT TOP
+// 4. Main Modal Component
 // -----------------------------------------------------------------------------
 
 export default function EditProductModal({
@@ -523,89 +174,119 @@ export default function EditProductModal({
     categories,
     isSubmitting,
 }: EditProductModalProps) {
-    // ✅ ALL HOOKS MUST BE CALLED FIRST, UNCONDITIONALLY
+    // ✅ State
     const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM);
     const [mainImageFile, setMainImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string>('');
-    const [isProcessing, setIsProcessing] = useState<boolean>(false);
+    const [mainImagePreview, setMainImagePreview] = useState<string>('');
+    const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
     const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
+    const [isUploadingGallery, setIsUploadingGallery] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+    // ✅ Category hierarchy
+    const categoryHierarchy = useMemo(() => buildCategoryHierarchy(categories), [categories]);
+    const allActiveCategories = useMemo(() => categories.filter(c => c.isActive !== false), [categories]);
 
+
+    // ✅ Helper: Get Full Image URL
     const getFullImageUrl = useCallback((imagePath: string): string => {
         if (!imagePath) return '';
-        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-            return imagePath;
-        }
-        if (imagePath.startsWith('data:image')) {
-            return imagePath;
-        }
-        if (imagePath.startsWith('blob:')) {
-            return imagePath;
-        }
-        if (imagePath.startsWith('/uploads')) {
-            return `${IMAGE_BASE_URL}${imagePath}`;
-        }
-        return `${IMAGE_BASE_URL}/uploads/products/${imagePath}`;
+        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) return imagePath;
+        if (imagePath.startsWith('data:image') || imagePath.startsWith('blob:')) return imagePath;
+
+        const baseUrl = API_BASE_URL.replace(/\/api$/, '');
+        return imagePath.startsWith('/uploads') ? `${baseUrl}${imagePath}` : `${baseUrl}/uploads/products/${imagePath}`;
     }, []);
 
-    // ✅ FIXED: Parse gallery images - handles all edge cases
+    // components/Admin/EditProductModal.tsx - শুধু গ্যালারি পার্সিং অংশ
+
+    // ✅ FIXED: Parse Gallery Images - handles all formats including nested arrays
     const parseGalleryImages = useCallback((images: any): string[] => {
         if (!images) return [];
 
-        // If it's already an array, filter and return
-        if (Array.isArray(images)) {
-            return images.filter(img => img && typeof img === 'string' && img.trim() !== '');
-        }
-
-        // If it's a string, try to parse it
-        if (typeof images === 'string') {
-            try {
-                let parsed: unknown = images;
-
-                // ✅ Handle double-encoded JSON (string inside string)
-                while (typeof parsed === 'string') {
+        // Helper to extract strings from nested arrays
+        const extractStrings = (data: any): string[] => {
+            if (!data) return [];
+            if (typeof data === 'string') {
+                // Try to parse if it looks like JSON
+                if (data.startsWith('[') || data.startsWith('"')) {
                     try {
-                        const temp = JSON.parse(parsed);
-                        if (typeof temp === 'string' && (temp.startsWith('[') || temp.startsWith('"'))) {
-                            parsed = temp;
-                            continue;
-                        }
-                        parsed = temp;
-                        break;
+                        const parsed = JSON.parse(data);
+                        return extractStrings(parsed);
                     } catch {
-                        break;
+                        return data.trim() ? [data] : [];
                     }
                 }
-
-                // If it's an array, filter and return
-                if (Array.isArray(parsed)) {
-                    return parsed.filter(img => img && typeof img === 'string' && img.trim() !== '');
-                }
-
-                // If it's a single string, return as array
-                if (typeof parsed === 'string' && parsed.trim()) {
-                    return [parsed];
-                }
-
-                return [];
-            } catch {
-                return [];
+                return data.trim() ? [data] : [];
             }
+            if (Array.isArray(data)) {
+                const result: string[] = [];
+                for (const item of data) {
+                    result.push(...extractStrings(item));
+                }
+                return result;
+            }
+            return [];
+        };
+
+        // If it's already an array
+        if (Array.isArray(images)) {
+            const result: string[] = [];
+            for (const img of images) {
+                if (typeof img === 'string' && img.trim()) {
+                    // Check if it's a JSON string
+                    if (img.startsWith('[') || img.startsWith('"')) {
+                        try {
+                            const parsed = JSON.parse(img);
+                            if (Array.isArray(parsed)) {
+                                const extracted = extractStrings(parsed);
+                                result.push(...extracted);
+                            } else if (typeof parsed === 'string' && parsed.trim()) {
+                                result.push(parsed);
+                            }
+                        } catch {
+                            result.push(img);
+                        }
+                    } else {
+                        result.push(img);
+                    }
+                }
+            }
+            return result;
+        }
+
+        // If it's a string
+        if (typeof images === 'string') {
+            let parsed: unknown = images;
+            let attempts = 0;
+
+            while (typeof parsed === 'string' && attempts < 10) {
+                attempts++;
+                try {
+                    const temp = JSON.parse(parsed);
+                    parsed = temp;
+                } catch {
+                    break;
+                }
+            }
+
+            // Extract all strings from the parsed data
+            const result = extractStrings(parsed);
+
+            // ✅ Filter out any invalid URLs or empty strings
+            return result.filter(img =>
+                img &&
+                typeof img === 'string' &&
+                img.trim() !== '' &&
+                (img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/uploads'))
+            );
         }
 
         return [];
     }, []);
 
-    // ✅ useMemo hooks BEFORE any conditional return
-    const categoryHierarchy = useMemo(() => {
-        return buildCategoryHierarchy(categories);
-    }, [categories]);
-
-    const allActiveCategories = useMemo(() => {
-        return categories.filter((c) => c.isActive !== false);
-    }, [categories]);
-
-    // ✅ useEffect hook for syncing product data
+    // ✅ Sync product data when modal opens
     useEffect(() => {
         if (product && isOpen) {
             const galleryImages = parseGalleryImages(product.galleryImages);
@@ -637,93 +318,153 @@ export default function EditProductModal({
                 isActive: product.isActive !== undefined ? product.isActive : true,
             });
 
-            setImagePreview(getFullImageUrl(product.imageUrl || ''));
+            setMainImagePreview(getFullImageUrl(product.imageUrl || ''));
+            setGalleryPreviews(galleryImages.map(img => getFullImageUrl(img)));
             setMainImageFile(null);
             setGalleryFiles([]);
         }
     }, [product, isOpen, parseGalleryImages, getFullImageUrl]);
 
-    // ✅ Event handler hooks
-    const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isOpen || !product) return null;
+
+
+    // ✅ Main Image Handlers
+    const handleMainImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            toast.error('Please upload a valid image file');
+            toast.error('Please upload an image file');
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image size should not exceed 5MB');
+            toast.error('Image size should be less than 5MB');
             return;
         }
 
-        setMainImageFile(file);
-        const previewUrl = URL.createObjectURL(file);
-        setImagePreview(previewUrl);
-        setFormData((prev) => ({ ...prev, imageUrl: file.name }));
-        toast.success('Cover image chosen');
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+        try {
+            setIsProcessing(true);
+            setMainImageFile(file);
+            const previewUrl = URL.createObjectURL(file);
+            setMainImagePreview(previewUrl);
+            setFormData(prev => ({ ...prev, imageUrl: file.name }));
+            toast.success('Image selected');
+        } catch (error) {
+            console.error('Image selection error:', error);
+            toast.error('Failed to process image');
+        } finally {
+            setIsProcessing(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
-    }, []);
+    };
 
-    const removeCoverImage = useCallback(() => {
-        if (imagePreview && imagePreview.startsWith('blob:')) {
-            URL.revokeObjectURL(imagePreview);
-        }
+    const removeMainImage = () => {
+        if (mainImagePreview?.startsWith('blob:')) URL.revokeObjectURL(mainImagePreview);
         setMainImageFile(null);
-        setImagePreview('');
-        setFormData((prev) => ({ ...prev, imageUrl: '' }));
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+        setMainImagePreview('');
+        setFormData(prev => ({ ...prev, imageUrl: '' }));
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    // ✅ Gallery Image Handlers
+    const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        if (galleryPreviews.length + files.length > 10) {
+            toast.error('Maximum 10 gallery images allowed');
+            if (galleryInputRef.current) galleryInputRef.current.value = '';
+            return;
         }
-    }, [imagePreview]);
 
-    const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedId = e.target.value;
-        const selectedCat = allActiveCategories.find((c) => (c.id || c._id) === selectedId);
-        setFormData((prev) => ({
+        setIsUploadingGallery(true);
+        const toastId = toast.loading(`Uploading ${files.length} image(s) to ImgBB...`);
+
+        try {
+            const validFiles: File[] = [];
+            for (const file of Array.from(files)) {
+                if (!file.type.startsWith('image/')) {
+                    toast.error(`${file.name} is not an image`);
+                    continue;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    toast.error(`${file.name} exceeds 5MB limit`);
+                    continue;
+                }
+                validFiles.push(file);
+            }
+
+            if (validFiles.length === 0) {
+                toast.error('No valid images to upload', { id: toastId });
+                setIsUploadingGallery(false);
+                return;
+            }
+
+            // ✅ Upload to ImgBB immediately
+            const uploadPromises = validFiles.map(file => uploadToImgBB(file));
+            const uploadedUrls = await Promise.all(uploadPromises);
+
+            // ✅ Update state with ImgBB URLs
+            setGalleryPreviews(prev => [...prev, ...uploadedUrls]);
+            setGalleryFiles(prev => [...prev, ...validFiles]);
+            setFormData(prev => ({
+                ...prev,
+                galleryImages: [...prev.galleryImages, ...uploadedUrls]
+            }));
+
+            toast.success(`${uploadedUrls.length} image(s) uploaded to ImgBB!`, { id: toastId });
+        } catch (error) {
+            console.error('Gallery upload error:', error);
+            toast.error('Failed to upload images', { id: toastId });
+        } finally {
+            setIsUploadingGallery(false);
+            if (galleryInputRef.current) galleryInputRef.current.value = '';
+        }
+    };
+
+    const removeGalleryImage = (index: number) => {
+        setFormData(prev => ({
             ...prev,
-            category: selectedId,
-            categoryLabel: selectedCat?.name || prev.categoryLabel,
+            galleryImages: prev.galleryImages.filter((_, i) => i !== index)
         }));
-    }, [allActiveCategories]);
+        setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+        setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    };
 
-    const updateField = useCallback(<K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
-        setFormData((prev) => ({ ...prev, [field]: value }));
-    }, []);
+    // ✅ Form Field Handlers
+    const updateField = <K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
-    const updateTechnicalDetails = useCallback(<K extends keyof TechnicalDetails>(field: K, value: string) => {
-        setFormData((prev) => ({
+    const updateTechnicalDetails = <K extends keyof TechnicalDetails>(field: K, value: string) => {
+        setFormData(prev => ({
             ...prev,
-            technicalDetails: {
-                ...prev.technicalDetails,
-                [field]: value,
-            },
+            technicalDetails: { ...prev.technicalDetails, [field]: value }
         }));
-    }, []);
+    };
 
-    const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    // ✅ Submit Handler
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // ✅ Validation
         if (!formData.name.trim()) {
             toast.error('Product name is required');
             return;
         }
         if (!formData.model.trim()) {
-            toast.error('Model identifier is required');
+            toast.error('Model is required');
             return;
         }
         if (!formData.brand) {
-            toast.error('Brand selection is required');
+            toast.error('Brand is required');
             return;
         }
         if (!formData.category) {
-            toast.error('Category selection is required');
+            toast.error('Category is required');
             return;
         }
-        if (!imagePreview && !product?.imageUrl) {
+        if (!mainImagePreview && !product?.imageUrl) {
             toast.error('A primary cover image is required');
             return;
         }
@@ -736,20 +477,20 @@ export default function EditProductModal({
         const toastId = toast.loading('Saving product...');
 
         try {
-            // Upload main image if it's a new file
+            // ✅ Upload main image if new
             let mainImageUrl = formData.imageUrl;
             if (mainImageFile) {
                 toast.loading('Uploading main image to ImgBB...', { id: toastId });
                 mainImageUrl = await uploadToImgBB(mainImageFile);
-            } else if (imagePreview && imagePreview.startsWith('blob:')) {
-                const response = await fetch(imagePreview);
+            } else if (mainImagePreview?.startsWith('blob:')) {
+                const response = await fetch(mainImagePreview);
                 const blob = await response.blob();
                 const file = new File([blob], 'main-image.jpg', { type: 'image/jpeg' });
                 toast.loading('Uploading main image to ImgBB...', { id: toastId });
                 mainImageUrl = await uploadToImgBB(file);
             }
 
-            // Build payload
+            // ✅ Build payload
             const payload: ProductFormData = {
                 ...formData,
                 imageUrl: mainImageUrl,
@@ -768,37 +509,34 @@ export default function EditProductModal({
             await onSubmit(payload);
             toast.success('Product updated successfully!', { id: toastId });
 
+            setMainImageFile(null);
+            setGalleryFiles([]);
         } catch (error) {
             console.error('Submit error:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to submit form', { id: toastId });
         } finally {
             setIsProcessing(false);
         }
-    }, [formData, mainImageFile, imagePreview, product, onSubmit]);
+    };
 
-    // ✅ ONLY CONDITIONAL RETURN AFTER ALL HOOKS
-    if (!isOpen || !product) return null;
-
-    // -----------------------------------------------------------------------------
-    // 7. Render JSX
-    // -----------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Render
+    // -------------------------------------------------------------------------
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
             <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col">
 
-                {/* Sticky Header */}
+                {/* Header */}
                 <div className="sticky top-0 z-10 bg-white rounded-t-3xl px-6 sm:px-8 pt-6 pb-4 border-b border-slate-100 shrink-0">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-bold tracking-tight text-slate-900">Edit Product</h2>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                                Update product specifications, media, and inventory
-                            </p>
+                            <p className="text-xs text-slate-500 mt-0.5">Update product specifications, media, and inventory</p>
                         </div>
                         <button
                             onClick={onClose}
-                            disabled={isSubmitting || isProcessing}
+                            disabled={isSubmitting || isProcessing || isUploadingGallery}
                             className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition disabled:opacity-50"
                             aria-label="Close modal"
                         >
@@ -807,9 +545,9 @@ export default function EditProductModal({
                     </div>
                 </div>
 
-                {/* Scrollable Content */}
+                {/* Content */}
                 <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6" id="edit-product-form">
 
                         {/* General Information */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -860,54 +598,37 @@ export default function EditProductModal({
                                 </select>
                             </div>
 
-                            {/* Category Dropdown with Sub-categories */}
                             <div className="sm:col-span-2">
                                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Category Group <span className="text-rose-500">*</span>
-                                    <span className="text-[10px] font-normal text-slate-400 ml-2">
-                                        (Includes sub-categories)
-                                    </span>
+                                    <span className="text-[10px] font-normal text-slate-400 ml-2">(Includes sub-categories)</span>
                                 </label>
                                 <select
                                     value={formData.category}
-                                    onChange={handleCategoryChange}
+                                    onChange={(e) => {
+                                        const selectedId = e.target.value;
+                                        const selectedCat = allActiveCategories.find(c => (c.id || c._id) === selectedId);
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            category: selectedId,
+                                            categoryLabel: selectedCat?.name || prev.categoryLabel,
+                                        }));
+                                    }}
                                     required
                                     className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition"
                                 >
                                     <option value="">Select category...</option>
-                                    {categoryHierarchy.map((mainCategory) => (
-                                        <optgroup
-                                            key={mainCategory.id || mainCategory._id}
-                                            label={`${mainCategory.icon || '📂'} ${mainCategory.name}`}
-                                        >
-                                            <option value={mainCategory.id || mainCategory._id}>
-                                                ─ {mainCategory.icon || '📂'} {mainCategory.name}
-                                            </option>
-                                            {mainCategory.subcategories && mainCategory.subcategories.length > 0 && (
-                                                mainCategory.subcategories.map((sub) => (
-                                                    <option
-                                                        key={sub.id || sub._id}
-                                                        value={sub.id || sub._id}
-                                                        className="pl-4"
-                                                    >
-                                                        &nbsp;&nbsp;└─ {sub.icon || '📁'} {sub.name}
-                                                    </option>
-                                                ))
-                                            )}
+                                    {categoryHierarchy.map((main) => (
+                                        <optgroup key={main.id || main._id} label={`${main.icon || '📂'} ${main.name}`}>
+                                            <option value={main.id || main._id}>─ {main.icon || '📂'} {main.name}</option>
+                                            {main.subcategories?.map((sub) => (
+                                                <option key={sub.id || sub._id} value={sub.id || sub._id} className="pl-4">
+                                                    &nbsp;&nbsp;└─ {sub.icon || '📁'} {sub.name}
+                                                </option>
+                                            ))}
                                         </optgroup>
                                     ))}
-                                    {allActiveCategories
-                                        .filter(c => (c.level || 0) > 0 && !categoryHierarchy.some(main =>
-                                            main.subcategories?.some(sub => (sub.id || sub._id) === (c.id || c._id))
-                                        ))
-                                        .map((subCategory) => (
-                                            <option key={subCategory.id || subCategory._id} value={subCategory.id || subCategory._id}>
-                                                &nbsp;&nbsp;└─ {subCategory.icon || '📁'} {subCategory.name}
-                                            </option>
-                                        ))
-                                    }
                                 </select>
-                                <p className="text-[11px] text-slate-400 mt-1">Main categories shown with their sub-categories indented</p>
                             </div>
 
                             <div>
@@ -980,16 +701,16 @@ export default function EditProductModal({
                                     Primary Cover Image <span className="text-rose-500">*</span>
                                 </label>
                                 <div className="flex items-center gap-4">
-                                    {imagePreview ? (
+                                    {mainImagePreview ? (
                                         <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shrink-0 shadow-xs">
                                             <img
-                                                src={imagePreview.startsWith('blob:') ? imagePreview : getFullImageUrl(imagePreview)}
+                                                src={mainImagePreview}
                                                 alt="Product preview"
                                                 className="w-full h-full object-cover"
                                             />
                                             <button
                                                 type="button"
-                                                onClick={removeCoverImage}
+                                                onClick={removeMainImage}
                                                 className="absolute top-1.5 right-1.5 w-5 h-5 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs hover:bg-rose-700 transition shadow-xs z-10"
                                                 title="Remove image"
                                             >
@@ -1006,54 +727,116 @@ export default function EditProductModal({
                                         <button
                                             type="button"
                                             onClick={() => fileInputRef.current?.click()}
-                                            disabled={isProcessing || isSubmitting}
+                                            disabled={isProcessing || isSubmitting || isUploadingGallery}
                                             className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition disabled:opacity-50"
                                         >
-                                            {imagePreview ? 'Change Cover Image' : 'Select Cover Image'}
+                                            {mainImagePreview ? 'Change Cover Image' : 'Select Cover Image'}
                                         </button>
                                         <p className="text-[11px] text-slate-400 mt-1">JPEG, PNG, WEBP (Max 5MB)</p>
-                                        {mainImageFile && (
-                                            <p className="text-xs text-emerald-600 font-medium mt-1">
-                                                ✓ {mainImageFile.name} ({(mainImageFile.size / 1024).toFixed(1)} KB)
-                                            </p>
-                                        )}
                                     </div>
 
                                     <input
                                         ref={fileInputRef}
                                         type="file"
                                         accept="image/*"
-                                        onChange={handleImageUpload}
+                                        onChange={handleMainImageUpload}
                                         className="hidden"
                                     />
                                 </div>
                             </div>
 
-                            {/* Gallery Upload */}
-                            <GalleryUpload
-                                value={formData.galleryImages}
-                                onChange={(images) => updateField('galleryImages', images)}
-                                onFilesChange={setGalleryFiles}
-                                maxImages={10}
-                                maxSize={5}
-                            />
+                            {/* Gallery Images */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Product Gallery (Up to 10 Images)
+                                </label>
+                                <div className="flex flex-wrap gap-3">
+                                    {galleryPreviews.map((preview, index) => {
+                                        const imageSrc = preview && (preview.startsWith('http://') || preview.startsWith('https://'))
+                                            ? preview
+                                            : getFullImageUrl(preview);
+                                        console.log('Gallery Image Preview:', imageSrc);
+                                        return (
+                                            <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 group">
+                                                {imageSrc ? (
+                                                    <img
+                                                        src={imageSrc}
+                                                        alt={`Gallery ${index + 1}`}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            const target = e.target as HTMLImageElement;
+                                                            target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f1f5f9"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="24"%3E🖼%3C/text%3E%3C/svg%3E';
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                                                        <span className="text-2xl">🖼️</span>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeGalleryImage(index)}
+                                                    className="absolute top-1 right-1 w-5 h-5 bg-rose-600 hover:bg-rose-700 text-white rounded-full flex items-center justify-center text-xs transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                    {galleryPreviews.length < 10 && (
+                                        <label className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-[#0B192C] transition-colors bg-slate-50 hover:bg-slate-100">
+                                            <input
+                                                ref={galleryInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                multiple
+                                                onChange={handleGalleryUpload}
+                                                className="hidden"
+                                            />
+                                            {isUploadingGallery ? (
+                                                <svg className="animate-spin h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                            ) : (
+                                                <span className="text-2xl text-slate-400">+</span>
+                                            )}
+                                        </label>
+                                    )}
+                                </div>
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                    {galleryPreviews.length} of 10 images • Images are uploaded to ImgBB
+                                </p>
+                            </div>
                         </div>
 
                         {/* Specifications & Features */}
                         <div className="border-t border-slate-100 pt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <TextArrayInput
-                                label="Key Specifications"
-                                value={formData.specs}
-                                onChange={(specs) => updateField('specs', specs)}
-                                placeholder="e.g., 350kW Peak Delivery"
-                            />
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Key Specifications (One per line)
+                                </label>
+                                <textarea
+                                    value={formData.specs.join('\n')}
+                                    onChange={(e) => updateField('specs', e.target.value.split('\n').filter(s => s.trim()))}
+                                    rows={3}
+                                    placeholder="350kW Peak Delivery&#10;Dual CCS2 Connectors"
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition resize-none"
+                                />
+                            </div>
 
-                            <TextArrayInput
-                                label="Core Features"
-                                value={formData.features}
-                                onChange={(features) => updateField('features', features)}
-                                placeholder="e.g., OCPP 2.0.1 Ready"
-                            />
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Core Features (One per line)
+                                </label>
+                                <textarea
+                                    value={formData.features.join('\n')}
+                                    onChange={(e) => updateField('features', e.target.value.split('\n').filter(s => s.trim()))}
+                                    rows={3}
+                                    placeholder="OCPP 2.0.1 Ready&#10;Liquid-cooled Cables"
+                                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 placeholder:text-slate-400 transition resize-none"
+                                />
+                            </div>
                         </div>
 
                         {/* Descriptions */}
@@ -1080,121 +863,42 @@ export default function EditProductModal({
 
                         {/* Technical Specifications */}
                         <div className="border-t border-slate-100 pt-5 space-y-3">
-                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                                Hardware Engineering Specs
-                            </h3>
+                            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Hardware Engineering Specs</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Power Output <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.powerOutput}
-                                        onChange={(e) => updateTechnicalDetails('powerOutput', e.target.value)}
-                                        placeholder="350kW DC"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Input Voltage <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.inputVoltage}
-                                        onChange={(e) => updateTechnicalDetails('inputVoltage', e.target.value)}
-                                        placeholder="480V 3-Phase"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Connector Standard <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.connectorType}
-                                        onChange={(e) => updateTechnicalDetails('connectorType', e.target.value)}
-                                        placeholder="Dual CCS2"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Enclosure Protection <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.enclosureRating}
-                                        onChange={(e) => updateTechnicalDetails('enclosureRating', e.target.value)}
-                                        placeholder="IP55 / IK10"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Warranty Period <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.warranty}
-                                        onChange={(e) => updateTechnicalDetails('warranty', e.target.value)}
-                                        placeholder="5 Years Complete"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Dimensions (H × W × D) <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.dimensions}
-                                        onChange={(e) => updateTechnicalDetails('dimensions', e.target.value)}
-                                        placeholder="1950 × 750 × 600 mm"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                        Unit Weight <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.technicalDetails.weight}
-                                        onChange={(e) => updateTechnicalDetails('weight', e.target.value)}
-                                        placeholder="350 kg"
-                                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
-                                    />
-                                </div>
+                                {[
+                                    { key: 'powerOutput', label: 'Power Output', placeholder: '350kW DC' },
+                                    { key: 'inputVoltage', label: 'Input Voltage', placeholder: '480V 3-Phase' },
+                                    { key: 'connectorType', label: 'Connector Standard', placeholder: 'Dual CCS2' },
+                                    { key: 'enclosureRating', label: 'Enclosure Protection', placeholder: 'IP55 / IK10' },
+                                    { key: 'warranty', label: 'Warranty Period', placeholder: '5 Years Complete' },
+                                    { key: 'dimensions', label: 'Dimensions (H × W × D)', placeholder: '1950 × 750 × 600 mm' },
+                                    { key: 'weight', label: 'Unit Weight', placeholder: '350 kg' },
+                                ].map(({ key, label, placeholder }) => (
+                                    <div key={key}>
+                                        <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                                            {label} <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.technicalDetails[key as keyof TechnicalDetails]}
+                                            onChange={(e) => updateTechnicalDetails(key as keyof TechnicalDetails, e.target.value)}
+                                            placeholder={placeholder}
+                                            className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-900 transition"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Active Status Toggle */}
+                        {/* Active Status */}
                         <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                             <div className="flex items-center gap-3">
-                                <span className="text-xs font-semibold text-slate-700">
-                                    Catalog Status
-                                </span>
+                                <span className="text-xs font-semibold text-slate-700">Catalog Status</span>
                                 <span className={`text-xs font-medium ${formData.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
                                     {formData.isActive ? 'Active' : 'Inactive'}
                                 </span>
                             </div>
-
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -1211,27 +915,24 @@ export default function EditProductModal({
                             <button
                                 type="button"
                                 onClick={onClose}
-                                disabled={isSubmitting || isProcessing}
+                                disabled={isSubmitting || isProcessing || isUploadingGallery}
                                 className="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-sm font-semibold transition disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                disabled={isSubmitting || isProcessing}
+                                form="edit-product-form"
+                                disabled={isSubmitting || isProcessing || isUploadingGallery}
                                 className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold shadow-xs transition disabled:opacity-50 flex items-center justify-center gap-2 min-w-[140px]"
                             >
-                                {isSubmitting || isProcessing ? (
-                                    <>
-                                        <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                        </svg>
-                                        <span>Saving...</span>
-                                    </>
-                                ) : (
-                                    'Update Product'
+                                {(isSubmitting || isProcessing || isUploadingGallery) && (
+                                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
                                 )}
+                                {isSubmitting ? 'Saving...' : 'Update Product'}
                             </button>
                         </div>
                     </form>

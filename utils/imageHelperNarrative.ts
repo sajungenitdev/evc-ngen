@@ -1,6 +1,6 @@
 // utils/imageHelperNarrative.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
 
 // Map of display names to actual uploaded filenames
 const ACTUAL_IMAGE_FILES: { [key: string]: string } = {

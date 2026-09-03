@@ -52,7 +52,7 @@ interface CategoryFormData {
     isActive: boolean;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 
 const colorOptions = [
     { value: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Purple' },

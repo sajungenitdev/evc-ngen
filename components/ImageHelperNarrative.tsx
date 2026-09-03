@@ -31,7 +31,7 @@ export const ImageHelperNarrative: React.FC<ImageHelperNarrativeProps> = ({
 
             // If getImageUrl returns null or undefined, try to construct the URL manually
             if (!url) {
-                const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+                const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://evc-ngen-server.onrender.com';
                 
                 // Clean the src path
                 let cleanSrc = src;

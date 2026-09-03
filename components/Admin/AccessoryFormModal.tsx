@@ -132,7 +132,7 @@ const INITIAL_FORM: AccessoryFormData = {
     accessoryType: 'other',
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://evc-ngen-server.onrender.com/api';
 const IMAGE_BASE_URL = API_BASE_URL.replace(/\/api$/, '').replace(/\/api\/?$/, '');
 
 // ============================================
