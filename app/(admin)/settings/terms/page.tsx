@@ -106,16 +106,16 @@ export default function TermsAdminPage() {
     // app/(admin)/settings/terms/page.tsx
 
     const updateSection = useCallback((index: number, field: keyof Section, value: any) => {
-    setTermsData(prev => {
-        if (!prev) return prev;
-        const newSections = [...prev.sections];
-        if (index >= 0 && index < newSections.length) {
-            newSections[index] = { ...newSections[index], [field]: value };
-            return { ...prev, sections: newSections };
-        }
-        return prev;
-    });
-}, []);
+        setTermsData(prev => {
+            if (!prev) return prev;
+            const newSections = [...prev.sections];
+            if (index >= 0 && index < newSections.length) {
+                newSections[index] = { ...newSections[index], [field]: value };
+                return { ...prev, sections: newSections };
+            }
+            return prev;
+        });
+    }, []);
 
     const addSection = async () => {
         if (!termsData) return;
@@ -387,8 +387,8 @@ export default function TermsAdminPage() {
                 <button
                     onClick={() => setActiveTab('content')}
                     className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'content'
-                            ? 'border-[#1b7936] text-[#1b7936]'
-                            : 'border-transparent text-slate-500 hover:text-slate-700'
+                        ? 'border-[#1b7936] text-[#1b7936]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700'
                         }`}
                 >
                     Content
@@ -396,8 +396,8 @@ export default function TermsAdminPage() {
                 <button
                     onClick={() => setActiveTab('sections')}
                     className={`px-4 py-2.5 text-sm font-bold border-b-2 transition ${activeTab === 'sections'
-                            ? 'border-[#1b7936] text-[#1b7936]'
-                            : 'border-transparent text-slate-500 hover:text-slate-700'
+                        ? 'border-[#1b7936] text-[#1b7936]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700'
                         }`}
                 >
                     Sections ({termsData.sections?.length || 0})

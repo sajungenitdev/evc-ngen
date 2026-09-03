@@ -685,7 +685,7 @@ export default function CreateProductModal({
 
                         <TextEditor
                             label="Short Overview"
-                            required
+                            required    
                             value={formData.shortDescription}
                             onChange={(value) => setFormData({ ...formData, shortDescription: value })}
                             placeholder="Write a brief product teaser..."
@@ -823,11 +823,11 @@ export default function CreateProductModal({
 
                             <div>
                                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                    Unit Weight <span className="text-rose-500">*</span>
+                                    Unit Weight 
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.weight}
                                     onChange={(e) =>
                                         setFormData({

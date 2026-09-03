@@ -64,7 +64,7 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/ev-chargers?filter=accessories" className="text-ev-muted hover:text-ev-green transition-colors">
+                                <Link href="/ev-chargers?category=accessories" className="text-ev-muted hover:text-ev-green transition-colors">
                                     Accessories
                                 </Link>
                             </li>
