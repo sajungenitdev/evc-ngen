@@ -153,7 +153,7 @@ const uploadToImgBB = async (file: File): Promise<string> => {
 };
 
 // -----------------------------------------------------------------------------
-// 3. Gallery Upload Component
+// 3. Gallery Upload Component - FIXED
 // -----------------------------------------------------------------------------
 
 interface GalleryUploadProps {
@@ -175,55 +175,105 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
     const [localPreviews, setLocalPreviews] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // ✅ Helper to clean and get full image URL
     const getFullImageUrl = (imagePath: string): string => {
         if (!imagePath) return '';
-        if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-            return imagePath;
+
+        let cleanPath = imagePath;
+
+        // If it looks like a JSON string, try to parse it
+        if (cleanPath.startsWith('"') || cleanPath.startsWith('[')) {
+            try {
+                const parsed = JSON.parse(cleanPath);
+                if (typeof parsed === 'string') {
+                    cleanPath = parsed;
+                } else if (Array.isArray(parsed) && parsed.length > 0) {
+                    cleanPath = parsed[0];
+                }
+            } catch {
+                // Keep original if parsing fails
+            }
         }
-        if (imagePath.startsWith('data:image')) {
-            return imagePath;
+
+        // If it's already a full URL (ImgBB, etc.)
+        if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+            return cleanPath;
         }
-        if (imagePath.startsWith('blob:')) {
-            return imagePath;
+        if (cleanPath.startsWith('data:image')) {
+            return cleanPath;
         }
-        if (imagePath.startsWith('/uploads')) {
-            return `${IMAGE_BASE_URL}${imagePath}`;
+        if (cleanPath.startsWith('blob:')) {
+            return cleanPath;
         }
-        return `${IMAGE_BASE_URL}/uploads/products/${imagePath}`;
+        if (cleanPath.startsWith('/uploads')) {
+            return `${IMAGE_BASE_URL}${cleanPath}`;
+        }
+        return `${IMAGE_BASE_URL}/uploads/products/${cleanPath}`;
     };
 
+    // ✅ FIXED: Properly parse gallery images from value prop
+    const parseGalleryValue = useCallback((val: any): string[] => {
+        if (!val) return [];
+        
+        // If it's already an array, return it
+        if (Array.isArray(val)) {
+            return val.filter(img => img && typeof img === 'string' && img.trim() !== '');
+        }
+
+        // If it's a string, try to parse it
+        if (typeof val === 'string') {
+            try {
+                let parsed: unknown = val;
+                
+                // Handle double-encoded JSON
+                while (typeof parsed === 'string' && (parsed.startsWith('[') || parsed.startsWith('"'))) {
+                    try {
+                        const temp = JSON.parse(parsed);
+                        if (typeof temp === 'string' && (temp.startsWith('[') || temp.startsWith('"'))) {
+                            parsed = temp;
+                            continue;
+                        }
+                        parsed = temp;
+                        break;
+                    } catch {
+                        break;
+                    }
+                }
+
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(img => img && typeof img === 'string' && img.trim() !== '');
+                }
+                if (typeof parsed === 'string' && parsed.trim()) {
+                    return [parsed];
+                }
+            } catch {
+                return [];
+            }
+        }
+
+        return [];
+    }, []);
+
+    // ✅ FIXED: Update previews when value changes
     useEffect(() => {
         if (galleryFiles.length > 0) {
+            // When files are selected, show blob URLs
             const blobUrls = galleryFiles.map((file) => URL.createObjectURL(file));
             setLocalPreviews(blobUrls);
             return;
         }
 
-        if (value && value.length > 0) {
-            let imageArray: string[] = [];
-            if (Array.isArray(value)) {
-                imageArray = value;
-            } else if (typeof value === 'string') {
-                try {
-                    const parsed = JSON.parse(value);
-                    if (Array.isArray(parsed)) imageArray = parsed;
-                } catch {
-                    imageArray = [];
-                }
-            }
-
-            const previews = imageArray.map((img) => getFullImageUrl(img));
-            setLocalPreviews(previews);
-        } else {
-            setLocalPreviews([]);
-        }
-    }, [value, galleryFiles]);
+        // Parse gallery images from value
+        const imageArray = parseGalleryValue(value);
+        const previews = imageArray.map((img) => getFullImageUrl(img));
+        setLocalPreviews(previews);
+    }, [value, galleryFiles, parseGalleryValue]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
 
-        const currentCount = Array.isArray(value) ? value.length : 0;
+        const currentCount = parseGalleryValue(value).length;
         if (files.length + currentCount > maxImages) {
             toast.error(`Maximum ${maxImages} images allowed`);
             return;
@@ -253,9 +303,8 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
         setGalleryFiles(updatedFiles);
         onFilesChange?.(updatedFiles);
 
-        setLocalPreviews((prev) => [...prev, ...newPreviews]);
-
-        const currentValues = Array.isArray(value) ? value : [];
+        // Add new previews to existing ones
+        const currentValues = parseGalleryValue(value);
         onChange([...currentValues, ...validFiles.map((f) => f.name)]);
 
         toast.success(`Added ${validFiles.length} image(s)`);
@@ -270,14 +319,17 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
         setGalleryFiles(newFiles);
         onFilesChange?.(newFiles);
 
+        // Revoke blob URL if it's a blob
         if (localPreviews[index]?.startsWith('blob:')) {
             URL.revokeObjectURL(localPreviews[index]);
         }
 
+        // Update previews
         const newPreviews = localPreviews.filter((_, i) => i !== index);
         setLocalPreviews(newPreviews);
 
-        const currentValues = Array.isArray(value) ? value : [];
+        // Update value
+        const currentValues = parseGalleryValue(value);
         onChange(currentValues.filter((_, i) => i !== index));
     };
 
@@ -314,7 +366,8 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({
                             className="w-full h-full object-cover"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
+                                // Show a placeholder icon on error
+                                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f1f5f9"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="24"%3E🖼%3C/text%3E%3C/svg%3E';
                             }}
                         />
                         <button
@@ -495,22 +548,51 @@ export default function EditProductModal({
         return `${IMAGE_BASE_URL}/uploads/products/${imagePath}`;
     }, []);
 
+    // ✅ FIXED: Parse gallery images - handles all edge cases
     const parseGalleryImages = useCallback((images: any): string[] => {
         if (!images) return [];
+
+        // If it's already an array, filter and return
         if (Array.isArray(images)) {
             return images.filter(img => img && typeof img === 'string' && img.trim() !== '');
         }
+
+        // If it's a string, try to parse it
         if (typeof images === 'string') {
             try {
                 let parsed: unknown = images;
-                while (typeof parsed === 'string' && parsed.startsWith('[')) {
-                    parsed = JSON.parse(parsed);
+
+                // ✅ Handle double-encoded JSON (string inside string)
+                while (typeof parsed === 'string') {
+                    try {
+                        const temp = JSON.parse(parsed);
+                        if (typeof temp === 'string' && (temp.startsWith('[') || temp.startsWith('"'))) {
+                            parsed = temp;
+                            continue;
+                        }
+                        parsed = temp;
+                        break;
+                    } catch {
+                        break;
+                    }
                 }
-                return Array.isArray(parsed) ? parsed : [];
+
+                // If it's an array, filter and return
+                if (Array.isArray(parsed)) {
+                    return parsed.filter(img => img && typeof img === 'string' && img.trim() !== '');
+                }
+
+                // If it's a single string, return as array
+                if (typeof parsed === 'string' && parsed.trim()) {
+                    return [parsed];
+                }
+
+                return [];
             } catch {
                 return [];
             }
         }
+
         return [];
     }, []);
 
