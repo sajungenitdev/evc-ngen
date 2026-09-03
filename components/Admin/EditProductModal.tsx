@@ -736,7 +736,8 @@ export default function EditProductModal({
                                 {/* Required Weight Field */}
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Unit Weight <span className="text-rose-500">*</span>
+                                        Unit Weight 
+                                        {/* <span className="text-rose-500">*</span> */}
                                     </label>
                                     <input
                                         type="text"

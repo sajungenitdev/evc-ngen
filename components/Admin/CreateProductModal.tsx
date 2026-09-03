@@ -713,7 +713,7 @@ export default function CreateProductModal({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.powerOutput}
                                     onChange={(e) =>
                                         setFormData({
@@ -732,7 +732,7 @@ export default function CreateProductModal({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.inputVoltage}
                                     onChange={(e) =>
                                         setFormData({
@@ -751,7 +751,7 @@ export default function CreateProductModal({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.connectorType}
                                     onChange={(e) =>
                                         setFormData({
@@ -770,7 +770,7 @@ export default function CreateProductModal({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.enclosureRating}
                                     onChange={(e) =>
                                         setFormData({
@@ -789,7 +789,7 @@ export default function CreateProductModal({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.warranty}
                                     onChange={(e) =>
                                         setFormData({
@@ -808,7 +808,7 @@ export default function CreateProductModal({
                                 </label>
                                 <input
                                     type="text"
-                                    required
+                                    // required
                                     value={formData.technicalDetails.dimensions}
                                     onChange={(e) =>
                                         setFormData({
