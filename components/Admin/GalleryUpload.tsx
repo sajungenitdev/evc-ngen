@@ -12,6 +12,8 @@ interface GalleryUploadProps {
     className?: string;
     maxImages?: number;
     maxSize?: number;
+    // ✅ NEW: Upload function for ImgBB
+    onUploadToImgBB?: (file: File) => Promise<string>;
 }
 
 export default function GalleryUpload({
@@ -22,63 +24,67 @@ export default function GalleryUpload({
     className = '',
     maxImages = 10,
     maxSize = 5,
+    onUploadToImgBB, // ✅ NEW
 }: GalleryUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const isInitialMount = useRef(true);
 
-    // ✅ Parse value properly when it changes
+    // Parse value properly when it changes
     useEffect(() => {
         let imagesArray: string[] = [];
         
         if (typeof value === 'string') {
             try {
                 let parsed: unknown = value;
-                while (typeof parsed === 'string' && parsed.startsWith('[')) {
+                while (typeof parsed === 'string' && (parsed.startsWith('[') || parsed.startsWith('"'))) {
                     parsed = JSON.parse(parsed);
                 }
                 if (Array.isArray(parsed)) {
                     imagesArray = parsed;
                 }
-            } catch {
+            } catch (e) {
                 imagesArray = [];
             }
         } else if (Array.isArray(value)) {
             imagesArray = value;
         }
         
-        // ✅ Filter out empty values and keep valid URLs
-        const validImages = imagesArray.filter(img => img && typeof img === 'string' && img.trim() !== '');
-        setImagePreviews(validImages);
+        // ✅ Keep only valid URLs (http/https/uploads)
+        const validImages = imagesArray.filter(img => {
+            if (!img || typeof img !== 'string' || img.trim() === '') return false;
+            if (img.startsWith('http://') || img.startsWith('https://')) return true;
+            if (img.startsWith('/uploads')) return true;
+            if (img.startsWith('data:image')) return true;
+            return false;
+        });
+        
+        if (isInitialMount.current) {
+            setImagePreviews(validImages);
+            isInitialMount.current = false;
+        } else {
+            const currentUrls = imagePreviews.filter(img => 
+                img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/uploads')
+            );
+            const newUrls = validImages.filter(img => 
+                img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/uploads')
+            );
+            if (JSON.stringify(currentUrls) !== JSON.stringify(newUrls)) {
+                setImagePreviews(validImages);
+            }
+        }
     }, [value]);
 
-    // ✅ Helper to get proper image URL
     const getImageUrl = (url: string): string => {
         if (!url) return '';
-        
-        // If it's a blob URL, return as is (for preview)
-        if (url.startsWith('blob:')) {
-            return url;
-        }
-        
-        // If it's already a full URL (ImgBB, etc.)
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-            return url;
-        }
-        
-        // If it's a base64 data URL
-        if (url.startsWith('data:image')) {
-            return url;
-        }
-        
-        // If it's an uploads path
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        if (url.startsWith('data:image')) return url;
         if (url.startsWith('/uploads')) {
             const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
             return `${baseUrl}${url}`;
         }
-        
-        // Default: assume it's a filename in uploads/products
         const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
         return `${baseUrl}/uploads/products/${url}`;
     };
@@ -87,7 +93,8 @@ export default function GalleryUpload({
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        if (imagePreviews.length + files.length > maxImages) {
+        const currentCount = imagePreviews.length;
+        if (currentCount + files.length > maxImages) {
             toast.error(`You can upload maximum ${maxImages} images`);
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
@@ -109,31 +116,41 @@ export default function GalleryUpload({
                     toast.error(`${file.name} exceeds ${maxSize}MB limit`);
                     continue;
                 }
-
                 validFiles.push(file);
-                // ✅ Create blob URL for preview
-                const previewUrl = URL.createObjectURL(file);
-                validPreviews.push(previewUrl);
             }
 
             if (validFiles.length > 0) {
-                // Store files for upload
+                // ✅ If ImgBB upload function is provided, upload immediately
+                let uploadedUrls: string[] = [];
+                if (onUploadToImgBB) {
+                    const toastId = toast.loading(`Uploading ${validFiles.length} image(s)...`);
+                    try {
+                        const uploadPromises = validFiles.map(file => onUploadToImgBB(file));
+                        uploadedUrls = await Promise.all(uploadPromises);
+                        toast.success(`${uploadedUrls.length} image(s) uploaded!`, { id: toastId });
+                    } catch (error) {
+                        toast.error('Failed to upload images', { id: toastId });
+                        console.error('Upload error:', error);
+                        setIsUploading(false);
+                        return;
+                    }
+                }
+
+                // ✅ Use uploaded URLs or fallback to blob URLs
+                const newUrls = uploadedUrls.length > 0 ? uploadedUrls : validFiles.map(f => URL.createObjectURL(f));
+                
+                // ✅ Update previews with actual URLs
+                const updatedPreviews = [...imagePreviews, ...newUrls];
+                setImagePreviews(updatedPreviews);
+                onChange(updatedPreviews);
+
+                // ✅ Update selected files
                 const updatedFiles = [...selectedFiles, ...validFiles];
                 setSelectedFiles(updatedFiles);
 
-                // Update previews with blob URLs
-                const updatedPreviews = [...imagePreviews, ...validPreviews];
-                setImagePreviews(updatedPreviews);
-                
-                // ✅ Update parent with the preview URLs (blob URLs for display)
-                onChange(updatedPreviews);
-
-                // ✅ Pass files to parent for FormData upload (to ImgBB)
                 if (onFilesChange) {
                     onFilesChange(updatedFiles);
                 }
-
-                toast.success(`${validFiles.length} image(s) added to gallery`);
             }
         } catch (error) {
             console.error('Gallery upload error:', error);
@@ -147,7 +164,6 @@ export default function GalleryUpload({
     };
 
     const removeImage = (index: number) => {
-        // ✅ Revoke blob URL to free memory
         const preview = imagePreviews[index];
         if (preview && preview.startsWith('blob:')) {
             URL.revokeObjectURL(preview);
@@ -165,7 +181,7 @@ export default function GalleryUpload({
         }
     };
 
-    // ✅ Cleanup blob URLs on unmount
+    // Cleanup blob URLs on unmount
     useEffect(() => {
         return () => {
             imagePreviews.forEach(preview => {
@@ -185,27 +201,38 @@ export default function GalleryUpload({
             )}
 
             <div className="flex flex-wrap gap-3">
-                {imagePreviews.map((img, index) => (
-                    <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50 group">
-                        <img
-                            src={getImageUrl(img)}
-                            alt={`Gallery ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                // ✅ Show a simple placeholder on error
-                                target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f1f5f9"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="24"%3E🖼%3C/text%3E%3C/svg%3E';
-                            }}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-sm opacity-0 group-hover:opacity-100"
-                        >
-                            ×
-                        </button>
+                {imagePreviews.length === 0 ? (
+                    <div className="w-full text-center py-6 text-slate-400 text-sm border-2 border-dashed border-slate-200 rounded-lg">
+                        <span className="text-2xl block mb-2">🖼️</span>
+                        No gallery images yet. Click the "+" button to add images.
                     </div>
-                ))}
+                ) : (
+                    imagePreviews.map((img, index) => {
+                        const imageUrl = getImageUrl(img);
+                        if (!imageUrl) return null;
+                        
+                        return (
+                            <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-50 group">
+                                <img
+                                    src={imageUrl}
+                                    alt={`Gallery ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"%3E%3Crect width="80" height="80" fill="%23f1f5f9"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%2394a3b8" font-size="24"%3E🖼%3C/text%3E%3C/svg%3E';
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removeImage(index)}
+                                    className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        );
+                    })
+                )}
 
                 {imagePreviews.length < maxImages && (
                     <button
