@@ -458,7 +458,7 @@ const buildCategoryHierarchy = (categories: Category[]): Category[] => {
 };
 
 // -----------------------------------------------------------------------------
-// 6. Main Modal Component
+// 6. Main Modal Component - ALL HOOKS AT TOP
 // -----------------------------------------------------------------------------
 
 export default function EditProductModal({
@@ -470,6 +470,7 @@ export default function EditProductModal({
     categories,
     isSubmitting,
 }: EditProductModalProps) {
+    // ✅ ALL HOOKS MUST BE CALLED FIRST, UNCONDITIONALLY
     const [formData, setFormData] = useState<ProductFormData>(INITIAL_FORM);
     const [mainImageFile, setMainImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string>('');
@@ -513,7 +514,16 @@ export default function EditProductModal({
         return [];
     }, []);
 
-    // Sync product data when modal opens
+    // ✅ useMemo hooks BEFORE any conditional return
+    const categoryHierarchy = useMemo(() => {
+        return buildCategoryHierarchy(categories);
+    }, [categories]);
+
+    const allActiveCategories = useMemo(() => {
+        return categories.filter((c) => c.isActive !== false);
+    }, [categories]);
+
+    // ✅ useEffect hook for syncing product data
     useEffect(() => {
         if (product && isOpen) {
             const galleryImages = parseGalleryImages(product.galleryImages);
@@ -551,18 +561,7 @@ export default function EditProductModal({
         }
     }, [product, isOpen, parseGalleryImages, getFullImageUrl]);
 
-    if (!isOpen || !product) return null;
-
-    // Category hierarchy for dropdown
-    const categoryHierarchy = useMemo(() => {
-        return buildCategoryHierarchy(categories);
-    }, [categories]);
-
-    const allActiveCategories = useMemo(() => {
-        return categories.filter((c) => c.isActive !== false);
-    }, [categories]);
-
-    // Main Image Handlers
+    // ✅ Event handler hooks
     const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -599,7 +598,6 @@ export default function EditProductModal({
         }
     }, [imagePreview]);
 
-    // Category Selector Handler
     const handleCategoryChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedId = e.target.value;
         const selectedCat = allActiveCategories.find((c) => (c.id || c._id) === selectedId);
@@ -610,7 +608,6 @@ export default function EditProductModal({
         }));
     }, [allActiveCategories]);
 
-    // Update field handler
     const updateField = useCallback(<K extends keyof ProductFormData>(field: K, value: ProductFormData[K]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     }, []);
@@ -625,7 +622,6 @@ export default function EditProductModal({
         }));
     }, []);
 
-    // Submit handler
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -697,6 +693,13 @@ export default function EditProductModal({
             setIsProcessing(false);
         }
     }, [formData, mainImageFile, imagePreview, product, onSubmit]);
+
+    // ✅ ONLY CONDITIONAL RETURN AFTER ALL HOOKS
+    if (!isOpen || !product) return null;
+
+    // -----------------------------------------------------------------------------
+    // 7. Render JSX
+    // -----------------------------------------------------------------------------
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
@@ -984,7 +987,8 @@ export default function EditProductModal({
                                 minHeight={120}
                             />
 
-                            <TextEditor                                label="Full Technical & Marketing Description"
+                            <TextEditor
+                                label="Full Technical & Marketing Description"
                                 value={formData.description}
                                 onChange={(val) => updateField('description', val)}
                                 placeholder="In-depth equipment details..."
