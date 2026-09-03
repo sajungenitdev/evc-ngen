@@ -711,7 +711,7 @@ export default function CreateProductModal({
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Power Output <span className="text-rose-500">*</span>
+                                        Power Output
                                     </label>
                                     <input
                                         type="text"
@@ -730,7 +730,7 @@ export default function CreateProductModal({
 
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Input Voltage <span className="text-rose-500">*</span>
+                                        Input Voltage
                                     </label>
                                     <input
                                         type="text"
@@ -749,7 +749,7 @@ export default function CreateProductModal({
 
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Connector Standard <span className="text-rose-500">*</span>
+                                        Connector Standard
                                     </label>
                                     <input
                                         type="text"
@@ -768,7 +768,7 @@ export default function CreateProductModal({
 
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Enclosure Protection <span className="text-rose-500">*</span>
+                                        Enclosure Protection
                                     </label>
                                     <input
                                         type="text"
@@ -787,7 +787,7 @@ export default function CreateProductModal({
 
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Warranty Period <span className="text-rose-500">*</span>
+                                        Warranty Period
                                     </label>
                                     <input
                                         type="text"
@@ -806,7 +806,7 @@ export default function CreateProductModal({
 
                                 <div>
                                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                        Dimensions (H × W × D) <span className="text-rose-500">*</span>
+                                        Dimensions (H × W × D)
                                     </label>
                                     <input
                                         type="text"
@@ -859,31 +859,33 @@ export default function CreateProductModal({
                         </div>
 
                         {/* Actions */}
-                        <div className="flex gap-3 pt-5 border-t border-slate-100">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-bold transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting || isProcessing}
-                                className="flex-1 bg-[#0B192C] hover:bg-[#1E3E62] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-[#0B192C]/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                            >
-                                {isSubmitting || isProcessing ? (
-                                    <>
-                                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                        </svg>
-                                        {isSubmitting ? 'Creating...' : 'Processing...'}
-                                    </>
-                                ) : (
-                                    'Create Product'
-                                )}
-                            </button>
+                        <div className="sticky bottom-0  z-10 flex w-full flex justify-end bg-white py-4 border-t border-slate-100 shrink-0">
+                            <div className="flex gap-3 justify-end w-90">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs sm:text-sm font-bold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || isProcessing}
+                                    className="flex-1 bg-[#0B192C] hover:bg-[#1E3E62] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-[#0B192C]/10 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSubmitting || isProcessing ? (
+                                        <>
+                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            {isSubmitting ? 'Creating...' : 'Processing...'}
+                                        </>
+                                    ) : (
+                                        'Create Product'
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
