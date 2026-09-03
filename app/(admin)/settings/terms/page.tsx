@@ -106,17 +106,16 @@ export default function TermsAdminPage() {
     // app/(admin)/settings/terms/page.tsx
 
     const updateSection = useCallback((index: number, field: keyof Section, value: any) => {
-        if (!termsData) return;
-        setTermsData(prev => {
-            if (!prev) return prev;
-            const newSections = [...prev.sections];
-            if (index >= 0 && index < newSections.length) {
-                newSections[index] = { ...newSections[index], [field]: value };
-                return { ...prev, sections: newSections };
-            }
-            return prev;
-        });
-    }, []);
+    setTermsData(prev => {
+        if (!prev) return prev;
+        const newSections = [...prev.sections];
+        if (index >= 0 && index < newSections.length) {
+            newSections[index] = { ...newSections[index], [field]: value };
+            return { ...prev, sections: newSections };
+        }
+        return prev;
+    });
+}, []);
 
     const addSection = async () => {
         if (!termsData) return;
